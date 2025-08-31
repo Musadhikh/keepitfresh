@@ -5,7 +5,7 @@
 - Tracking **expiry dates** of items
 - Managing **households** (items grouped by household)
 - **Camera scanning** (labels/barcodes) to auto-fill fields
-- **Notifications** before items expire  
+- **LocalNotifications** before items expire  
 **Data layer:** Cloud Firestore with **offline persistence & cache** (no Realm).
 
 **Architecture:** Clean (Domain / Data / Presentation / Shared), MVVM, protocol-driven, concurrency-safe with actors.
