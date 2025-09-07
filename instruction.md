@@ -1,12 +1,12 @@
 # instruction.md
 
 ## 📌 Project Context
-**Keep it Fresh** is an iOS app (Swift 6, SwiftUI) for:
+**Keep it Fresh** is an iOS app (Swift 6, SwiftUI, iOS minimum version 18) for:
 - Tracking **expiry dates** of items
 - Managing **households** (items grouped by household)
 - **Camera scanning** (labels/barcodes) to auto-fill fields
 - **LocalNotifications** before items expire  
-**Data layer:** Cloud Firestore with **offline persistence & cache** (no Realm).
+**Data layer:** Cloud Firestore with **offline persistence & cache**.
 
 **Architecture:** Clean (Domain / Data / Presentation / Shared), MVVM, protocol-driven, concurrency-safe with actors.
 
@@ -15,7 +15,7 @@
 ## 🧱 Tech Stack & Libraries
 - **Firebase**: Firestore (+ offline cache), Auth (optional), App Check (Recommended), Messaging (optional)
 - **Swift Packages**: `FirebaseFirestore`, `FirebaseFirestoreSwift`, `FirebaseAuth` (if needed)
-- **UI**: SwiftUI (iOS 17+ APIs where helpful)
+- **UI**: SwiftUI (iOS 18+ APIs where helpful)
 - **Testing**: XCTest (+ Firestore emulator for integration tests if possible)
 
 ---
@@ -29,8 +29,9 @@
    - Use `async/await` wrappers for Firestore operations.
    - Use **actors** for shared mutable state (e.g., `InventoryActor`).
 3. **UI**
-   - SwiftUI views consume **ObservableObject** ViewModels.
+   - SwiftUI views consume **@Observable** ViewModels.
    - Provide lightweight **previews with sample data**.
+   - Previews and Prewview data should only avaialable in Debug mode
 4. **Error Handling**
    - Map Firestore errors to domain errors (e.g., `DataError.network`, `DataError.permission`).
 5. **Testing**
@@ -135,17 +136,44 @@ Sources/
  ├── Domain/
  │    ├── Models/ (Household, Item, Purchase, ExpiryStatus)
  │    ├── Services/ (ExpiryService, ReminderScheduler)
- │    └── Protocols/ (ItemRepository, HouseholdRepository)
+ │    └── Protocols/ (ItemProviding, HouseholdProviding)
  ├── Data/
- │    ├── Firestore/ (FirestoreItemRepository, FirestoreHouseholdRepository, DTOs)
+ │    ├── Firestore/ (FirestoreItemProvider, FirestoreHouseholdProvider, DTOs)
  │    └── Mappers/ (Model <-> Firestore document)
  ├── Presentation/
  │    ├── Views/ (ExpiryListView, HouseholdView, DebugView)
  │    └── ViewModels/ (InventoryViewModel, HouseholdViewModel)
- └── Shared/
+ └── Utils/
       ├── Utilities/ (AsyncStream helpers, Date utils)
       └── Debug/ (Floating debug button, DebugView)
 ```
+## Folder Structure
+
+- **Data**
+  - Contains actual implementations of protocols defined in the `Domain` layer.
+  - Related items should be grouped into folders (e.g., `Repositories`, `Network`, `Persistence`).
+  - Do not define new protocols here — only implement ones declared in `Domain`.
+
+- **Domain**
+  - Contains only **protocols** and **models**.
+  - All protocol names must end with `Providing`.  
+    Example: `DownloadProviding`, `UserProviding`.
+  - Models must:
+    - Be inside the `Model` folder.
+    - Be declared as `struct`.
+    - Conform to `Codable`.
+
+- **Presentation**
+  - Contains all **SwiftUI Views**, **ViewModels**, and UI-related logic.
+  - ViewModels must follow `@Observable` from Swift and conform to MVVM practices.
+  - Avoid any business logic here — delegate to `Domain`.
+
+- **Utils**
+  - Contains reusable helpers, extensions, and utilities.
+  - Should not depend on other layers.
+
+- **Resources**
+  - Contains assets, localization files, JSON mocks, and static resources.
 
 ---
 
@@ -155,18 +183,10 @@ Sources/
 - “Write a ViewModel that listens to Firestore changes via AsyncStream.”
 - “Add a save pipeline using AsyncStream that reports scanning → parsing → upsert steps.”
 - “Provide Firestore security rules ensuring only household members can read/write.”
-
----
-
-## 🔄 Migration Notes (from Realm)
-- Replace Realm entities with Firestore documents (IDs as strings).
-- Prefer **denormalized** docs for read speed (e.g., store `status` alongside `expiryDate`).
-- No DB migrations—use **versioned document fields**; clients ignore unknown fields.
-
 ---
 
 ### What Copilot Should Prefer
-- Firestore with **offline cache**, not Realm.
+- Firestore with **offline cache**.
 - `async/await`, **actors**, `AsyncStream` for listeners/progress.
 - SwiftUI-first components with previews.
 - Protocol-driven, testable repositories.
