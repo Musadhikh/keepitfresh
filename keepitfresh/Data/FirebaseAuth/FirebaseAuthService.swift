@@ -26,20 +26,11 @@ actor FirebaseAuthService: AuthServiceProviding {
             let credential = try await provider.execute()
             
             let user = Task.detached {
-                switch credential {
-                case .apple(let token, let nonce):
-                    let credential = OAuthProvider.appleCredential(withIDToken: token, rawNonce: nonce, fullName: nil)
-                    let data = try await self.auth.signIn(with: credential)
+                if let firebaseCredential = credential.firebaseCredential {
+                    let data = try await self.auth.signIn(with: firebaseCredential)
                     return data.user.authUser
-                case .google(let idToken, let accessToken):
-                    let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-                    let data = try await self.auth.signIn(with: credential)
-                    return data.user.authUser
-                case .emailPassword(let email, let password):
-                    let emailAuthCredential = EmailAuthProvider.credential(withEmail: email, password: password)
-                    let data = try await self.auth.signIn(with: emailAuthCredential)
-                    return data.user.authUser
-                case .anonymous:
+                } else {
+                    // Handle anonymous sign-in
                     let result = try await self.auth.signInAnonymously()
                     return result.user.authUser
                 }
