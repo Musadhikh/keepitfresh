@@ -177,6 +177,23 @@ Sources/
 
 ---
 
+## Best Practices
+
+- Use **actors** where concurrency is required.
+- Follow **MVVM** strictly; do not introduce other patterns.
+- Use only Apple’s official APIs — avoid third-party patterns or frameworks unless explicitly allowed.
+- Keep separation of concerns clear:
+  - `Domain` = what the app *can do*.
+  - `Data` = how it *does it*.
+  - `Presentation` = how it’s *shown*.
+- Always prefer value types (`struct`) over reference types (`class`) for models.
+- Strict SOLID patterns should follow
+- Do not use singlton patterns otherthan Apple's native APIs.
+- Files should be smaller and focused on one implementations
+- Create File for individual struct, class, actors, enums etc.
+
+---
+
 ## ✅ Copilot Prompting Hints
 - “Generate a Firestore repository that observes items for a household with offline cache.”
 - “Create a SwiftUI ExpiryListView grouping items by expired/expiringSoon/fresh.”
