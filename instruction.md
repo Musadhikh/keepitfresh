@@ -5,7 +5,9 @@
 - Tracking **expiry dates** of items
 - Managing **households** (items grouped by household)
 - **Camera scanning** (labels/barcodes) to auto-fill fields
-- **LocalNotifications** before item## ✅ Copilot Prompting Hints
+- **LocalNotifications** before item expiry
+
+## ✅ Copilot Prompting Hints
 - "Generate a Firestore repository that observes items for a household with offline cache."
 - "Create a SwiftUI ExpiryListView grouping items by expired/expiringSoon/fresh."
 - "Write a ViewModel that listens to Firestore changes via AsyncStream."
