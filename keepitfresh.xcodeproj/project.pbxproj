@@ -39,9 +39,22 @@
 		C7DA73A32E63FE5100331A4A /* keepitfreshUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = keepitfreshUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C7E8F05B2E6D5F33002CE0AA /* Exceptions for "keepitfresh" folder in "keepitfresh" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C7DA738A2E63FE5000331A4A /* keepitfresh */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C7DA738D2E63FE5000331A4A /* keepitfresh */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C7E8F05B2E6D5F33002CE0AA /* Exceptions for "keepitfresh" folder in "keepitfresh" target */,
+			);
 			path = keepitfresh;
 			sourceTree = "<group>";
 		};
@@ -425,6 +438,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = keepitfresh/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Keep It Fresh";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -466,6 +480,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = keepitfresh/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Keep It Fresh";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
