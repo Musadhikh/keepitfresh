@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseFirestore
+import GoogleSignIn
 
 @main
 struct KeepItFreshApp: App {
@@ -15,6 +16,9 @@ struct KeepItFreshApp: App {
     
     init() {
         FirebaseApp.configure()
+        
+        // Configure Google Sign-In
+        GoogleSignInConfig.configure()
         
         // Configure Firestore with offline persistence
         let db = Firestore.firestore()
@@ -25,13 +29,19 @@ struct KeepItFreshApp: App {
     
     var body: some Scene {
         WindowGroup {
-            switch appState.currentState {
-            case .splash:
-                SplashView {
-                    appState.completeSplash()
+            Group {
+                switch appState.currentState {
+                case .splash:
+                    SplashView {
+                        appState.completeSplash()
+                    }
+                    
+                case .main:
+                    Text("Main")
                 }
-            case .main:
-                Text("Main")
+            }
+            .onOpenURL { url in
+                GoogleSignInConfig.handleURL(url)
             }
         }
     }
