@@ -11,4 +11,5 @@ struct AppMetadata: Codable, Equatable, Sendable {
     let message: String
     let minimumVersion: String
     let appStoreUrl: String
+    let isUnderMaintenance: Bool
 }
