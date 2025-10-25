@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SplashView: View {
+    @Environment(AppState.self) var appState
+    
     @State private var viewModel = SplashViewModel()
     @State private var animateIcon = false
     @State private var animateText = false
@@ -104,6 +106,7 @@ struct SplashView: View {
         .onChange(of: viewModel.shouldNavigate) { _, shouldNavigate in
             if shouldNavigate {
                 onComplete()
+                appState.enterMain()
             }
         }
         .accessibilityLabel("Keep It Fresh app loading screen")
