@@ -118,10 +118,8 @@ struct SplashView: View {
     }
 }
 
+#if DEBUG
 #Preview {
-    #if DEBUG
-    SplashView(onComplete: {
-        print("Splash completed")
-    })
-    #endif
+    SplashView()
 }
+#endif
