@@ -15,12 +15,6 @@ struct SplashView: View {
     @State private var animateText = false
     @State private var showProgress = false
     
-    let onComplete: () -> Void
-    
-    init(onComplete: @escaping () -> Void = {}) {
-        self.onComplete = onComplete
-    }
-    
     var body: some View {
         ZStack {
             // Background gradient
@@ -104,10 +98,6 @@ struct SplashView: View {
             startAnimations()
         }
         .onChange(of: viewModel.shouldNavigate) { _, shouldNavigate in
-            if shouldNavigate {
-                onComplete()
-                appState.enterMain()
-            }
         }
         .accessibilityLabel("Keep It Fresh app loading screen")
     }

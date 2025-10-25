@@ -32,7 +32,7 @@ struct KeepItFreshApp: App {
             Group {
                 switch appState.currentState {
                 case .splash:
-                    SplashView {}
+                    SplashView()
                 case .authentication:
                     Text("Login Screen")
                 case .main:
