@@ -39,6 +39,7 @@ struct KeepItFreshApp: App {
                     Text("Main")
                 }
             }
+            .environment(appState)
             .onOpenURL { url in
                 GoogleSignInConfig.handleURL(url)
             }
