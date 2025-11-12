@@ -26,11 +26,10 @@ struct KeepItFreshApp: App {
         // Configure Firestore with offline persistence
         let db = Firestore.firestore()
         let settings = db.settings
-        settings.cacheSettings = PersistentCacheSettings(sizeBytes: FirebaseConstants.sizeBytes) // 200MB
+        settings.cacheSettings = PersistentCacheSettings(sizeBytes: FirebaseConstants.cacheSize)
         db.settings = settings
         
-        let dependencies = PreviewDependencyContainer()
-        self.dependencies = dependencies
+        self.dependencies = ProcessInfo.isRunningForPreviews ? PreviewDependencyContainer() : AppDependencyContainer()
         self.splashViewModel = SplashViewModel(useCase: dependencies.appLaunchUseCase())
     }
     
