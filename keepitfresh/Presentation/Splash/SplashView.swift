@@ -114,8 +114,8 @@ struct SplashView: View {
     
     private func handleLaunchState(_ state: AppLaunchState) {
         switch state {
-        case .maintenance(let metadata):
-            appState.enterMaintenance(metadata)
+        case .maintenance:
+            appState.enterMaintenance()
         case .updateRequired, .createHousehold, .selectHousehold:
             break
         case .loginRequired:

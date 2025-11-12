@@ -8,7 +8,7 @@
 import Foundation
 
 enum AppLaunchState: Equatable, Sendable {
-    case maintenance(AppMetadata)
+    case maintenance
     case updateRequired
     case loginRequired
     case createHousehold

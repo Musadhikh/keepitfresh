@@ -19,7 +19,7 @@ struct AppLaunchUseCase: Sendable {
         let metadata = try await metadataProvider.getAppMetadata()
         /// 2. Check for maintenance
         if metadata.isUnderMaintenance {
-            return .maintenance(metadata)
+            return .maintenance
         }
         /// 3. Check for App Version update
         if versionCheckProvider.requiresVersionUpdate(metadata: metadata) {
