@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct MaintenanceView: View {
-    let message: String
-    
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
@@ -23,7 +21,7 @@ struct MaintenanceView: View {
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
                 
-                Text(message)
+                Text("Keep It Fresh is undergoing scheduled maintenance. Please check back soon.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
@@ -37,7 +35,7 @@ struct MaintenanceView: View {
 
 #if DEBUG
 #Preview {
-    MaintenanceView(message: "Keep It Fresh is undergoing scheduled maintenance. Please check back soon.")
+    MaintenanceView()
 }
 #endif
 

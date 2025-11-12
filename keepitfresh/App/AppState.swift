@@ -12,8 +12,8 @@ final class AppState {
     enum State: Equatable {
         /// App is showing the splash/launch screen (cold start, warm start, or restoring from background)
         case splash
-        /// App is temporarily blocked due to maintenance; carries metadata for UI
-        case maintenance(AppMetadata)
+        /// App is temporarily blocked due to maintenance
+        case maintenance
         /// App needs the user to authenticate (login/sign up, SSO, etc.)
         case authentication
         /// App is ready and showing the main content (post-auth)
@@ -23,9 +23,9 @@ final class AppState {
     private(set) var currentState: State = .splash
     
     /// Transition to maintenance screen
-    func enterMaintenance(_ metadata: AppMetadata) {
+    func enterMaintenance() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            currentState = .maintenance(metadata)
+            currentState = .maintenance
         }
     }
     
