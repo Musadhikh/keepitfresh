@@ -9,12 +9,5 @@ import Foundation
 import FirebaseAuth
 
 extension User {
-    var authUser: AuthUser {
-        return AuthUser(
-            id: uid,
-            email: email,
-            name: displayName,
-            photo: photoURL
-        )
-    }
+    
 }

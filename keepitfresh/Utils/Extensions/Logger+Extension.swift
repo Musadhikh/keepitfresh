@@ -8,8 +8,6 @@
 import Foundation
 import os.log
 
-
-
 /// Global logger for the KeepItFresh app
 let app = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.mus.keepitfresh", category: "app")
 

@@ -10,10 +10,14 @@ import SwiftUI
 struct SplashView: View {
     @Environment(AppState.self) var appState
     
-    @State private var viewModel = SplashViewModel()
+    @State private var viewModel: SplashViewModel
     @State private var animateIcon = false
     @State private var animateText = false
     @State private var showProgress = false
+    
+    init(viewModel: SplashViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
     
     var body: some View {
         ZStack {
@@ -97,9 +101,26 @@ struct SplashView: View {
         .onAppear {
             startAnimations()
         }
-        .onChange(of: viewModel.shouldNavigate) { _, shouldNavigate in
+        .task {
+            await viewModel.start()
+        }
+        .onChange(of: viewModel.launchState) { _, newState in
+            app.debug("new state: \(String(describing: newState))")
+            guard let newState else { return }
+            handleLaunchState(newState)
         }
         .accessibilityLabel("Keep It Fresh app loading screen")
+    }
+    
+    private func handleLaunchState(_ state: AppLaunchState) {
+        switch state {
+        case .maintenance, .updateRequired, .createHousehold, .selectHousehold:
+            break
+        case .loginRequired:
+            appState.requireAuthentication()
+        case .mainContent:
+            appState.enterMain()
+        }
     }
     
     private func startAnimations() {
@@ -120,6 +141,7 @@ struct SplashView: View {
 
 #if DEBUG
 #Preview {
-    SplashView()
+    SplashView(viewModel: .preview)
+        .environment(AppState())
 }
 #endif
