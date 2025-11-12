@@ -32,7 +32,7 @@ private struct StaticAppMetadataProvider: AppMetadataProviding {
             message: "Welcome to Keep It Fresh",
             minimumVersion: "1.0.0",
             appStoreUrl: "https://example.com/app",
-            isUnderMaintenance: false
+            isUnderMaintenance: true
         )
     }
 }
@@ -45,7 +45,6 @@ private struct StaticVersionCheckProvider: VersionCheckProviding {
 
 private struct StaticUserProvider: UserProviding {
     func current() async throws -> User? {
-        return nil
         User(
             id: UUID().uuidString,
             name: "Sample User",

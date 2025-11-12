@@ -40,6 +40,8 @@ struct KeepItFreshApp: App {
                 switch appState.currentState {
                 case .splash:
                     SplashView(viewModel: splashViewModel)
+                case .maintenance(let metadata):
+                    MaintenanceView(message: metadata.message)
                 case .authentication:
                     Text("Login Screen")
                 case .main:
@@ -53,3 +55,4 @@ struct KeepItFreshApp: App {
         }
     }
 }
+
