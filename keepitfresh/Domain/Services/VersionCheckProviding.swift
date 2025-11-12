@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol VersionCheckProviding {
+protocol VersionCheckProviding: Sendable {
     func requiresVersionUpdate(metadata: AppMetadata) -> Bool
 }

@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol UserProfileProviding {
+protocol UserProfileProviding: Sendable {
     func getUserProfile(for userId: String) async throws -> UserProfile
 }
