@@ -8,7 +8,7 @@
 import Foundation
 
 protocol UserProviding {
-    func current() async throws -> User
+    func current() async throws -> User?
     func validateSession() async throws
     
 }
