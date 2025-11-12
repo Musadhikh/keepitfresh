@@ -6,21 +6,30 @@
 //
 
 import SwiftUI
+import Observation
 
 @Observable
 @MainActor
 final class SplashViewModel {
     private(set) var isLoading = true
     private(set) var shouldNavigate = false
+    private(set) var launchState: AppLaunchState?
+    private(set) var launchError: Error?
     
     private let minimumSplashDuration: TimeInterval = 2.0
+    @ObservationIgnored private var hasStarted = false
     
-    init() {
-        Task {
-            await startSplashSequence()
-        }
+    private let launchUseCase: AppLaunchUseCase
+    
+    init(useCase: AppLaunchUseCase) {
+        self.launchUseCase = useCase
     }
     
+    func start() async {
+        guard !hasStarted else { return }
+        hasStarted = true
+        await startSplashSequence()
+    }
     
     private func startSplashSequence() async {
         let startTime = Date()
@@ -35,27 +44,24 @@ final class SplashViewModel {
             try? await Task.sleep(for: .seconds(remainingTime))
         }
         
-        await MainActor.run {
-            isLoading = false
-            shouldNavigate = true
-        }
+        isLoading = false
+        shouldNavigate = true
     }
     
     private func performInitializationTasks() async {
-        // Add any initialization logic here:
-        // - Check authentication status
-        // - Load user preferences
-        // - Initialize Firebase
-        // - Preload critical data
-        
-        // Simulate initialization work
-        try? await Task.sleep(for: .seconds(0.5))
+        do {
+            launchState = try await launchUseCase.execute()
+        } catch {
+            launchError = error
+        }
     }
 }
 
 // MARK: - Preview Support
 #if DEBUG
 extension SplashViewModel {
-    static var preview: SplashViewModel { SplashViewModel() }
+    static var preview: SplashViewModel {
+        SplashViewModel(useCase: PreviewDependencyContainer().appLaunchUseCase())
+    }
 }
 #endif
