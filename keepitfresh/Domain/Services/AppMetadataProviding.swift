@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol AppMetadataProviding {
+protocol AppMetadataProviding: Sendable {
     func getAppMetadata() async throws -> AppMetadata
 }

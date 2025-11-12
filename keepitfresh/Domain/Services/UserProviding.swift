@@ -7,8 +7,7 @@
 
 import Foundation
 
-protocol UserProviding {
+protocol UserProviding: Sendable {
     func current() async throws -> User?
     func validateSession() async throws
-    
 }
