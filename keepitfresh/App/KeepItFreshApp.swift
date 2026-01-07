@@ -42,7 +42,7 @@ struct KeepItFreshApp: App {
                 case .maintenance:
                     MaintenanceView()
                 case .authentication:
-                    Text("Login Screen")
+                    LoginView()
                 case .main:
                     Text("Main Screen")
                 }
