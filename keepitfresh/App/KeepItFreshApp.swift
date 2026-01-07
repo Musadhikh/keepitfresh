@@ -16,6 +16,7 @@ struct KeepItFreshApp: App {
     
     private let dependencies: any DependencyContainer
     private let splashViewModel: SplashViewModel
+    @State private var loginViewModel: LoginViewModel?
     
     init() {
         FirebaseApp.configure()
@@ -42,7 +43,14 @@ struct KeepItFreshApp: App {
                 case .maintenance:
                     MaintenanceView()
                 case .authentication:
-                    LoginView()
+                    if let loginViewModel {
+                        LoginView(viewModel: loginViewModel)
+                    } else {
+                        Color.clear
+                            .onAppear {
+                                loginViewModel = dependencies.makeLoginViewModel()
+                            }
+                    }
                 case .main:
                     Text("Main Screen")
                 }
