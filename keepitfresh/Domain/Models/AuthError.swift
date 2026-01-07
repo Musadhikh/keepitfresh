@@ -13,6 +13,7 @@ enum AuthError: Error, LocalizedError {
     case accountDisabled
     case userCancel
     case unknownError(String)
+    case unknown(Error)
     
     var errorDescription: String? {
         switch self {
@@ -26,6 +27,8 @@ enum AuthError: Error, LocalizedError {
             return "Sign-in was cancelled."
         case .unknownError(let message):
             return "An unexpected error occurred: \(message)"
+        case .unknown(let error):
+            return "An unexpected error occurred: \(error.localizedDescription)"
         }
     }
 }

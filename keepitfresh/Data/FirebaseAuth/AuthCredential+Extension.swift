@@ -22,6 +22,9 @@ extension AuthCredential {
             
         case .anonymous:
             return nil // Anonymous sign-in doesn't use credentials
+            
+        @unknown default:
+            return nil
         }
     }
 }
