@@ -6,13 +6,14 @@
 //
 
 import Foundation
+import Factory
 
 struct AppLaunchUseCase: Sendable {
     
-    let metadataProvider: any AppMetadataProviding
-    let versionCheckProvider: any VersionCheckProviding
-    let userProvider: any UserProviding
-    let profileProvider: any ProfileProviding
+    @Injected(\.appMetadataProvider) var metadataProvider
+    @Injected(\.versionCheckProvider) var versionCheckProvider
+    @Injected(\.userProvider) var userProvider
+    @Injected(\.profileProvider) var profileProvider
     
     func execute() async throws -> AppLaunchState {
         /// 1. Refresh app metadata

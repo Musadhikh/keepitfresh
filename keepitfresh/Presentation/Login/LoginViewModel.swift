@@ -20,8 +20,8 @@ class LoginViewModel {
     let useCase: LoginUseCase
     
     // MARK: - Initialization
-    init(useCase: LoginUseCase) {
-        self.useCase = useCase
+    init() {
+        self.useCase = LoginUseCase()
     }
     
     func singIn(with type: LoginType) async {

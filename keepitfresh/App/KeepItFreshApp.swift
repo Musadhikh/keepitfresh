@@ -14,9 +14,6 @@ import GoogleSignIn
 struct KeepItFreshApp: App {
     @State private var appState = AppState()
     
-    private let dependencies: any DependencyContainer
-    private let splashViewModel: SplashViewModel
-    @State private var loginViewModel: LoginViewModel?
     
     init() {
         FirebaseApp.configure()
@@ -29,9 +26,6 @@ struct KeepItFreshApp: App {
         let settings = db.settings
         settings.cacheSettings = PersistentCacheSettings(sizeBytes: FirebaseConstants.cacheSize)
         db.settings = settings
-        
-        self.dependencies = ProcessInfo.isRunningForPreviews ? PreviewDependencyContainer() : AppDependencyContainer()
-        self.splashViewModel = SplashViewModel(useCase: dependencies.appLaunchUseCase())
     }
     
     var body: some Scene {
@@ -39,18 +33,11 @@ struct KeepItFreshApp: App {
             Group {
                 switch appState.currentState {
                 case .splash:
-                    SplashView(viewModel: splashViewModel)
+                    SplashView(viewModel: SplashViewModel())
                 case .maintenance:
                     MaintenanceView()
                 case .authentication:
-                    if let loginViewModel {
-                        LoginView(viewModel: loginViewModel)
-                    } else {
-                        Color.clear
-                            .onAppear {
-                                loginViewModel = dependencies.makeLoginViewModel()
-                            }
-                    }
+                    LoginView(viewModel: LoginViewModel())
                 case .main:
                     Text("Main Screen")
                 }
