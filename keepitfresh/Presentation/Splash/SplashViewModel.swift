@@ -21,8 +21,8 @@ final class SplashViewModel {
     
     private let launchUseCase: AppLaunchUseCase
     
-    init(useCase: AppLaunchUseCase) {
-        self.launchUseCase = useCase
+    init() {
+        self.launchUseCase = AppLaunchUseCase()
     }
     
     func start() async {
@@ -61,7 +61,7 @@ final class SplashViewModel {
 #if DEBUG
 extension SplashViewModel {
     static var preview: SplashViewModel {
-        SplashViewModel(useCase: PreviewDependencyContainer().appLaunchUseCase())
+        SplashViewModel()
     }
 }
 #endif

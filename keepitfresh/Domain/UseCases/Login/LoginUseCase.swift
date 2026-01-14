@@ -6,13 +6,11 @@
 //
 
 import Foundation
-
+import Factory
 /// Use case for handling user login flows
 struct LoginUseCase {
     
-    let profileProvider: any ProfileProviding
-    
-    
+    @Injected(\.profileProvider) var profileProvider
     /// 1. Login with provider
     /// 2. Check if user exist in the profile store
     /// 3. If user doesn't exist in profile, create profile

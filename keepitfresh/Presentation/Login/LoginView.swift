@@ -137,17 +137,17 @@ private struct ErrorMessageView: View {
 
 #if DEBUG
 #Preview("Login View - All Methods") {
-    LoginView(viewModel: PreviewDependencyContainer.shared.makeLoginViewModel())
+    LoginView(viewModel: LoginViewModel())
 }
 
 #Preview("Login View - Loading") {
-    let viewModel = PreviewDependencyContainer.shared.makeLoginViewModel()
+    let viewModel = LoginViewModel()
     viewModel.isLoading = true
     return LoginView(viewModel: viewModel)
 }
 
 #Preview("Login View - Error") {
-    let viewModel = PreviewDependencyContainer.shared.makeLoginViewModel()
+    let viewModel = LoginViewModel()
     viewModel.errorMessage = "Invalid credentials. Please try again."
     return LoginView(viewModel: viewModel)
 }
