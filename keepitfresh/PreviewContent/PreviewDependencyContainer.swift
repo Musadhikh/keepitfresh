@@ -26,12 +26,10 @@ struct PreviewDependencyContainer: DependencyContainer {
     }
     
     @MainActor func makeLoginViewModel() -> LoginViewModel {
-        let loginUseCase = MockLoginUseCase()
-        let requestOTPUseCase = MockRequestOTPUseCase()
-        return LoginViewModel(
-            loginUseCase: loginUseCase,
-            requestOTPUseCase: requestOTPUseCase
-        )
+        let profileProvider = StaticUserProfileProvider()
+        let loginUseCase = LoginUseCase(profileProvider: profileProvider)
+        
+        return LoginViewModel(useCase: loginUseCase)
     }
 }
 
@@ -70,9 +68,9 @@ private struct StaticUserProvider: UserProviding {
     }
 }
 
-private struct StaticUserProfileProvider: UserProfileProviding {
-    func getUserProfile(for userId: String) async throws -> UserProfile {
-        UserProfile(
+private struct StaticUserProfileProvider: ProfileProviding {
+    func getProfile(for userId: String) async throws -> Profile? {
+        Profile(
             id: "profile-\(userId)",
             userId: userId,
             name: "Sample User",
@@ -89,58 +87,5 @@ private struct StaticUserProfileProvider: UserProfileProviding {
 
 // MARK: - Mock Login Use Case
 
-private struct MockLoginUseCase: LoginUseCaseProviding {
-    func execute(with credential: LoginCredential) async throws -> AuthenticationResult {
-        // Simulate network delay
-        try await Task.sleep(for: .seconds(1))
-        
-        let user = AuthUser(id: UUID().uuidString)
-        
-        let authCredential: AuthCredential
-        switch credential {
-        case .emailPassword(let email, _):
-            authCredential = .emailPassword(email: email, password: "")
-        case .emailOTP(let email, _):
-            authCredential = .emailOTP(email: email, otp: "")
-        case .mobileOTP(let phone, let code, _):
-            authCredential = .mobileOTP(phoneNumber: phone, otp: "")
-        case .social(let provider):
-            switch provider {
-            case .google:
-                authCredential = .google(idToken: "", accessToken: "")
-            case .apple:
-                authCredential = .apple(token: "", nonce: "")
-            }
-        case .anonymous:
-            authCredential = .anonymous
-        }
-        
-        return AuthenticationResult(
-            user: user,
-            credential: authCredential,
-            isNewUser: false
-        )
-    }
-    
-    func availableLoginMethods() -> [AuthProviderType] {
-        AuthProviderType.availableCases()
-    }
-    
-    func isLoginMethodAvailable(_ providerType: AuthProviderType) -> Bool {
-        true
-    }
-}
-
-private struct MockRequestOTPUseCase: RequestOTPUseCaseProviding {
-    func execute(with request: OTPRequest) async throws -> OTPRequestResult {
-        // Simulate network delay
-        try await Task.sleep(for: .seconds(1))
-        
-        return OTPRequestResult(
-            verificationId: UUID().uuidString,
-            expiresAt: Date().addingTimeInterval(300)
-        )
-    }
-}
 
 #endif
