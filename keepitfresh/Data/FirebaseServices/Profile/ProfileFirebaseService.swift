@@ -17,10 +17,7 @@ actor ProfileFirebaseService: ProfileProviding {
             .document(userId)
             .getDocument()
         
-        guard doc.data() != nil else {
-            app.debug("profile is nil")
-            return nil
-        }
+        guard doc.data() != nil else { return nil }
         let profile = try doc.data(as: Profile.self)
         return profile
     }
@@ -31,8 +28,6 @@ actor ProfileFirebaseService: ProfileProviding {
             .collection(FirebaseConstants.Collections.profiles)
             .document(profile.userId)
             .setData(data)
-        
-        app.debug("created profile")
     }
 
     func update(profile: Profile) async throws {
