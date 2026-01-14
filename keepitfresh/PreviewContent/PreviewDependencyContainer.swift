@@ -69,6 +69,18 @@ private struct StaticUserProvider: UserProviding {
 }
 
 private struct StaticUserProfileProvider: ProfileProviding {
+    func create(profile: Profile) async throws {
+        
+    }
+
+    func update(profile: Profile) async throws {
+        
+    }
+
+    func delete(userId: String) async throws {
+        
+    }
+
     func getProfile(for userId: String) async throws -> Profile? {
         Profile(
             id: "profile-\(userId)",

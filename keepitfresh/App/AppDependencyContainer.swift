@@ -51,6 +51,18 @@ struct DefaultUserProvider: UserProviding {
 
 // Temporary only
 struct DefaultUserProfileProvider: ProfileProviding {
+    func create(profile: Profile) async throws {
+        
+    }
+
+    func update(profile: Profile) async throws {
+        
+    }
+
+    func delete(userId: String) async throws {
+        
+    }
+
     func getProfile(for userId: String) async throws -> Profile? {
         // TODO: Implement actual profile fetch
         // For now, throw to indicate unimplemented

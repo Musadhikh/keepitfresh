@@ -37,20 +37,28 @@ struct LoginView: View {
                                 switch method {
                                 case .apple:
                                     AppleSignInButton { result in
+                                        switch result {
+                                        case .success(let res):
+                                            signIn(with: res)
+                                        case .failure(let err):
+                                            print("Error: \(err)")
+                                            
+                                        }
                                         
                                     }
                                     .frame(height: 40)
                                     
                                 case .google:
-                                    GoogleSignInButton {
-                                        
+                                    if let topViewController = UIViewController.topViewController() {
+                                        GoogleSignInButton {
+                                            signIn(with: .google(topViewController))
+                                        }
+                                        .frame(height: 40)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
                                     }
-                                    .frame(height: 40)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    
                                 case .anonymous:
                                     Button("Continue as Guest") {
-                                        
+                                        signIn(with: .anonymous)
                                     }
                                     .padding(.top)
                                 }
