@@ -12,6 +12,10 @@ enum AuthError: Error, LocalizedError {
     case invalidCredentials
     case accountDisabled
     case userCancel
+    case cancelled
+    case authenticationFailed
+    case unsupportedProvider
+    case signOutFailed
     case unknownError(String)
     case unknown(Error)
     
@@ -23,8 +27,14 @@ enum AuthError: Error, LocalizedError {
             return "Invalid email or password. Please try again."
         case .accountDisabled:
             return "Your account has been disabled. Please contact support."
-        case .userCancel:
+        case .userCancel, .cancelled:
             return "Sign-in was cancelled."
+        case .authenticationFailed:
+            return "Authentication failed. Please try again."
+        case .unsupportedProvider:
+            return "This authentication method is not supported."
+        case .signOutFailed:
+            return "Failed to sign out. Please try again."
         case .unknownError(let message):
             return "An unexpected error occurred: \(message)"
         case .unknown(let error):

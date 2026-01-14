@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import GoogleSignInSwift
 
 struct LoginView: View {
     @State private var viewModel: LoginViewModel
@@ -33,11 +34,25 @@ struct LoginView: View {
                         // Login methods
                         VStack(spacing: 16) {
                             ForEach(viewModel.availableMethods, id: \.self) { method in
-                                LoginMethodButton(
-                                    method: method,
-                                    isLoading: viewModel.isLoading
-                                ) {
-                                    handleMethodSelection(method)
+                                switch method {
+                                case .apple:
+                                    AppleSignInButton { result in
+                                        
+                                    }
+                                    .frame(height: 40)
+                                    
+                                case .google:
+                                    GoogleSignInButton {
+                                        
+                                    }
+                                    .frame(height: 40)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    
+                                case .anonymous:
+                                    Button("Continue as Guest") {
+                                        
+                                    }
+                                    .padding(.top)
                                 }
                             }
                         }
@@ -56,26 +71,10 @@ struct LoginView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .disabled(viewModel.isLoading)
-        .onAppear {
-            viewModel.loadAvailableMethods()
-        }
     }
     
-    // MARK: - Actions
-    
-    private func handleMethodSelection(_ method: LoginMethod) {
-        Task {
-            switch method {
-            case .google:
-                await viewModel.loginWithSocial(provider: .google)
-            case .apple:
-                await viewModel.loginWithSocial(provider: .apple)
-            case .anonymous:
-                await viewModel.continueAsGuest()
-            default:
-                viewModel.selectLoginMethod(method)
-            }
-        }
+    private func signIn(with type: LoginType) {
+        Task { await viewModel.singIn(with: type) }
     }
 }
 
@@ -101,81 +100,6 @@ private struct LoginHeaderView: View {
     }
 }
 
-// MARK: - Login Method Button
-
-private struct LoginMethodButton: View {
-    let method: LoginMethod
-    let isLoading: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                methodIcon
-                    .font(.title3)
-                    .frame(width: 24)
-                
-                Text(method.title)
-                    .fontWeight(.medium)
-                
-                Spacer()
-                
-                if isLoading {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(buttonBackground)
-            .foregroundStyle(buttonForeground)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-        }
-        .disabled(isLoading)
-        .accessibilityLabel("Sign in with \(method.title)")
-    }
-    
-    @ViewBuilder
-    private var methodIcon: some View {
-        switch method {
-        case .emailPassword:
-            Image(systemName: "envelope.fill")
-        case .emailOTP:
-            Image(systemName: "envelope.badge.shield.half.filled")
-        case .mobileOTP:
-            Image(systemName: "phone.fill")
-        case .google:
-            Image(systemName: "globe")
-        case .apple:
-            Image(systemName: "apple.logo")
-        case .anonymous:
-            Image(systemName: "person.fill.questionmark")
-        }
-    }
-    
-    private var buttonBackground: some View {
-        Group {
-            switch method {
-            case .apple:
-                Color.black
-            case .google:
-                Color.blue
-            case .anonymous:
-                Color.gray
-            default:
-                Color.accentColor
-            }
-        }
-    }
-    
-    private var buttonForeground: Color {
-        .white
-    }
-}
 
 // MARK: - Error Message View
 

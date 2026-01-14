@@ -18,7 +18,7 @@ struct AppDependencyContainer: DependencyContainer {
         let metadataProvider: any AppMetadataProviding = AppMetadataService()
         let versionCheckProvider: any VersionCheckProviding = VersionCheckProvider()
         let userProvider: any UserProviding = DefaultUserProvider()
-        let profileProvider: any UserProfileProviding = DefaultUserProfileProvider()
+        let profileProvider: any ProfileProviding = DefaultUserProfileProvider()
         
         return AppLaunchUseCase(
             metadataProvider: metadataProvider,
@@ -30,16 +30,10 @@ struct AppDependencyContainer: DependencyContainer {
     
     @MainActor
     func makeLoginViewModel() -> LoginViewModel {
-        // TODO: Implement actual authentication strategies
-        // For now, use temporary placeholder implementations
-        let authCoordinator = TemporaryAuthCoordinator()
-        let loginUseCase = LoginUseCase(authCoordinator: authCoordinator)
-        let requestOTPUseCase = TemporaryRequestOTPUseCase()
+        let profileProvider = DefaultUserProfileProvider()
+        let useCase = LoginUseCase(profileProvider: profileProvider)
         
-        return LoginViewModel(
-            loginUseCase: loginUseCase,
-            requestOTPUseCase: requestOTPUseCase
-        )
+        return LoginViewModel(useCase: useCase)
     }
 }
 
@@ -56,50 +50,10 @@ struct DefaultUserProvider: UserProviding {
 }
 
 // Temporary only
-struct DefaultUserProfileProvider: UserProfileProviding {
-    func getUserProfile(for userId: String) async throws -> UserProfile {
+struct DefaultUserProfileProvider: ProfileProviding {
+    func getProfile(for userId: String) async throws -> Profile? {
         // TODO: Implement actual profile fetch
         // For now, throw to indicate unimplemented
-        struct NotImplemented: Error {}
-        throw NotImplemented()
-    }
-}
-
-// MARK: - Temporary Authentication Implementations
-
-// TODO: Replace with actual implementations
-private struct TemporaryAuthCoordinator: AuthenticationCoordinatorProviding {
-    private var strategies: [AuthProviderType: any AuthenticationStrategyProviding] = [:]
-    
-    func register(strategy: any AuthenticationStrategyProviding) {
-        // Not implemented for temporary
-    }
-    
-    func availableProviders() -> [AuthProviderType] {
-        // Return all for demonstration
-        return [.apple, .google, .anonymous]
-    }
-    
-    func authenticate(with credential: LoginCredential) async throws -> AuthenticationResult {
-        // TODO: Implement actual authentication
-        struct NotImplemented: Error {}
-        throw NotImplemented()
-    }
-    
-    var currentUser: AuthUser? {
-        get async {
-            return nil
-        }
-    }
-    
-    func signOut() async throws {
-        // TODO: Implement actual sign out
-    }
-}
-
-private struct TemporaryRequestOTPUseCase: RequestOTPUseCaseProviding {
-    func execute(with request: OTPRequest) async throws -> OTPRequestResult {
-        // TODO: Implement actual OTP request
         struct NotImplemented: Error {}
         throw NotImplemented()
     }

@@ -9,8 +9,5 @@ import Foundation
 
 protocol AuthProviding: Sendable {
     /// Execute the authentication flow and return credentials
-    func execute() async throws -> AuthCredential
-    
-    /// The type of authentication provider
-    var providerType: AuthProviderType { get }
+    func signIn() async throws -> User
 }

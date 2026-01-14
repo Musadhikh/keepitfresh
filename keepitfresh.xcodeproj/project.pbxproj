@@ -34,6 +34,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C6060EB22F10CF5C0054D4E3 /* MultiLoginModule.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = MultiLoginModule.xcodeproj; sourceTree = "<group>"; };
 		C7DA738B2E63FE5000331A4A /* keepitfresh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keepitfresh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7DA73992E63FE5100331A4A /* keepitfreshTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = keepitfreshTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7DA73A32E63FE5100331A4A /* keepitfreshUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = keepitfreshUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +103,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C6060EB42F10CF5C0054D4E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		C7DA73822E63FE5000331A4A = {
 			isa = PBXGroup;
 			children = (
@@ -239,6 +247,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C7DA738C2E63FE5000331A4A /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C6060EB42F10CF5C0054D4E3 /* Products */;
+					ProjectRef = C6060EB22F10CF5C0054D4E3 /* MultiLoginModule.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				C7DA738A2E63FE5000331A4A /* keepitfresh */,
