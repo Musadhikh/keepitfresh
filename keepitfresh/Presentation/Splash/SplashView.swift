@@ -105,7 +105,6 @@ struct SplashView: View {
             await viewModel.start()
         }
         .onChange(of: viewModel.launchState) { _, newState in
-            app.debug("new state: \(String(describing: newState))")
             guard let newState else { return }
             handleLaunchState(newState)
         }
@@ -117,7 +116,7 @@ struct SplashView: View {
         case .maintenance:
             appState.enterMaintenance()
         case .updateRequired, .createHousehold, .selectHousehold:
-            break
+            appState.enterMain()
         case .loginRequired:
             appState.requireAuthentication()
         case .mainContent:

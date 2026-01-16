@@ -30,28 +30,21 @@ actor AppMetadataService: AppMetadataProviding {
                 .getDocuments()
             
             guard let document = querySnapshot.documents.first else {
-                firebase.error("App metadata collection is empty")
                 throw AppMetadataError.documentNotFound
             }
             
             guard document.exists else {
-                firebase.error("App metadata document does not exist")
                 throw AppMetadataError.documentNotFound
             }
             
-            let data = document.data()
-            
             // Decode Firestore data to AppMetadata
-            let metadata = try decodeMetadata(from: data)
-            
-            firebase.debug("Successfully fetched app metadata (docId: \(document.documentID)): data=\(metadata)")
-            
+            let metadata = try document.data(as: AppMetadata.self)
+                        
             return metadata
             
         } catch let error as AppMetadataError {
             throw error
         } catch {
-            firebase.error("Failed to fetch app metadata", error: error)
             throw AppMetadataError.firestoreError(error)
         }
     }
@@ -63,7 +56,6 @@ actor AppMetadataService: AppMetadataProviding {
             let jsonData = try JSONSerialization.data(withJSONObject: data, options: [])
             return try JSONDecoder().decode(AppMetadata.self, from: jsonData)
         } catch {
-            firebase.error("Failed to decode app metadata", error: error)
             throw AppMetadataError.decodingFailed(error)
         }
     }

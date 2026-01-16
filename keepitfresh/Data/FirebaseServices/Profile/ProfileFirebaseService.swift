@@ -16,14 +16,14 @@ actor ProfileFirebaseService: ProfileProviding {
             .collection(FirebaseConstants.Collections.profiles)
             .document(userId)
             .getDocument()
-        
+
         guard doc.data() != nil else { return nil }
         let profile = try doc.data(as: Profile.self)
         return profile
     }
 
     func create(profile: Profile) async throws {
-        let data = try profile.asDictionary
+        let data = try profile.toFirebaseDictionary()
         try await db
             .collection(FirebaseConstants.Collections.profiles)
             .document(profile.userId)
@@ -31,7 +31,7 @@ actor ProfileFirebaseService: ProfileProviding {
     }
 
     func update(profile: Profile) async throws {
-        let data = try profile.asDictionary
+        let data = try profile.toFirebaseDictionary()
         try await db
             .collection(FirebaseConstants.Collections.profiles)
             .document(profile.userId)
