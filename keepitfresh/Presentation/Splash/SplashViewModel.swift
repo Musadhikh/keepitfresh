@@ -50,7 +50,8 @@ final class SplashViewModel {
     
     private func performInitializationTasks() async {
         do {
-            launchState = try await launchUseCase.execute()
+            let launchState = try await launchUseCase.execute()
+            self.launchState = launchState
         } catch {
             launchError = error
         }

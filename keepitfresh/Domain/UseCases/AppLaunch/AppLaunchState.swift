@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum AppLaunchState: Equatable, Sendable {
+enum AppLaunchState:String, Equatable, Sendable {
     case maintenance
     case updateRequired
     case loginRequired
