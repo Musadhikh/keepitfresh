@@ -34,7 +34,7 @@ actor AppleAuthProvider: AuthProviding {
             rawNonce: nonce,
             fullName: credential.fullName
         )
-        
+    
         let authResult = try await Auth.auth().signIn(with: provider)
         
         return User(
