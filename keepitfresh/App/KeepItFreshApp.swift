@@ -39,7 +39,7 @@ struct KeepItFreshApp: App {
                 case .authentication:
                     LoginView(viewModel: LoginViewModel())
                 case .main:
-                    Text("Main Screen")
+                    RootTabView()
                 }
             }
             .environment(appState)

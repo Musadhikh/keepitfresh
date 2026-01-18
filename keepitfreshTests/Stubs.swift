@@ -25,7 +25,22 @@ struct UserProviderStub: UserProviding, Sendable {
     func validateSession() async throws { _ = try validateResult.get() }
 }
 
-struct UserProfileProviderStub: UserProfileProviding, Sendable {
-    var result: Result<UserProfile, TestError>
-    func getUserProfile(for userId: String) async throws -> UserProfile { try result.get() }
+struct UserProfileProviderStub: ProfileProviding, Sendable {
+    var result: Result<Profile, TestError>
+    
+    func getProfile(for userId: String) async throws -> keepitfresh.Profile? {
+        try result.get()
+    }
+
+    func create(profile: keepitfresh.Profile) async throws {
+        
+    }
+
+    func update(profile: keepitfresh.Profile) async throws {
+        
+    }
+
+    func delete(userId: String) async throws {
+        
+    }
 }
