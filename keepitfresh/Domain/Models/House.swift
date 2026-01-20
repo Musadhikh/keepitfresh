@@ -21,8 +21,8 @@ struct House: Codable, Equatable, Identifiable, Sendable {
     let memberIds: [String]
     
     /// ID of the user who created the household
-    let ownerId: String
-    
+    let adminUsers: [String]
+    let createdBy: String
     /// Creation and update timestamps
     let createdAt: Date
     let updatedAt: Date?
@@ -32,7 +32,7 @@ extension House {
     
     /// Convenience check: whether current user is the owner
     func isOwned(by userId: String) -> Bool {
-        userId == ownerId
+        adminUsers.contains(userId)
     }
     
     /// Whether a user is part of this household

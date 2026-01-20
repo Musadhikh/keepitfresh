@@ -10,4 +10,6 @@ import Foundation
 protocol HouseProviding {
     func getHouse(for houseId: String) async throws -> House
     func getHouses(for houseIds: [String]) async throws -> House
+    
+    func create(house: House) async throws -> House
 }

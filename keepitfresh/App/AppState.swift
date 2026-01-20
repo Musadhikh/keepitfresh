@@ -16,6 +16,7 @@ final class AppState {
         case maintenance
         /// App needs the user to authenticate (login/sign up, SSO, etc.)
         case authentication
+        case onboarding
         /// App is ready and showing the main content (post-auth)
         case main
     }

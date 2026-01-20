@@ -38,6 +38,8 @@ struct KeepItFreshApp: App {
                     MaintenanceView()
                 case .authentication:
                     LoginView(viewModel: LoginViewModel())
+                case .onboarding:
+                    CreateHouseholView()
                 case .main:
                     RootTabView()
                 }
