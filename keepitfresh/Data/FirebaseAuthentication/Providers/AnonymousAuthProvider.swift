@@ -19,4 +19,10 @@ actor AnonymousAuthProvider: AuthProviding {
             lastLoggedIn: Date()
         )
     }
+    
+    func signOut() async throws {}
+    
+    func deleteAccount() async throws {
+        
+    }
 }

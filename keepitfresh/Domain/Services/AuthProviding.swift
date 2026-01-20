@@ -10,4 +10,8 @@ import Foundation
 protocol AuthProviding: Sendable {
     /// Execute the authentication flow and return credentials
     func signIn() async throws -> User
+    
+    func signOut() async throws
+    
+    func deleteAccount() async throws
 }
