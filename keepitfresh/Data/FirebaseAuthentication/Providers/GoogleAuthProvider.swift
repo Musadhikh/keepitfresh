@@ -47,4 +47,12 @@ actor GoogleSignInProvider: AuthProviding {
             lastLoggedIn: Date()
         )
     }
+    
+    func signOut() async throws {
+        try Auth.auth().signOut()
+    }
+    
+    func deleteAccount() async throws {
+        
+    }
 }
