@@ -9,33 +9,22 @@ import SwiftUI
 import AuthenticationServices
 
 struct AppleSignInButton: View {
-    @State private var rawNonce: String?
-    @State private var isNonceGenerated: Bool = false
+    @State private var rawNonce = AppleSignInHelper.randomNonceString()
     
-    var onCompletion: (Result<LoginType, Error>) -> Void
+    let onCompletion: (Result<LoginType, Error>) -> Void
     
     var body: some View {
-        if let rawNonce {
-            SignInWithAppleButton(.signIn) { request in
-                request.requestedScopes = [.email, .fullName]
-                request.nonce = AppleSignInHelper.sha256(rawNonce)
-            } onCompletion: { result in
-                switch result {
-                case .success(let authorisation):
-                    onCompletion(.success(.apple(authorisation, rawNonce)))
-                case .failure(let error):
-                    onCompletion(.failure(error))
-                }
+        SignInWithAppleButton(.signIn) { request in
+            rawNonce = AppleSignInHelper.randomNonceString()
+            request.requestedScopes = [.email, .fullName]
+            request.nonce = AppleSignInHelper.sha256(rawNonce)
+        } onCompletion: { result in
+            switch result {
+            case .success(let authorisation):
+                onCompletion(.success(.apple(authorisation, rawNonce)))
+            case .failure(let error):
+                onCompletion(.failure(error))
             }
-        } else if isNonceGenerated {
-            Text("Unable to Sign in With Apple")
-        } else {
-            Text("Preparing...")
-                .onAppear {
-                    let nonce = AppleSignInHelper.randomNonceString()
-                    isNonceGenerated = true
-                    rawNonce = nonce
-                }
         }
     }
 }

@@ -11,13 +11,15 @@ import CryptoKit
 struct AppleSignInHelper {
     private init() {}
     
-    static func randomNonceString(length: Int = 32) -> String? {
-        if length == 0 { return nil }
+    static func randomNonceString(length: Int = 32) -> String {
+        if length == 0 {
+            return UUID().uuidString.replacing("-", with: "")
+        }
         
         var randomBytes = [UInt8](repeating: 0, count: length)
         let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
         guard errorCode == errSecSuccess else {
-            return nil
+            return UUID().uuidString.replacing("-", with: "")
         }
         
         let charset: [Character] = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._")
