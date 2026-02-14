@@ -9,7 +9,15 @@ import SwiftUI
 
 // MARK: - Color Constants
 extension Color {
-    static let splashGradientStart = Color.green.opacity(0.8)
-    static let splashGradientMid = Color.mint.opacity(0.6)
-    static let splashGradientEnd = Color.blue.opacity(0.4)
+    static let splashGradientStart = Theme.Colors.splashGradientStart
+    static let splashGradientMid = Theme.Colors.splashGradientMid
+    static let splashGradientEnd = Theme.Colors.splashGradientEnd
+
+    static let appBackground = Theme.Colors.background
+    static let appSurface = Theme.Colors.surface
+    static let appBorder = Theme.Colors.border
+    static let appTextPrimary = Theme.Colors.textPrimary
+    static let appTextSecondary = Theme.Colors.textSecondary
+    static let appAccent = Theme.Colors.accent
+    static let appDanger = Theme.Colors.danger
 }

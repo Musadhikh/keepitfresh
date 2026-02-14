@@ -21,11 +21,14 @@ final class AppState {
     }
     
     private(set) var currentState: State = .splash
+    var selectedTab: AppTab = .home
+    var navigationPath = NavigationPath()
     
     /// Transition to maintenance screen
     func enterMaintenance() {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentState = .maintenance
+            resetNavigation()
         }
     }
     
@@ -33,6 +36,7 @@ final class AppState {
     func requireAuthentication() {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentState = .authentication
+            resetNavigation()
         }
     }
 
@@ -40,7 +44,39 @@ final class AppState {
     func enterMain() {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentState = .main
+            resetNavigation()
         }
     }
+    
+    func navigate(to route: AppRoute) {
+        navigationPath.append(route)
+    }
+    
+    func popToRoot() {
+        navigationPath = NavigationPath()
+    }
+    
+    func setNavigation(tab: AppTab, routes: [AppRoute] = []) {
+        selectedTab = tab
+        navigationPath = NavigationPath()
+        for route in routes {
+            navigationPath.append(route)
+        }
+    }
+    
+    @discardableResult
+    func handleDeepLink(_ url: URL) -> Bool {
+        guard let destination = AppDeepLinkParser.parse(url) else { return false }
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentState = .main
+            setNavigation(tab: destination.tab, routes: destination.routes)
+        }
+        return true
+    }
+    
+    private func resetNavigation() {
+        selectedTab = .home
+        navigationPath = NavigationPath()
+    }
 }
-

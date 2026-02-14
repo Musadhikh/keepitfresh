@@ -14,53 +14,51 @@ struct ProfileView: View {
     @State private var viewModel = ProfileViewModel()
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .padding(.top, 40)
-                    } else if let profile = viewModel.profile {
-                        profileContent(profile)
-                    } else {
-                        emptyState
+        ScrollView {
+            VStack(spacing: 24) {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .padding(.top, 40)
+                } else if let profile = viewModel.profile {
+                    profileContent(profile)
+                } else {
+                    emptyState
+                }
+            }
+            .padding(.horizontal)
+        }
+        .navigationTitle("Profile")
+        .task {
+            await viewModel.fetchProfile()
+        }
+        .refreshable {
+            await viewModel.fetchProfile()
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.errorMessage = nil
+            }
+        } message: {
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+            }
+        }
+        .confirmationDialog(
+            "Delete Account",
+            isPresented: $viewModel.showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Account", role: .destructive) {
+                Task {
+                    await viewModel.deleteAccount()
+                    if viewModel.errorMessage == nil {
+                        appState.requireAuthentication()
                     }
                 }
-                .padding(.horizontal)
             }
-            .navigationTitle("Profile")
-            .task {
-                await viewModel.fetchProfile()
-            }
-            .refreshable {
-                await viewModel.fetchProfile()
-            }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-                Button("OK") {
-                    viewModel.errorMessage = nil
-                }
-            } message: {
-                if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
-                }
-            }
-            .confirmationDialog(
-                "Delete Account",
-                isPresented: $viewModel.showDeleteConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Delete Account", role: .destructive) {
-                    Task {
-                        await viewModel.deleteAccount()
-                        if viewModel.errorMessage == nil {
-                            appState.requireAuthentication()
-                        }
-                    }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This action cannot be undone. All your data will be permanently deleted.")
-            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone. All your data will be permanently deleted.")
         }
     }
     
@@ -102,13 +100,13 @@ struct ProfileView: View {
             }
             
             Text(profile.name)
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(Theme.Fonts.title)
+                .foregroundStyle(Theme.Colors.textPrimary)
             
             if let email = profile.email {
                 Text(email)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.Fonts.body(14, weight: .medium))
+                    .foregroundStyle(Theme.Colors.textSecondary)
             }
         }
     }
@@ -148,26 +146,45 @@ struct ProfileView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Theme.Colors.surface)
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.Radius.r12)
+                .stroke(Theme.Colors.border, lineWidth: 1)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
     }
     
     @ViewBuilder
     private func infoRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(Theme.Fonts.body(14, weight: .medium))
+                .foregroundStyle(Theme.Colors.textSecondary)
             Spacer()
             Text(value)
-                .font(.subheadline)
+                .font(Theme.Fonts.body(14, weight: .medium))
                 .fontWeight(.medium)
+                .foregroundStyle(Theme.Colors.textPrimary)
         }
     }
     
     @ViewBuilder
     private var actionButtons: some View {
         VStack(spacing: 12) {
+            Button {
+                appState.navigate(to: .profileDetails)
+            } label: {
+                HStack {
+                    Image(icon: .profileDetails)
+                    Text("Account Details")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Theme.Colors.surfaceAlt)
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
+            }
+            
             // Logout Button
             Button {
                 Task {
@@ -180,14 +197,14 @@ struct ProfileView: View {
                 }
             } label: {
                 HStack {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                    Image(icon: .logout)
                     Text("Logout")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.accentColor)
+                .background(Theme.Colors.accent)
                 .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
             }
             
             // Delete Account Button
@@ -199,15 +216,15 @@ struct ProfileView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Image(systemName: "trash")
+                        Image(icon: .delete)
                         Text("Delete Account")
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.red)
+                .background(Theme.Colors.danger)
                 .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
             }
             .disabled(viewModel.isDeleting)
         }
@@ -216,7 +233,7 @@ struct ProfileView: View {
     @ViewBuilder
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("No Profile", systemImage: "person.crop.circle.badge.xmark")
+            Label("No Profile", systemImage: Theme.Icon.profileUnavailable.systemName)
         } description: {
             Text("Unable to load your profile information")
         } actions: {

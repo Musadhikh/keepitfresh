@@ -11,9 +11,6 @@ struct SplashView: View {
     @Environment(AppState.self) var appState
     
     @State private var viewModel: SplashViewModel
-    @State private var animateIcon = false
-    @State private var animateText = false
-    @State private var showProgress = false
     
     init(viewModel: SplashViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -21,85 +18,23 @@ struct SplashView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    .splashGradientStart,
-                    .splashGradientMid,
-                    .splashGradientEnd
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            Theme.Colors.background
+                .ignoresSafeArea()
             
-            VStack(spacing: 32) {
-                Spacer()
+            VStack(alignment: .leading, spacing: Theme.Spacing.s16) {
+                Color.clear
+                    .frame(height: Theme.Spacing.s20)
                 
-                // App icon
-                VStack(spacing: 16) {
-                    Image(systemName: "leaf.fill")
-                        .font(.system(size: 80, weight: .light))
-                        .foregroundStyle(.white)
-                        .scaleEffect(animateIcon ? 1.0 : 0.5)
-                        .opacity(animateIcon ? 1.0 : 0.0)
-                        .animation(
-                            AnimationConstants.splashIconSpring,
-                            value: animateIcon
-                        )
-                    
-                    // App name
-                    VStack(spacing: 4) {
-                        Text("Keep It Fresh")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-                            .opacity(animateText ? 1.0 : 0.0)
-                            .offset(y: animateText ? 0 : 20)
-                            .animation(
-                                AnimationConstants.splashTextEaseOut.delay(AnimationConstants.splashTextDelay),
-                                value: animateText
-                            )
-                        
-                        Text("Track your food, save your money")
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.8))
-                            .opacity(animateText ? 1.0 : 0.0)
-                            .offset(y: animateText ? 0 : 20)
-                            .animation(
-                                AnimationConstants.splashTextEaseOut.delay(AnimationConstants.splashSubtextDelay),
-                                value: animateText
-                            )
-                    }
-                }
+                SplashHeroSection()
+                .frame(maxHeight: .infinity)
                 
-                Spacer()
-                
-                // Loading indicator
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.2)
-                        .opacity(showProgress ? 1.0 : 0.0)
-                        .animation(
-                            AnimationConstants.splashProgressEaseIn.delay(AnimationConstants.splashProgressDelay),
-                            value: showProgress
-                        )
-                    
-                    Text("Loading...")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .opacity(showProgress ? 1.0 : 0.0)
-                        .animation(
-                            AnimationConstants.splashProgressEaseIn.delay(AnimationConstants.splashProgressTextDelay),
-                            value: showProgress
-                        )
-                }
-                .padding(.bottom, 60)
+                Text("Powered by KeepItFresh")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
             }
-        }
-        .onAppear {
-            startAnimations()
+            .padding(.top, 28)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
         }
         .task {
             await viewModel.start()
@@ -123,20 +58,57 @@ struct SplashView: View {
             appState.enterMain()
         }
     }
+}
+
+private struct SplashHeroSection: View {
+    var body: some View {
+        VStack(spacing: Theme.Spacing.s16) {
+            SplashLogoBadge()
+            
+            Text("Track it. Scan it. Save it.")
+                .font(Theme.Fonts.title)
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
+            
+            Text("Smarter home inventory for busy households")
+                .font(Theme.Fonts.body(14, weight: .medium))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private struct SplashLogoBadge: View {
+    @ScaledMetric(relativeTo: .title3) private var badgeSize: CGFloat = 132
     
-    private func startAnimations() {
-        // Start icon animation immediately
-        animateIcon = true
-        
-        // Start text animation after icon
-        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationConstants.splashTextDelay) {
-            animateText = true
+    var body: some View {
+        VStack(spacing: Theme.Spacing.s8) {
+            HStack(spacing: 6) {
+                Image(icon: .splashLeaf)
+                    .font(.system(size: 34, weight: .medium))
+                    .foregroundStyle(Theme.Colors.accent)
+                
+                Image(icon: .splashBox)
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(Theme.Colors.accent)
+            }
+            
+            Text("KeepItFresh")
+                .font(Theme.Fonts.body(17, weight: .bold))
+                .foregroundStyle(Theme.Colors.textPrimary)
         }
-        
-        // Show progress indicator after text
-        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationConstants.splashProgressDelay) {
-            showProgress = true
+        .frame(width: badgeSize, height: badgeSize)
+        .background(Theme.Colors.surface)
+        .overlay {
+            RoundedRectangle(cornerRadius: 34)
+                .stroke(Theme.Colors.border, lineWidth: 1)
         }
+        .clipShape(.rect(cornerRadius: 34))
     }
 }
 
@@ -146,4 +118,3 @@ struct SplashView: View {
         .environment(AppState())
 }
 #endif
-
