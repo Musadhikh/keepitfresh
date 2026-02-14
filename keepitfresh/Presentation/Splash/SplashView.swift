@@ -43,6 +43,7 @@ struct SplashView: View {
             guard let newState else { return }
             handleLaunchState(newState)
         }
+        .dynamicTypeSize(.xSmall ... .accessibility2)
         .accessibilityLabel("Keep It Fresh app loading screen")
     }
     
@@ -70,36 +71,29 @@ private struct SplashHeroSection: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .minimumScaleFactor(0.9)
             
             Text("Smarter home inventory for busy households")
-                .font(Theme.Fonts.body(14, weight: .medium))
+                .font(Theme.Fonts.body(14, weight: .medium, relativeTo: .body))
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .minimumScaleFactor(0.9)
         }
         .frame(maxWidth: .infinity)
     }
 }
 
 private struct SplashLogoBadge: View {
-    @ScaledMetric(relativeTo: .title3) private var badgeSize: CGFloat = 132
+    @ScaledMetric(relativeTo: .title2) private var badgeSize: CGFloat = 182
+    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 64
     
     var body: some View {
-        VStack(spacing: Theme.Spacing.s8) {
-            HStack(spacing: 6) {
-                Image(icon: .splashLeaf)
-                    .font(.system(size: 34, weight: .medium))
-                    .foregroundStyle(Theme.Colors.accent)
-                
-                Image(icon: .splashBox)
-                    .font(.system(size: 30, weight: .medium))
-                    .foregroundStyle(Theme.Colors.accent)
-            }
+        VStack(spacing: Theme.Spacing.s16) {
+            Image(icon: .splashLeaf)
+                .font(.system(size: iconSize, weight: .medium))
+                .foregroundStyle(Theme.Colors.accent)
             
-            Text("KeepItFresh")
-                .font(Theme.Fonts.body(17, weight: .bold))
+            Text("Keep It Fresh")
+                .font(Theme.Fonts.body(21, weight: .bold, relativeTo: .title3))
                 .foregroundStyle(Theme.Colors.textPrimary)
         }
         .frame(width: badgeSize, height: badgeSize)

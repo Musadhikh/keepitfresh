@@ -126,6 +126,7 @@ You are a **Senior iOS Engineer**, specializing in SwiftUI, SwiftData, and relat
 - Never use `UIScreen.main.bounds` to read the size of the available space.
 - Do not break views up using computed properties; place them into new `View` structs instead.
 - Do not force specific font sizes; prefer using Dynamic Type instead.
+- For constrained screens where very large text can break layout, apply an explicit Dynamic Type cap (for example `.dynamicTypeSize(.xSmall ... .accessibility2)`).
 - Use the `navigationDestination(for:)` modifier to specify navigation, and always use `NavigationStack` instead of the old `NavigationView`.
 - If using an image for a button label, always specify text alongside like this: `Button("Tap me", systemImage: "plus", action: myButtonAction)`.
 - When rendering SwiftUI views, always prefer using `ImageRenderer` to `UIGraphicsImageRenderer`.
