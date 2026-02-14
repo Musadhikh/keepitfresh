@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    @Environment(AppState.self) private var appState
     @State private var viewModel: LoginViewModel
     
     init(viewModel: LoginViewModel) {
@@ -48,15 +49,20 @@ struct LoginView: View {
                     }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbarVisibility(.hidden, for: .navigationBar)
         }
         .disabled(viewModel.isLoading)
+        .onChange(of: viewModel.nextStep) { _, newStep in
+            guard let newStep else { return }
+            appState.applyLaunchState(newStep)
+        }
     }
     
     private func signIn(with type: LoginType) {
         Task { await viewModel.singIn(with: type) }
     }
     
+    @MainActor
     private func signInWithGoogle() {
         guard let topViewController = UIViewController.topViewController() else {
             viewModel.errorMessage = "Unable to start Google sign-in right now."

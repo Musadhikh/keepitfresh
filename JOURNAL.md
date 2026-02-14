@@ -22,4 +22,8 @@
 - Center-aligned the login auth section vertically with a geometry-aware scroll layout so `LoginAuthCard` stays centered on larger screens without breaking small-screen scrolling.
 - Repaired Apple sign-in UI stability by removing transient placeholder states and introduced one shared dynamic auth button height (with a cap) so Apple/Google/Email/Guest buttons keep equal sizing.
 - Made Apple nonce generation non-optional with a secure fallback path so sign-in UI stays stable even when secure random bytes are unavailable.
+- Completed login-to-app handoff flow: login now returns a launch next-step, `AppState` applies shared routing for splash/login, and household-required states now navigate into the household selection route instead of silently landing on root.
+- Updated bootstrap behavior to auto-create missing user profiles for authenticated sessions, avoiding false login-required loops after successful auth.
+- Added `Error` extension helpers (`nsError`, `errorCode`, `errorDomain`, reason/suggestion`) so error-code handling is centralized without manual `NSError` casting at call sites.
+- Aligned DI style with Factory README guidance by moving login use case back to `@Injected` field-based resolution and documented project-level Factory rules in `AGENTS.md` (including no-default-args guidance for constructors/methods).
 - Verified builds with `xcodebuild` after major UI/theme updates (`BUILD SUCCEEDED`).
