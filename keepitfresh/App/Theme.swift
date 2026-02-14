@@ -46,25 +46,33 @@ public enum Theme {
         private static let displayName = "SF Pro Display"
         private static let bodyName = "SF Pro Text"
 
-        public static func display(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        public static func display(
+            _ size: CGFloat,
+            weight: Font.Weight = .regular,
+            relativeTo textStyle: Font.TextStyle = .body
+        ) -> Font {
             if UIFont(name: displayName, size: size) != nil {
-                return Font.custom(displayName, size: size).weight(weight)
+                return Font.custom(displayName, size: size, relativeTo: textStyle).weight(weight)
             }
-            return Font.system(size: size, weight: weight, design: .rounded)
+            return Font.system(textStyle, design: .rounded).weight(weight)
         }
 
-        public static func body(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        public static func body(
+            _ size: CGFloat,
+            weight: Font.Weight = .regular,
+            relativeTo textStyle: Font.TextStyle = .body
+        ) -> Font {
             if UIFont(name: bodyName, size: size) != nil {
-                return Font.custom(bodyName, size: size).weight(weight)
+                return Font.custom(bodyName, size: size, relativeTo: textStyle).weight(weight)
             }
-            return Font.system(size: size, weight: weight, design: .default)
+            return Font.system(textStyle, design: .default).weight(weight)
         }
 
-        public static var titleLarge: Font { display(28, weight: .semibold) }
-        public static var title: Font { display(22, weight: .semibold) }
-        public static var bodyRegular: Font { body(16, weight: .regular) }
-        public static var bodyMedium: Font { body(16, weight: .medium) }
-        public static var caption: Font { body(12, weight: .medium) }
+        public static var titleLarge: Font { display(28, weight: .semibold, relativeTo: .largeTitle) }
+        public static var title: Font { display(22, weight: .semibold, relativeTo: .title2) }
+        public static var bodyRegular: Font { body(16, weight: .regular, relativeTo: .body) }
+        public static var bodyMedium: Font { body(16, weight: .medium, relativeTo: .body) }
+        public static var caption: Font { body(12, weight: .medium, relativeTo: .caption) }
     }
 
     public enum Icon: String, CaseIterable {
