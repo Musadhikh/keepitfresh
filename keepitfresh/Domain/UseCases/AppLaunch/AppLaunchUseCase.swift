@@ -34,8 +34,27 @@ struct AppLaunchUseCase: Sendable {
         
 //        /// 5. Refresh user session
 //        try await userProvider.validateSession()
-        /// 6. Refresh and get Profile
-        guard let profile = try await profileProvider.getProfile(for: user.id) else { return .loginRequired }
+        /// 6. Refresh and get Profile (create if missing)
+        let profile: Profile
+        if let existingProfile = try await profileProvider.getProfile(for: user.id) {
+            profile = existingProfile
+        } else {
+            let createdProfile = Profile(
+                id: user.id,
+                userId: user.id,
+                name: user.name,
+                email: user.email,
+                avatarURL: user.profileImageURL,
+                householdIds: [],
+                lastSelectedHouseholdId: nil,
+                isActive: true,
+                createdAt: Date(),
+                updatedAt: Date()
+            )
+            try await profileProvider.create(profile: createdProfile)
+            profile = createdProfile
+        }
+
         /// 7. Check if has valid house holds and last selected house hold
         if profile.householdIds.isEmpty {
             return .createHousehold

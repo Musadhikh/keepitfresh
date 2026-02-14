@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 @Observable
 final class AppState {
     enum State: Equatable {
@@ -48,6 +49,25 @@ final class AppState {
         }
     }
     
+    /// Apply launch/auth next-step routing in one place so splash and login share behavior.
+    func applyLaunchState(_ launchState: AppLaunchState) {
+        switch launchState {
+        case .maintenance:
+            enterMaintenance()
+        case .loginRequired:
+            requireAuthentication()
+        case .updateRequired:
+            enterMain()
+        case .createHousehold, .selectHousehold:
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentState = .main
+                setNavigation(tab: .home, routes: [.householdSelection])
+            }
+        case .mainContent:
+            enterMain()
+        }
+    }
+    
     func navigate(to route: AppRoute) {
         navigationPath.append(route)
     }
@@ -56,7 +76,7 @@ final class AppState {
         navigationPath = NavigationPath()
     }
     
-    func setNavigation(tab: AppTab, routes: [AppRoute] = []) {
+    func setNavigation(tab: AppTab, routes: [AppRoute]) {
         selectedTab = tab
         navigationPath = NavigationPath()
         for route in routes {

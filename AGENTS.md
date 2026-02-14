@@ -86,6 +86,21 @@ Avoid:
 - Skipping an applicable skill without stating why.
 - Carrying a skill into later turns unless it is re-mentioned or still explicitly required.
 
+## 9) Factory DI Requirement
+This project uses **Factory** (`FactoryKit`) for dependency injection.
+
+Required:
+- Register dependencies in `Container` extensions using `Factory<T>` (for example, `self { ProfileFirebaseService() }`).
+- Resolve dependencies in app/domain/presentation types using property wrappers (for example, `@Injected(\.profileProvider) var profileProvider`).
+- Prefer `@Injected` field injection over constructor DI for internal app types.
+- Use Factory scopes intentionally (`.singleton`, `.cached`, `.shared`, etc.) when lifecycle behavior matters.
+- For tests/previews, override registrations via Factory registration APIs instead of hardcoding concrete types.
+- Avoid default values in constructors and method parameters unless the API is external and cannot be changed.
+
+Avoid:
+- Direct `Container.shared.someFactory()` calls inside feature logic (except composition root or explicit test wiring).
+- Mixing manual service location with `@Injected` in the same feature flow.
+
 # Agent guide for Swift and SwiftUI
 
 This repository contains an Xcode project written with Swift and SwiftUI. Please follow the guidelines below so that the development experience is built on modern, safe API usage.

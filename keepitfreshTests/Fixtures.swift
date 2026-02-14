@@ -27,8 +27,8 @@ enum Fixtures {
         lastLoggedIn: Date()
     )
     
-    static func profile(households: [String], lastSelected: String?) -> UserProfile {
-        UserProfile(
+    static func profile(households: [String], lastSelected: String?) -> Profile {
+        Profile(
             id: "profile-1",
             userId: user.id,
             name: "Test User",

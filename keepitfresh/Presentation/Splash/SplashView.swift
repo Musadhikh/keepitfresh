@@ -48,16 +48,7 @@ struct SplashView: View {
     }
     
     private func handleLaunchState(_ state: AppLaunchState) {
-        switch state {
-        case .maintenance:
-            appState.enterMaintenance()
-        case .updateRequired, .createHousehold, .selectHousehold:
-            appState.enterMain()
-        case .loginRequired:
-            appState.requireAuthentication()
-        case .mainContent:
-            appState.enterMain()
-        }
+        appState.applyLaunchState(state)
     }
 }
 

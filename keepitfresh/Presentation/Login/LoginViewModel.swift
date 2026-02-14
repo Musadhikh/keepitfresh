@@ -16,6 +16,7 @@ class LoginViewModel {
     let availableMethods: [LoginMethod] = [.apple, .google, .anonymous]
     var isLoading: Bool = false
     var errorMessage: String?
+    var nextStep: AppLaunchState?
     
     let useCase: LoginUseCase
     
@@ -25,13 +26,18 @@ class LoginViewModel {
     }
     
     func singIn(with type: LoginType) async {
+        isLoading = true
+        errorMessage = nil
+        nextStep = nil
+        defer { isLoading = false }
+        
         do {
             let provider = type.provider()
-            try await useCase.login(with: provider)
-            
+            nextStep = try await useCase.login(with: provider)
+        } catch GoogleAuthError.userCancelled {
+            // Ignore user cancellation as it's not an error
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 }
-
