@@ -15,4 +15,11 @@
 - Fixed Splash Dynamic Type behavior by switching theme font builders to `relativeTo`-based scaling and scaling splash badge/icon sizing with `@ScaledMetric`.
 - Added an upper Dynamic Type cap on splash (`.dynamicTypeSize(... .accessibility2)`) to prevent layout breakage at very large text sizes.
 - Updated `AGENTS.md` with a permanent rule to cap Dynamic Type on constrained screens when maximum accessibility sizes would break layout.
+- Refactored `keepitfresh/Presentation/Login/LoginView.swift` from `design/initial.pen` auth screen: rebuilt header/card structure, mapped pen spacing/radius tokens, added themed dark/light-safe button surfaces, and aligned sign-in actions with available auth methods.
+- Fixed light-mode visibility for the Google sign-in button by switching to plain button rendering and increasing fill/border contrast inside the auth card.
+- Matched Google button visual polarity to Apple button behavior: light mode uses dark surface with light text, dark mode uses light surface with dark text.
+- Tuned Google button title styling to better match Apple sign-in presentation by using Apple-like casing and system headline sizing.
+- Center-aligned the login auth section vertically with a geometry-aware scroll layout so `LoginAuthCard` stays centered on larger screens without breaking small-screen scrolling.
+- Repaired Apple sign-in UI stability by removing transient placeholder states and introduced one shared dynamic auth button height (with a cap) so Apple/Google/Email/Guest buttons keep equal sizing.
+- Made Apple nonce generation non-optional with a secure fallback path so sign-in UI stays stable even when secure random bytes are unavailable.
 - Verified builds with `xcodebuild` after major UI/theme updates (`BUILD SUCCEEDED`).

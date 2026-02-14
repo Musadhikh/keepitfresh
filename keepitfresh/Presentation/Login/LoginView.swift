@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import GoogleSignInSwift
 
 struct LoginView: View {
     @State private var viewModel: LoginViewModel
@@ -18,66 +17,37 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [Theme.Colors.accentSoft, Theme.Colors.background],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Theme.Colors.background
+                    .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 32) {
-                        // Header
-                        LoginHeaderView()
-                        Spacer()
-                        // Login methods
-                        VStack(spacing: 16) {
-                            ForEach(viewModel.availableMethods, id: \.self) { method in
-                                switch method {
-                                case .apple:
-                                    AppleSignInButton { result in
-                                        switch result {
-                                        case .success(let res):
-                                            signIn(with: res)
-                                        case .failure(let err):
-                                            print("Error: \(err)")
-                                            
-                                        }
-                                        
-                                    }
-                                    .frame(height: 40)
-                                    
-                                case .google:
-                                    if let topViewController = UIViewController.topViewController() {
-                                        GoogleSignInButton {
-                                            signIn(with: .google(topViewController))
-                                        }
-                                        .frame(height: 40)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    }
-                                case .anonymous:
-                                    Button("Continue as Guest") {
-                                        signIn(with: .anonymous)
-                                    }
-                                    .font(Theme.Fonts.body(16, weight: .semibold))
-                                    .foregroundStyle(Theme.Colors.textPrimary)
-                                    .padding(.top)
-                                }
+                GeometryReader { proxy in
+                    ScrollView {
+                        VStack(spacing: Theme.Spacing.s16) {
+                            Spacer(minLength: 0)
+                            
+                            LoginHeaderView()
+                            
+                            LoginAuthCard(
+                                availableMethods: viewModel.availableMethods,
+                                onAppleSignIn: signIn(with:),
+                                onGoogleSignIn: signInWithGoogle,
+                                onEmailSignIn: signInWithEmail,
+                                onGuestSignIn: { signIn(with: .anonymous) },
+                                onError: { viewModel.errorMessage = $0 }
+                            )
+                            
+                            if let errorMessage = viewModel.errorMessage {
+                                ErrorMessageView(message: errorMessage)
                             }
+                            
+                            Spacer(minLength: 0)
                         }
-                        .padding(.horizontal)
-                        
-                        // Error message
-                        if let errorMessage = viewModel.errorMessage {
-                            ErrorMessageView(message: errorMessage)
-                                .padding(.horizontal)
-                        }
+                        .frame(minHeight: proxy.size.height - (Theme.Spacing.s32 * 2))
+                        .padding(.horizontal, Theme.Spacing.s24)
+                        .padding(.vertical, Theme.Spacing.s32)
                     }
-                    .padding(.vertical, 40)
                 }
             }
-            .navigationTitle("Welcome")
             .navigationBarTitleDisplayMode(.inline)
         }
         .disabled(viewModel.isLoading)
@@ -86,32 +56,112 @@ struct LoginView: View {
     private func signIn(with type: LoginType) {
         Task { await viewModel.singIn(with: type) }
     }
-}
-
-// MARK: - Login Header View
-
-private struct LoginHeaderView: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(icon: .loginBrand)
-                .font(.system(size: 80))
-                .foregroundStyle(Theme.Colors.accent.gradient)
-            
-            Text("KeepItFresh")
-                .font(Theme.Fonts.titleLarge)
-                .foregroundStyle(Theme.Colors.textPrimary)
-            
-            Text("Never waste food again")
-                .font(Theme.Fonts.body(14, weight: .medium))
-                .foregroundStyle(Theme.Colors.textSecondary)
+    
+    private func signInWithGoogle() {
+        guard let topViewController = UIViewController.topViewController() else {
+            viewModel.errorMessage = "Unable to start Google sign-in right now."
+            return
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("KeepItFresh - Never waste food again")
+        signIn(with: .google(topViewController))
+    }
+    
+    private func signInWithEmail() {
+        viewModel.errorMessage = "Email sign-in is coming soon."
     }
 }
 
+private struct LoginHeaderView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s12) {
+            Text("Welcome back")
+                .font(Theme.Fonts.display(32, weight: .bold, relativeTo: .largeTitle))
+                .foregroundStyle(Theme.Colors.textPrimary)
+            
+            Text("Sign in to sync your homes, groceries, and expiry reminders.")
+                .font(Theme.Fonts.body(15, weight: .medium, relativeTo: .body))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .lineSpacing(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
 
-// MARK: - Error Message View
+private struct LoginAuthCard: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ScaledMetric(relativeTo: .headline) private var scaledButtonHeight: CGFloat = 50
+    
+    let availableMethods: [LoginMethod]
+    let onAppleSignIn: (LoginType) -> Void
+    let onGoogleSignIn: () -> Void
+    let onEmailSignIn: () -> Void
+    let onGuestSignIn: () -> Void
+    let onError: (String) -> Void
+    
+    private var authButtonHeight: CGFloat {
+        min(max(scaledButtonHeight, 50), 62)
+    }
+    
+    var body: some View {
+        VStack(spacing: Theme.Spacing.s12) {
+            if availableMethods.contains(.apple) {
+                AppleSignInButton { result in
+                    switch result {
+                    case .success(let loginType):
+                        onAppleSignIn(loginType)
+                    case .failure(let error):
+                        onError("Apple sign-in failed: \(error.localizedDescription)")
+                    }
+                }
+                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                .frame(maxWidth: .infinity)
+                .frame(height: authButtonHeight)
+                .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+            }
+            
+            if availableMethods.contains(.google) {
+                Button(action: onGoogleSignIn) {
+                    Text("Sign In with Google")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: authButtonHeight)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.9)
+                        .foregroundStyle(colorScheme == .dark ? Color.black : Color.white)
+                }
+                .buttonStyle(.plain)
+                .background(colorScheme == .dark ? Color.white : Color.black)
+                .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+            }
+            
+            Button("Continue with Email", action: onEmailSignIn)
+                .frame(maxWidth: .infinity)
+                .frame(height: authButtonHeight)
+                .font(Theme.Fonts.body(16, weight: .semibold, relativeTo: .body))
+                .foregroundStyle(.white)
+                .background(Theme.Colors.accent)
+                .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+            
+            if availableMethods.contains(.anonymous) {
+                Button("Continue as Guest", action: onGuestSignIn)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: authButtonHeight)
+                    .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .body))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .background(Theme.Colors.accentSoft)
+                    .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+            }
+        }
+        .padding(Theme.Spacing.s16)
+        .frame(maxWidth: .infinity)
+        .background(Theme.Colors.surface)
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.Radius.r24)
+                .stroke(Theme.Colors.border, lineWidth: 1)
+        }
+        .clipShape(.rect(cornerRadius: Theme.Radius.r24))
+    }
+}
 
 private struct ErrorMessageView: View {
     let message: String
@@ -129,13 +179,11 @@ private struct ErrorMessageView: View {
         }
         .padding()
         .background(Theme.Colors.danger.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
+        .clipShape(.rect(cornerRadius: Theme.Radius.r12))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Error: \(message)")
     }
 }
-
-// MARK: - Preview
 
 #if DEBUG
 #Preview("Login View - All Methods") {
