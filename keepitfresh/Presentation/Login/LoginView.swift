@@ -20,7 +20,7 @@ struct LoginView: View {
             ZStack {
                 // Background gradient
                 LinearGradient(
-                    colors: [.blue.opacity(0.1), .purple.opacity(0.1)],
+                    colors: [Theme.Colors.accentSoft, Theme.Colors.background],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -60,6 +60,8 @@ struct LoginView: View {
                                     Button("Continue as Guest") {
                                         signIn(with: .anonymous)
                                     }
+                                    .font(Theme.Fonts.body(16, weight: .semibold))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
                                     .padding(.top)
                                 }
                             }
@@ -91,17 +93,17 @@ struct LoginView: View {
 private struct LoginHeaderView: View {
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "leaf.circle.fill")
+            Image(icon: .loginBrand)
                 .font(.system(size: 80))
-                .foregroundStyle(.green.gradient)
+                .foregroundStyle(Theme.Colors.accent.gradient)
             
             Text("KeepItFresh")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(Theme.Fonts.titleLarge)
+                .foregroundStyle(Theme.Colors.textPrimary)
             
             Text("Never waste food again")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(Theme.Fonts.body(14, weight: .medium))
+                .foregroundStyle(Theme.Colors.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("KeepItFresh - Never waste food again")
@@ -116,18 +118,18 @@ private struct ErrorMessageView: View {
     
     var body: some View {
         HStack {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
+            Image(icon: .warning)
+                .foregroundStyle(Theme.Colors.danger)
             
             Text(message)
-                .font(.caption)
-                .foregroundStyle(.red)
+                .font(Theme.Fonts.caption)
+                .foregroundStyle(Theme.Colors.danger)
             
             Spacer()
         }
         .padding()
-        .background(Color.red.opacity(0.1))
-        .cornerRadius(8)
+        .background(Theme.Colors.danger.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Error: \(message)")
     }

@@ -12,7 +12,7 @@ struct MaintenanceView: View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             VStack(spacing: 16) {
-                Image(systemName: "wrench.and.screwdriver")
+                Image(icon: .maintenance)
                     .font(.system(size: 64, weight: .regular))
                     .foregroundStyle(.secondary)
                 
@@ -38,4 +38,3 @@ struct MaintenanceView: View {
     MaintenanceView()
 }
 #endif
-

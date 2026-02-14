@@ -43,10 +43,14 @@ struct KeepItFreshApp: App {
                 }
             }
             .environment(appState)
+            .tint(Theme.Colors.accent)
+            
             .onOpenURL { url in
-                GoogleSignInConfig.handleURL(url)
+                if GoogleSignInConfig.handleURL(url) {
+                    return
+                }
+                appState.handleDeepLink(url)
             }
         }
     }
 }
-
