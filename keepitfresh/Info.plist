@@ -13,5 +13,9 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Keep It Fresh uses your camera to scan and capture item photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Keep It Fresh uses your photo library so you can attach item photos from your album.</string>
 </dict>
 </plist>

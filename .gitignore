@@ -40,6 +40,9 @@ playground.xcworkspace
 Packages/*
 !Packages/HouseModule/
 !Packages/HouseModule/**
+!Packages/CameraModule/
+!Packages/CameraModule/**
+Packages/CameraModule/.swiftpm/
 Package.pins
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 .build/

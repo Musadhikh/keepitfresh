@@ -15,6 +15,7 @@
 		C7B4FB162E6411830017569D /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB152E6411830017569D /* FirebaseCrashlytics */; };
 		C7B4FB182E6411830017569D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB172E6411830017569D /* FirebaseFirestore */; };
 		C7CD24762F41883A00FD3ED4 /* HouseModule in Frameworks */ = {isa = PBXBuildFile; productRef = C7CD24752F41883A00FD3ED4 /* HouseModule */; };
+		C7CD258F2F41B7EC00FD3ED4 /* CameraModule in Frameworks */ = {isa = PBXBuildFile; productRef = C7CD258E2F41B7EC00FD3ED4 /* CameraModule */; };
 		C7E8F0572E6D5F01002CE0AA /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C7E8F0562E6D5F01002CE0AA /* GoogleSignIn */; };
 		C7E8F0592E6D5F01002CE0AA /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C7E8F0582E6D5F01002CE0AA /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
@@ -80,6 +81,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7B4FB102E6411830017569D /* FirebaseAnalytics in Frameworks */,
+				C7CD258F2F41B7EC00FD3ED4 /* CameraModule in Frameworks */,
 				C7B4FB162E6411830017569D /* FirebaseCrashlytics in Frameworks */,
 				C7E8F0592E6D5F01002CE0AA /* GoogleSignInSwift in Frameworks */,
 				C695422D2F17A46D007C44CD /* FactoryKit in Frameworks */,
@@ -166,6 +168,7 @@
 				C695422A2F17A46D007C44CD /* Factory */,
 				C695422C2F17A46D007C44CD /* FactoryKit */,
 				C7CD24752F41883A00FD3ED4 /* HouseModule */,
+				C7CD258E2F41B7EC00FD3ED4 /* CameraModule */,
 			);
 			productName = keepitfresh;
 			productReference = C7DA738B2E63FE5000331A4A /* keepitfresh.app */;
@@ -254,6 +257,7 @@
 				C7E8F0552E6D5F01002CE0AA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				C69542292F17A46D007C44CD /* XCRemoteSwiftPackageReference "Factory" */,
 				C7CD24742F41883A00FD3ED4 /* XCLocalSwiftPackageReference "Packages/HouseModule" */,
+				C7CD258D2F41B7EC00FD3ED4 /* XCLocalSwiftPackageReference "Packages/CameraModule" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C7DA738C2E63FE5000331A4A /* Products */;
@@ -709,6 +713,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/HouseModule;
 		};
+		C7CD258D2F41B7EC00FD3ED4 /* XCLocalSwiftPackageReference "Packages/CameraModule" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/CameraModule;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -777,6 +785,10 @@
 		C7CD24752F41883A00FD3ED4 /* HouseModule */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HouseModule;
+		};
+		C7CD258E2F41B7EC00FD3ED4 /* CameraModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CameraModule;
 		};
 		C7E8F0562E6D5F01002CE0AA /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
