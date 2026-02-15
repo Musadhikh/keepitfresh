@@ -23,4 +23,8 @@ extension Container {
     var profileProvider: Factory<ProfileProviding> {
         self { ProfileFirebaseService() }
     }
+    
+    var houseProvider: Factory<HouseProviding> {
+        self { HouseFirebaseService() }
+    }
 }

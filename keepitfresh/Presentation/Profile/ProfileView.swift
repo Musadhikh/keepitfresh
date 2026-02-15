@@ -185,6 +185,20 @@ struct ProfileView: View {
                 .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.r12))
             }
             
+            Button {
+                appState.navigate(to: .householdSelection)
+            } label: {
+                HStack {
+                    Image(icon: .householdSelection)
+                    Text("Manage Households")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Theme.Colors.surfaceAlt)
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .clipShape(.rect(cornerRadius: Theme.Radius.r12))
+            }
+            
             // Logout Button
             Button {
                 Task {

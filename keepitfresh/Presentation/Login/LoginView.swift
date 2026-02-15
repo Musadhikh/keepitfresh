@@ -141,21 +141,11 @@ private struct LoginAuthCard: View {
             }
             
             Button("Continue with Email", action: onEmailSignIn)
-                .frame(maxWidth: .infinity)
-                .frame(height: authButtonHeight)
-                .font(Theme.Fonts.body(16, weight: .semibold, relativeTo: .body))
-                .foregroundStyle(.white)
-                .background(Theme.Colors.accent)
-                .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+                .primaryButtonStyle()
             
             if availableMethods.contains(.anonymous) {
                 Button("Continue as Guest", action: onGuestSignIn)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: authButtonHeight)
-                    .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .body))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .background(Theme.Colors.accentSoft)
-                    .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+                    .secondaryButtonStyle()
             }
         }
         .padding(Theme.Spacing.s16)
@@ -194,6 +184,7 @@ private struct ErrorMessageView: View {
 #if DEBUG
 #Preview("Login View - All Methods") {
     LoginView(viewModel: LoginViewModel())
+        .environment(AppState())
 }
 
 #Preview("Login View - Loading") {
