@@ -9,9 +9,7 @@
 import Foundation
 
 public protocol HouseStorageServicing: Sendable {
-    func fetchHouseholds() async throws -> [Household]
-    func saveHouseholds(_ households: [Household]) async throws
+    func fetchHouseholds(ids: [String]) async throws -> [Household]
     func upsertHousehold(_ household: Household) async throws
     func deleteHousehold(id: String) async throws
 }
-

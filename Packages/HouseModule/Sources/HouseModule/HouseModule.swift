@@ -8,6 +8,9 @@
 
 import Foundation
 
+import os
+let logger = Logger(subsystem:"com.mus.housemodule", category: "HouseModule")
+
 public struct HouseModule: Sendable {
     public let loadHouseholds: LoadHouseholdsUseCase
     public let syncHouseholds: SyncHouseholdsUseCase
