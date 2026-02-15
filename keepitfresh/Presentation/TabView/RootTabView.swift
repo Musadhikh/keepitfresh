@@ -29,6 +29,13 @@ struct RootTabView: View {
             }
             .navigationDestination(for: AppRoute.self, destination: destination(for:))
         }
+        .id(appState.houseSessionID)
+        .fullScreenCover(isPresented: $appState.requiresHouseSelection) {
+            NavigationStack {
+                HouseSelectionScreen(mode: .required)
+            }
+            .interactiveDismissDisabled()
+        }
     }
     
     @ViewBuilder
@@ -39,7 +46,7 @@ struct RootTabView: View {
         case .profileDetails:
             ProfileDetailsView()
         case .householdSelection:
-            HouseholdSelectionView()
+            HouseSelectionScreen(mode: .manage)
         }
     }
 }
@@ -63,17 +70,6 @@ private struct ProfileDetailsView: View {
             description: Text("Detailed account management screen can be plugged in here.")
         )
         .navigationTitle("Account")
-    }
-}
-
-private struct HouseholdSelectionView: View {
-    var body: some View {
-        ContentUnavailableView(
-            "Select Household",
-            systemImage: Theme.Icon.householdSelection.systemName,
-            description: Text("This route is ready for the household selection flow.")
-        )
-        .navigationTitle("Households")
     }
 }
 

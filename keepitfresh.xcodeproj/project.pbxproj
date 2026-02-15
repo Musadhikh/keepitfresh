@@ -14,6 +14,7 @@
 		C7B4FB142E6411830017569D /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB132E6411830017569D /* FirebaseCore */; };
 		C7B4FB162E6411830017569D /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB152E6411830017569D /* FirebaseCrashlytics */; };
 		C7B4FB182E6411830017569D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB172E6411830017569D /* FirebaseFirestore */; };
+		C7CD24762F41883A00FD3ED4 /* HouseModule in Frameworks */ = {isa = PBXBuildFile; productRef = C7CD24752F41883A00FD3ED4 /* HouseModule */; };
 		C7E8F0572E6D5F01002CE0AA /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C7E8F0562E6D5F01002CE0AA /* GoogleSignIn */; };
 		C7E8F0592E6D5F01002CE0AA /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C7E8F0582E6D5F01002CE0AA /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
@@ -85,6 +86,7 @@
 				C7B4FB142E6411830017569D /* FirebaseCore in Frameworks */,
 				C7B4FB182E6411830017569D /* FirebaseFirestore in Frameworks */,
 				C7B4FB122E6411830017569D /* FirebaseAuth in Frameworks */,
+				C7CD24762F41883A00FD3ED4 /* HouseModule in Frameworks */,
 				C7E8F0572E6D5F01002CE0AA /* GoogleSignIn in Frameworks */,
 				C695422B2F17A46D007C44CD /* Factory in Frameworks */,
 			);
@@ -163,6 +165,7 @@
 				C7E8F0582E6D5F01002CE0AA /* GoogleSignInSwift */,
 				C695422A2F17A46D007C44CD /* Factory */,
 				C695422C2F17A46D007C44CD /* FactoryKit */,
+				C7CD24752F41883A00FD3ED4 /* HouseModule */,
 			);
 			productName = keepitfresh;
 			productReference = C7DA738B2E63FE5000331A4A /* keepitfresh.app */;
@@ -250,6 +253,7 @@
 				C7B4FB0E2E6411830017569D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				C7E8F0552E6D5F01002CE0AA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				C69542292F17A46D007C44CD /* XCRemoteSwiftPackageReference "Factory" */,
+				C7CD24742F41883A00FD3ED4 /* XCLocalSwiftPackageReference "Packages/HouseModule" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C7DA738C2E63FE5000331A4A /* Products */;
@@ -700,6 +704,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		C7CD24742F41883A00FD3ED4 /* XCLocalSwiftPackageReference "Packages/HouseModule" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/HouseModule;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		C69542292F17A46D007C44CD /* XCRemoteSwiftPackageReference "Factory" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -762,6 +773,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C7B4FB0E2E6411830017569D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		C7CD24752F41883A00FD3ED4 /* HouseModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HouseModule;
 		};
 		C7E8F0562E6D5F01002CE0AA /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

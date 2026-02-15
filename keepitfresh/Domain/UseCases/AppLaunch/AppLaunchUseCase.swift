@@ -55,15 +55,10 @@ struct AppLaunchUseCase: Sendable {
             profile = createdProfile
         }
 
-        /// 7. Check if has valid house holds and last selected house hold
+        /// 7. Route authenticated users to household selection flow on launch
         if profile.householdIds.isEmpty {
             return .createHousehold
         }
-        
-        if profile.lastSelectedHouseholdId == nil {
-            return .selectHousehold
-        }
-        
-        return .mainContent
+        return .selectHousehold
     }
 }

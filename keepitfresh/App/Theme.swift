@@ -82,6 +82,9 @@ public enum Theme {
         case appInfo = "info.circle"
         case profileDetails = "person.text.rectangle"
         case householdSelection = "house.and.flag"
+        case houseCreate = "plus"
+        case houseSelected = "checkmark.circle.fill"
+        case houseUnselected = "circle"
 
         // Branding
         case splashLeaf = "leaf"
@@ -97,6 +100,8 @@ public enum Theme {
         case logout = "rectangle.portrait.and.arrow.right"
         case delete = "trash"
 
+        case locationPin = "mappin.and.ellipse"
+        
         public var systemName: String { rawValue }
     }
 

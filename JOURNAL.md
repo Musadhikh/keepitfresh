@@ -26,4 +26,6 @@
 - Updated bootstrap behavior to auto-create missing user profiles for authenticated sessions, avoiding false login-required loops after successful auth.
 - Added `Error` extension helpers (`nsError`, `errorCode`, `errorDomain`, reason/suggestion`) so error-code handling is centralized without manual `NSError` casting at call sites.
 - Aligned DI style with Factory README guidance by moving login use case back to `@Injected` field-based resolution and documented project-level Factory rules in `AGENTS.md` (including no-default-args guidance for constructors/methods).
+- Added a new local Swift package at `Packages/HouseModule` for non-UI household domain logic using strict constructor injection (storage + network), with repository/use-case architecture and passing package tests.
+- Implemented full house-selection gate flow: authenticated launch and post-login now force a non-dismissible house picker; profile can open house management with create+native switch prompt; switching now fetches fresh house data, resets in-memory context, refreshes session state, and pops navigation back to Home.
 - Verified builds with `xcodebuild` after major UI/theme updates (`BUILD SUCCEEDED`).

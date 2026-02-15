@@ -24,6 +24,9 @@ final class AppState {
     private(set) var currentState: State = .splash
     var selectedTab: AppTab = .home
     var navigationPath = NavigationPath()
+    private(set) var selectedHouse: House?
+    private(set) var houseSessionID = UUID()
+    var requiresHouseSelection = false
     
     /// Transition to maintenance screen
     func enterMaintenance() {
@@ -37,6 +40,7 @@ final class AppState {
     func requireAuthentication() {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentState = .authentication
+            requiresHouseSelection = false
             resetNavigation()
         }
     }
@@ -45,6 +49,7 @@ final class AppState {
     func enterMain() {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentState = .main
+            requiresHouseSelection = false
             resetNavigation()
         }
     }
@@ -59,12 +64,29 @@ final class AppState {
         case .updateRequired:
             enterMain()
         case .createHousehold, .selectHousehold:
-            withAnimation(.easeInOut(duration: 0.3)) {
-                currentState = .main
-                setNavigation(tab: .home, routes: [.householdSelection])
-            }
+            requireHouseSelection()
         case .mainContent:
             enterMain()
+        }
+    }
+    
+    /// Forces the user through household selection flow before using main app features.
+    func requireHouseSelection() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentState = .main
+            requiresHouseSelection = true
+            setNavigation(tab: .home, routes: [])
+        }
+    }
+    
+    /// Applies a new household context, clears volatile in-memory state, and returns to Home root.
+    func switchHouse(to house: House) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            selectedHouse = house
+            clearVolatileHouseScopedState()
+            houseSessionID = UUID()
+            requiresHouseSelection = false
+            setNavigation(tab: .home, routes: [])
         }
     }
     
@@ -97,6 +119,10 @@ final class AppState {
     
     private func resetNavigation() {
         selectedTab = .home
+        navigationPath = NavigationPath()
+    }
+    
+    private func clearVolatileHouseScopedState() {
         navigationPath = NavigationPath()
     }
 }

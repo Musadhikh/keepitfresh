@@ -59,9 +59,6 @@ struct LoginUseCase: Sendable {
         if profile.householdIds.isEmpty {
             return .createHousehold
         }
-        if profile.lastSelectedHouseholdId == nil {
-            return .selectHousehold
-        }
-        return .mainContent
+        return .selectHousehold
     }
 }
