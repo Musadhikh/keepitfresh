@@ -201,18 +201,19 @@ public struct CameraScannerView: View {
                     )
                 }
                 .buttonStyle(.plain)
-                
-                Button {
-                    onComplete(viewModel.completeCapture())
-                    dismiss()
-                } label: {
-                    CameraRoundControlButton(
-                        iconName: CameraScannerIcon.done.systemName,
-                        size: 40,
-                        cornerRadius: 20
-                    )
+                if viewModel.hasCaptures {
+                    Button {
+                        onComplete(viewModel.completeCapture())
+                        dismiss()
+                    } label: {
+                        CameraRoundControlButton(
+                            iconName: CameraScannerIcon.done.systemName,
+                            size: 40,
+                            cornerRadius: 20
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
         }

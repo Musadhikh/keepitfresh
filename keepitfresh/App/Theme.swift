@@ -82,6 +82,8 @@ public enum Theme {
         case appInfo = "info.circle"
         case profileDetails = "person.text.rectangle"
         case householdSelection = "house.and.flag"
+        case cameraScanner = "camera.viewfinder"
+        case analyserResult = "sparkles.rectangle.stack"
         case houseCreate = "plus"
         case houseSelected = "checkmark.circle.fill"
         case houseUnselected = "circle"

@@ -10,7 +10,7 @@ import CoreGraphics
 import Foundation
 import UIKit
 
-public struct CameraCapturedImage: Identifiable {
+public struct CameraCapturedImage: Identifiable, Equatable {
     public let id: UUID
     public let image: UIImage
     public let boundingBox: CGRect

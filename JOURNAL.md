@@ -34,4 +34,5 @@
 - Updated `keepitfresh/Info.plist` with camera and photo library usage descriptions required for the new capture and album flows.
 - Verified app build after camera changes using `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/keepitfresh-dd build` (`BUILD SUCCEEDED`).
 - Fixed strict concurrency compile failures after adding `CameraModule` to app SPM dependencies by avoiding cross-actor capture of `AVCapturePhoto` in the delegate callback and marking `CameraCapturedImage` as `@unchecked Sendable` for continuation handoff; re-verified with `xcodebuild ... -quiet build` (`BUILD SUCCEEDED`).
+- Added a floating camera action button on Home that presents `CameraScannerView`, then automatically presents `AnlayserResultView` on capture completion while passing the full captured image array; result screen currently shows a loading state and captured image count.
 - Verified builds with `xcodebuild` after major UI/theme updates (`BUILD SUCCEEDED`).
