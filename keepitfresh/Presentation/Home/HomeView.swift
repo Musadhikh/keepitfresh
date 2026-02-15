@@ -6,17 +6,20 @@
 //
 
 import SwiftUI
+import CameraModule
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
+    @State var showCamera = false
     
     var body: some View {
         List {
             Section("Quick Actions") {
                 Button {
-                    appState.navigate(to: .appInfo)
+//                    appState.navigate(to: .appInfo)
+                    showCamera.toggle()
                 } label: {
-                    Label("Open App Info", systemImage: Theme.Icon.appInfo.systemName)
+                    Label("Scan", systemImage: Theme.Icon.appInfo.systemName)
                 }
                 
                 Button {
@@ -42,6 +45,11 @@ struct HomeView: View {
             .foregroundStyle(.secondary)
         }
         .navigationTitle("Home")
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraScannerView { result in
+                
+            }
+        }
     }
 }
 
