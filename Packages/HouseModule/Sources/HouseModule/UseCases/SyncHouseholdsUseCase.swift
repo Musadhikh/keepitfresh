@@ -15,8 +15,7 @@ public struct SyncHouseholdsUseCase: Sendable {
         self.repository = repository
     }
     
-    public func execute() async throws -> [Household] {
-        try await repository.syncHouseholds()
+    public func execute(ids: [String]) async throws -> [Household] {
+        try await repository.syncHouseholds(ids: ids)
     }
 }
-

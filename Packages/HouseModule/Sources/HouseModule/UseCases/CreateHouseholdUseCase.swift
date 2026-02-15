@@ -15,8 +15,7 @@ public struct CreateHouseholdUseCase: Sendable {
         self.repository = repository
     }
     
-    public func execute(name: String) async throws -> Household {
-        try await repository.createHousehold(name: name)
+    public func execute(request: CreateHouseholdRequest) async throws -> Household {
+        try await repository.createHousehold(request)
     }
 }
-

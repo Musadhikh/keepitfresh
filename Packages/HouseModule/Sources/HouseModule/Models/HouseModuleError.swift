@@ -12,5 +12,5 @@ public enum HouseModuleError: Error, Sendable, Equatable {
     case householdNotFound(String)
     case storageUnavailable
     case networkUnavailable
+    case invalidHouseName
 }
-

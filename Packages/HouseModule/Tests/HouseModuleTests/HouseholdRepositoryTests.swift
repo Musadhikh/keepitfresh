@@ -15,8 +15,12 @@ final class HouseholdRepositoryTests: XCTestCase {
             Household(
                 id: "h1",
                 name: "Home",
-                members: [],
-                updatedAt: Date(timeIntervalSince1970: 100)
+                description: "Primary home",
+                ownerId: "u1",
+                memberIds: ["u1"],
+                createdAt: Date(timeIntervalSince1970: 90),
+                updatedAt: Date(timeIntervalSince1970: 100),
+                syncState: .synced
             )
         ]
         let storage = StorageStub(seed: [])
@@ -26,8 +30,8 @@ final class HouseholdRepositoryTests: XCTestCase {
             networkService: network
         )
         
-        let households = try await repository.loadHouseholds(policy: .remoteFirst)
-        let cached = try await storage.fetchHouseholds()
+        let households = try await repository.loadHouseholds(ids: ["h1"], policy: .remoteFirst)
+        let cached = try await storage.fetchHouseholds(ids: ["h1"])
         
         XCTAssertEqual(households, expected)
         XCTAssertEqual(cached, expected)
@@ -38,8 +42,12 @@ final class HouseholdRepositoryTests: XCTestCase {
             Household(
                 id: "h-local",
                 name: "Offline Home",
-                members: [],
-                updatedAt: Date(timeIntervalSince1970: 200)
+                description: nil,
+                ownerId: "u1",
+                memberIds: ["u1"],
+                createdAt: Date(timeIntervalSince1970: 190),
+                updatedAt: Date(timeIntervalSince1970: 200),
+                syncState: .synced
             )
         ]
         let storage = StorageStub(seed: local)
@@ -49,12 +57,12 @@ final class HouseholdRepositoryTests: XCTestCase {
             networkService: network
         )
         
-        let households = try await repository.loadHouseholds(policy: .remoteFirst)
+        let households = try await repository.loadHouseholds(ids: ["h-local"], policy: .remoteFirst)
         
         XCTAssertEqual(households, local)
     }
     
-    func test_createHousehold_persistsToStorage() async throws {
+    func test_createHousehold_persistsSyncedResultToStorage() async throws {
         let storage = StorageStub(seed: [])
         let network = NetworkStub(households: [], shouldThrow: false)
         let repository = HouseholdRepository(
@@ -62,12 +70,45 @@ final class HouseholdRepositoryTests: XCTestCase {
             networkService: network
         )
         
-        let created = try await repository.createHousehold(name: "Fresh Home")
-        let cached = try await storage.fetchHouseholds()
+        let created = try await repository.createHousehold(
+            CreateHouseholdRequest(
+                name: "Fresh Home",
+                description: "Kitchen and pantry",
+                ownerId: "u1",
+                memberIds: ["u1"]
+            )
+        )
+        let cached = try await storage.fetchHouseholds(ids: [created.id])
         
         XCTAssertEqual(created.name, "Fresh Home")
+        XCTAssertEqual(created.syncState, .synced)
         XCTAssertEqual(cached.count, 1)
         XCTAssertEqual(cached.first?.id, created.id)
+    }
+    
+    func test_createHousehold_marksFailedOnRemoteError() async throws {
+        let storage = StorageStub(seed: [])
+        let network = NetworkStub(households: [], shouldThrow: true)
+        let repository = HouseholdRepository(
+            storageService: storage,
+            networkService: network
+        )
+        
+        do {
+            _ = try await repository.createHousehold(
+                CreateHouseholdRequest(
+                    name: "Broken House",
+                    description: nil,
+                    ownerId: "u1",
+                    memberIds: ["u1"]
+                )
+            )
+            XCTFail("Expected createHousehold to throw")
+        } catch {
+            let stored = try await storage.fetchHouseholds(ids: [])
+            XCTAssertEqual(stored.count, 1)
+            XCTAssertEqual(stored.first?.syncState, .failed)
+        }
     }
 }
 
@@ -78,12 +119,12 @@ private actor StorageStub: HouseStorageServicing {
         self.households = seed
     }
     
-    func fetchHouseholds() async throws -> [Household] {
-        households
-    }
-    
-    func saveHouseholds(_ households: [Household]) async throws {
-        self.households = households
+    func fetchHouseholds(ids: [String]) async throws -> [Household] {
+        if ids.isEmpty {
+            return households
+        }
+        let byID = Dictionary(uniqueKeysWithValues: households.map { ($0.id, $0) })
+        return ids.compactMap { byID[$0] }
     }
     
     func upsertHousehold(_ household: Household) async throws {
@@ -105,19 +146,30 @@ private actor NetworkStub: HouseNetworkServicing {
         self.shouldThrow = shouldThrow
     }
     
-    func fetchHouseholds() async throws -> [Household] {
+    func fetchHouseholds(ids: [String]) async throws -> [Household] {
         if shouldThrow {
             throw HouseModuleError.networkUnavailable
         }
-        return households
+        if ids.isEmpty {
+            return households
+        }
+        let byID = Dictionary(uniqueKeysWithValues: households.map { ($0.id, $0) })
+        return ids.compactMap { byID[$0] }
     }
     
-    func createHousehold(name: String) async throws -> Household {
+    func createHousehold(_ request: CreateHouseholdRequest) async throws -> Household {
+        if shouldThrow {
+            throw HouseModuleError.networkUnavailable
+        }
         let created = Household(
             id: UUID().uuidString,
-            name: name,
-            members: [],
-            updatedAt: Date()
+            name: request.name,
+            description: request.description,
+            ownerId: request.ownerId,
+            memberIds: request.memberIds,
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncState: .synced
         )
         households.append(created)
         return created
