@@ -90,7 +90,7 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: $shouldPresentAnalyserResult) {
             NavigationStack {
-                AnlayserResultView(capturedImages: capturedImages)
+                ProductOverView(viewModel: ProductAIViewModel(capturedImages: capturedImages))
             }
         }
     }
