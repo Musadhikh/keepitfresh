@@ -1,10 +1,10 @@
 //
 //
-//  ProductAIViewModel.swift
+//  ProductOverViewModel.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 16/2/26.
-//  Summary: ProductAIViewModel 
+//  Summary: ProductOverViewModel 
 //
     
 
@@ -14,7 +14,7 @@ import FoundationModels
 
 @Observable
 @MainActor
-class ProductAIViewModel {
+class ProductOverViewModel {
     private let capturedImages: [CameraCapturedImage]
     let imageDataReader: ImageDataReader = ImageDataReader()
     let imageDataGenerator: ImageDataGenerator = ImageDataGenerator(model: .init(useCase: .contentTagging))
@@ -41,7 +41,7 @@ class ProductAIViewModel {
     }
 }
 
-extension ProductAIViewModel {
+extension ProductOverViewModel {
     var imageCount: Int {
         capturedImages.count
     }

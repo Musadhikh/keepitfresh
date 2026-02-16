@@ -1,6 +1,6 @@
 //
 //
-//  ProductAIView.swift
+//  ProductOverView.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 16/2/26.
@@ -14,7 +14,7 @@ import CameraModule
 struct ProductOverView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @State var viewModel: ProductAIViewModel
+    @State var viewModel: ProductOverViewModel
     
     var body: some View {
         VStack(spacing: Theme.Spacing.s24) {
@@ -62,5 +62,5 @@ struct ProductOverView: View {
 }
 
 #Preview {
-    ProductOverView(viewModel: ProductAIViewModel(capturedImages: []))
+    ProductOverView(viewModel: ProductOverViewModel(capturedImages: []))
 }
