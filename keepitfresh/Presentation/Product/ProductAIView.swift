@@ -1,18 +1,20 @@
 //
-//  AnlayserResultView.swift
+//
+//  ProductAIView.swift
 //  keepitfresh
 //
-//  Created by musadhikh on 15/2/26.
-//  Summary: Shows a temporary analyser loading screen and the count of captured camera images.
+//  Created by musadhikh on 16/2/26.
+//  Summary: ProductOverView
 //
+    
 
 import SwiftUI
 import CameraModule
 
-struct AnlayserResultView: View {
+struct ProductOverView: View {
     @Environment(\.dismiss) private var dismiss
     
-    let capturedImages: [CameraCapturedImage]
+    @State var viewModel: ProductAIViewModel
     
     var body: some View {
         VStack(spacing: Theme.Spacing.s24) {
@@ -24,14 +26,22 @@ struct AnlayserResultView: View {
                 .font(Theme.Fonts.bodyRegular)
                 .controlSize(.large)
             
-            Text("\(capturedImages.count) images captured")
+            Text("\(viewModel.imageCount) images captured")
                 .font(Theme.Fonts.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
-            
-            Text("Preparing scan insights. This is a placeholder result screen.")
-                .font(Theme.Fonts.bodyRegular)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
+            if let product = viewModel.product {
+                if let title = product.title {
+                    Text("Product: \(title)")
+                        .font(Theme.Fonts.bodyRegular)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+                
+            } else {
+                Text("Preparing scan insights. This is a placeholder result screen.")
+                    .font(Theme.Fonts.bodyRegular)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(Theme.Spacing.s24)
@@ -45,13 +55,12 @@ struct AnlayserResultView: View {
             }
         }
         .dynamicTypeSize(.xSmall ... .accessibility2)
+        .task {
+            await viewModel.start()
+        }
     }
 }
 
-#if DEBUG
 #Preview {
-    NavigationStack {
-        AnlayserResultView(capturedImages: [])
-    }
+    ProductOverView(viewModel: ProductAIViewModel(capturedImages: []))
 }
-#endif
