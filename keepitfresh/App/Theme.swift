@@ -103,6 +103,15 @@ public enum Theme {
         case delete = "trash"
 
         case locationPin = "mappin.and.ellipse"
+
+        // Product overview
+        case productBack = "chevron.left"
+        case productMore = "ellipsis"
+        case productGenerating = "arrow.triangle.2.circlepath"
+        case productBarcode = "barcode"
+        case productDates = "calendar"
+        case productCategory = "square.grid.2x2"
+        case productDetails = "shippingbox.fill"
         
         public var systemName: String { rawValue }
     }
