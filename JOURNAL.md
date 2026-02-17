@@ -36,3 +36,9 @@
 - Fixed strict concurrency compile failures after adding `CameraModule` to app SPM dependencies by avoiding cross-actor capture of `AVCapturePhoto` in the delegate callback and marking `CameraCapturedImage` as `@unchecked Sendable` for continuation handoff; re-verified with `xcodebuild ... -quiet build` (`BUILD SUCCEEDED`).
 - Added a floating camera action button on Home that presents `CameraScannerView`, then automatically presents `AnlayserResultView` on capture completion while passing the full captured image array; result screen currently shows a loading state and captured image count.
 - Verified builds with `xcodebuild` after major UI/theme updates (`BUILD SUCCEEDED`).
+
+## 2026-02-16
+- Refactored `keepitfresh/Presentation/Product/ProductOverView.swift` to match the `Item Detail` design from `design/initial.pen`: custom header, hero image card with pager dots, status chip, barcode/dates/category/detail cards, and bottom discard/save action bar.
+- Extended `keepitfresh/App/Theme.swift` `Theme.Icon` with product-overview icon tokens and wired the new screen to `Image(icon:)` usage (no hardcoded symbol strings in the view).
+- Upgraded `keepitfresh/Presentation/Product/ProductOverViewModel.swift` with UI-facing state for generation progress, error/status text, image pager selection, category/date formatting, and detail row composition from generated product fields.
+- Verified the app compiles with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build -quiet` (`BUILD SUCCEEDED`).

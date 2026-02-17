@@ -11,7 +11,7 @@ import FoundationModels
 
 @Generable
 struct DateInfo: Equatable, Sendable, ModelStringConvertible {
-    @Guide(description: "Date kind (expiry, best_before, use_by, manufactured, packed_on, prod date, pkd, use by, etc.).")
+    @Guide(description: "Date kind (expiry, best_before, use_by, manufactured, packed_on, prod date, pkd, use by, etc.). if the date is greater than today it will be most likely an expiry date. if date is in the past, it will be most likely a packed or manufactured date.")
     var kind: DateKind?
     
     @Guide(description: "Date string exactly as printed (do not normalize).")
