@@ -11,7 +11,8 @@ import Foundation
 import ImageIO
 import Photos
 import UIKit
-
+import os
+let logger = Logger(subsystem: "com.mus.keepitfresh", category: "Camera")
 @MainActor
 public final class CameraScannerService: NSObject {
     public var onUpdate: (@MainActor () -> Void)?
@@ -170,6 +171,29 @@ public final class CameraScannerService: NSObject {
                     guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
                         throw CameraScannerServiceError.cameraUnavailable
                     }
+                    
+                    try device.lockForConfiguration()
+                    if device.isFocusModeSupported(.continuousAutoFocus) {
+                        device.focusMode = .continuousAutoFocus
+                    } else if device.isFocusModeSupported(.autoFocus) {
+                        device.focusMode = .autoFocus
+                    }
+                    
+                    if device.isExposureModeSupported(.continuousAutoExposure) {
+                        device.exposureMode = .continuousAutoExposure
+                    } else if device.isExposureModeSupported(.autoExpose) {
+                        device.exposureMode = .autoExpose
+                    }
+                    
+                    if device.isAutoFocusRangeRestrictionSupported {
+                        device.autoFocusRangeRestriction = .near
+                    }
+                    device.unlockForConfiguration()
+                    
+                    logger.debug("device focus mode: \(device.focusMode.rawValue)")
+                    logger.debug("device exposure mode: \(device.exposureMode.rawValue)")
+                    logger.debug("device auto focus range restriction mode: \(device.autoFocusRangeRestriction.rawValue)")
+                    
                     self.hasFlashHardware = device.hasFlash
                     
                     let input = try AVCaptureDeviceInput(device: device)

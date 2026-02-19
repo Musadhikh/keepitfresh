@@ -19,7 +19,7 @@ final class ImageDataGenerator: Sendable {
         self.model = model
     }
     
-    func generateModel(from data: [ImageData]) -> AsyncThrowingStream<Product.PartiallyGenerated?, Error> {
+    func generateModel(from data: [ObservedType]) -> AsyncThrowingStream<Product.PartiallyGenerated?, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -57,23 +57,29 @@ extension ImageDataGenerator {
         """
     }
     
-    private func prompt(from data: [ImageData]) -> Prompt {
-        let barcodeTexts = data
-            .filter { $0.type == .barcode }
-            .flatMap(\.value)
-            .compactMap(\.self)
-            
-        let ocrTexts = data
-            .filter { $0.type == .text }
-            .flatMap(\.value)
-            .compactMap(\.self)
+    private func prompt(from data: [ObservedType]) -> Prompt {
+        var barcodes: [String] = []
+        var ocrTexts: [String] = []
+        
+        for item in data {
+            switch item {
+            case .barcode(value: let barcode, symbology: _):
+                barcodes.append(barcode)
+            case .text(value: let text):
+                ocrTexts.append(text)
+            case .paragraph(value: let value):
+                if value.isNotEmpty {
+                    ocrTexts.append(value.joined(separator: " "))
+                }
+            }
+        }
         
         return Prompt {
             "Extract structured product information using the provided OCR text and barcode results."
             "Barcodes:"
-            barcodeTexts
+            barcodes
             
-            "Texts:"
+            "OCR Texts:"
             ocrTexts
         }
     }

@@ -21,6 +21,14 @@ class ProductOverViewModel {
     let imageDataGenerator: ImageDataGenerator = ImageDataGenerator(model: .init(useCase: .contentTagging))
     
     private(set) var product: Product.PartiallyGenerated?
+    
+    private(set) var title: String?
+    private(set) var category: ProductCategory?
+    private(set) var barcode: Barcode.PartiallyGenerated?
+    private(set) var brand: String?
+    private(set) var dateInfo: [DateInfo].PartiallyGenerated?
+    
+    
     private(set) var isGenerating = false
     private(set) var errorMessage: String?
     var selectedImageIndex = 0
@@ -30,23 +38,51 @@ class ProductOverViewModel {
     }
     
     func start() async {
+        defer { isGenerating = false }
         isGenerating = true
         errorMessage = nil
-
+        
         do {
             let imageData =  await imageDataReader.readData(images: capturedImages)
             
             logger.debug("image data: \(imageData)")
-            
-            let generator = imageDataGenerator.generateModel(from: imageData)
-            for try await generated in  generator {
-                product = generated
+            for observedTypes in imageData {
+                let generator = imageDataGenerator.generateModel(from: observedTypes)
+                
+                for try await generated in  generator {
+                    updateUI(with: generated)
+                }
             }
-            isGenerating = false
         } catch {
-            isGenerating = false
-            errorMessage = error.localizedDescription
             logger.error("generating model failed: \(error)")
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
+extension ProductOverViewModel {
+    private func updateUI(with product: Product.PartiallyGenerated?) {
+        guard let product else { return }
+        if let title = product.title {
+            self.title = title
+        }
+        
+        if let category = product.category {
+            self.category = category
+        }
+        
+        if let barcode = product.barcode {
+            logger.debug("barcode: \(String(describing: barcode))")
+            self.barcode = barcode
+        }
+        
+        if let brand = product.brand {
+            self.brand = product.brand
+        }
+        
+        if let dateInfo = product.dateInfo {
+            logger.debug("date info: \(String(describing: dateInfo))")
+            self.dateInfo = dateInfo
         }
     }
 }
@@ -60,26 +96,11 @@ extension ProductOverViewModel {
         capturedImages.map(\.image)
     }
 
-    var titleText: String {
-        product?.title ?? "Generating product details..."
-    }
-
     var statusText: String {
         if let errorMessage {
             return errorMessage
         }
         return isGenerating ? "Generating product details..." : "Product details generated"
-    }
-
-    var barcodeText: String {
-        product?.barcode?.barcode ?? "Not detected"
-    }
-
-    var categoryTitle: String {
-        guard let category = product?.category else {
-            return "Unknown"
-        }
-        return Self.humanize(rawValue: category.rawValue)
     }
 
     var categoryConfidenceText: String {
@@ -94,33 +115,6 @@ extension ProductOverViewModel {
             .count
         let confidenceValue = Int((Double(filledFieldCount) / 5.0 * 100.0).rounded())
         return "\(confidenceValue)%"
-    }
-
-    var packedDateText: String {
-        let preferredKinds: Set<DateKind> = [.packed_on, .manufactured]
-        logger.debug("date info: \(String(describing: self.product?.dateInfo))")
-        if let match = product?.dateInfo?.first(where: { info in
-            guard let kind = info.kind else {
-                return false
-            }
-            return preferredKinds.contains(kind)
-        }) {
-            return formatted(dateInfo: match)
-        }
-        return "Not found"
-    }
-
-    var expiryDateText: String {
-        let preferredKinds: Set<DateKind> = [.expiry, .best_before, .use_by]
-        if let match = product?.dateInfo?.first(where: { info in
-            guard let kind = info.kind else {
-                return false
-            }
-            return preferredKinds.contains(kind)
-        }) {
-            return formatted(dateInfo: match)
-        }
-        return "Not found"
     }
 
     var detailRows: [String] {

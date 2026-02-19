@@ -35,26 +35,28 @@ struct ProductOverView: View {
                         isError: viewModel.hasError
                     )
 
-                    Text(viewModel.titleText)
-                        .font(Theme.Fonts.titleLarge)
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.85)
+                    if let title = viewModel.title {
+                        Text(title)
+                            .font(Theme.Fonts.titleLarge)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(3)
+                            .minimumScaleFactor(0.85)
+                    }
+                    
+                    if let barcode = viewModel.barcode {
+                        ProductOverviewBarcodeCard(
+                            barcode: barcode
+                        )
+                    }
+                    
+                    if let dateInfo = viewModel.dateInfo {
+                        ProductOverviewDatesCard(dateInfo: dateInfo)
+                    }
 
-                    ProductOverviewBarcodeCard(
-                        barcodeText: viewModel.barcodeText
-                    )
-
-                    ProductOverviewDatesCard(
-                        packedDateText: viewModel.packedDateText,
-                        expiryDateText: viewModel.expiryDateText
-                    )
-
-                    ProductOverviewCategoryCard(
-                        categoryTitle: viewModel.categoryTitle,
-                        confidenceText: viewModel.categoryConfidenceText
-                    )
+                    if let category = viewModel.category {
+                        ProductOverviewCategoryCard(category: category)
+                    }
 
                     ProductOverviewDetailsCard(
                         details: viewModel.detailRows
@@ -198,20 +200,29 @@ private struct ProductOverviewStatusChip: View {
 }
 
 private struct ProductOverviewBarcodeCard: View {
-    let barcodeText: String
+    let barcode: Barcode.PartiallyGenerated
 
     var body: some View {
         ProductOverviewCard {
             HStack(alignment: .center, spacing: Theme.Spacing.s12) {
                 VStack(alignment: .leading, spacing: Theme.Spacing.s4) {
-                    Text("Barcode")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                    Text(barcodeText)
-                        .font(Theme.Fonts.body(18, weight: .semibold, relativeTo: .headline))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                    if let barcodeText = barcode.barcode {
+                        Text("Barcode")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                        Text(barcodeText)
+                            .font(Theme.Fonts.body(18, weight: .semibold, relativeTo: .headline))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        if let type = barcode.barcodeType {
+                            Text(type.rawValue)
+                                .font(Theme.Fonts.body(14, weight: .medium, relativeTo: .headline))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                    }
                 }
 
                 Spacer(minLength: Theme.Spacing.s8)
@@ -225,8 +236,7 @@ private struct ProductOverviewBarcodeCard: View {
 }
 
 private struct ProductOverviewDatesCard: View {
-    let packedDateText: String
-    let expiryDateText: String
+    let dateInfo: [DateInfo].PartiallyGenerated
 
     var body: some View {
         ProductOverviewCard {
@@ -239,9 +249,14 @@ private struct ProductOverviewDatesCard: View {
                         .font(Theme.Fonts.body(13, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(Theme.Colors.textPrimary)
                 }
-
-                ProductOverviewDateRow(label: "Packed", value: packedDateText, valueColor: Theme.Colors.textPrimary)
-                ProductOverviewDateRow(label: "Expiry", value: expiryDateText, valueColor: Theme.Colors.danger)
+                
+                if let packedDate = dateInfo.first(where: { $0.kind == .manufactured || $0.kind == .packed_on }), let date = packedDate.isoDate {
+                    ProductOverviewDateRow(label: "Packed", value: date, valueColor: Theme.Colors.textPrimary)
+                }
+                
+                if let expiryDate = dateInfo.first(where: { $0.kind == .best_before || $0.kind == .expiry || $0.kind == .use_by }), let date = expiryDate.isoDate {
+                    ProductOverviewDateRow(label: "Expiry", value: date, valueColor: Theme.Colors.danger)
+                }
             }
         }
     }
@@ -269,8 +284,7 @@ private struct ProductOverviewDateRow: View {
 }
 
 private struct ProductOverviewCategoryCard: View {
-    let categoryTitle: String
-    let confidenceText: String
+    let category: ProductCategory
 
     var body: some View {
         ProductOverviewCard {
@@ -283,22 +297,12 @@ private struct ProductOverviewCategoryCard: View {
                     Text("Product Category")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
-                    Text(categoryTitle)
+                    Text(category.rawValue.uppercased())
                         .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .body))
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .lineLimit(2)
                         .minimumScaleFactor(0.85)
                 }
-
-                Spacer(minLength: Theme.Spacing.s8)
-
-                Text(confidenceText)
-                    .font(Theme.Fonts.body(11, weight: .semibold, relativeTo: .caption2))
-                    .foregroundStyle(Theme.Colors.accent)
-                    .padding(.vertical, Theme.Spacing.s4)
-                    .padding(.horizontal, Theme.Spacing.s8)
-                    .background(Theme.Colors.accentSoft)
-                    .clipShape(.rect(cornerRadius: Theme.Radius.pill))
             }
         }
     }
