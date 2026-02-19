@@ -42,3 +42,9 @@
 - Extended `keepitfresh/App/Theme.swift` `Theme.Icon` with product-overview icon tokens and wired the new screen to `Image(icon:)` usage (no hardcoded symbol strings in the view).
 - Upgraded `keepitfresh/Presentation/Product/ProductOverViewModel.swift` with UI-facing state for generation progress, error/status text, image pager selection, category/date formatting, and detail row composition from generated product fields.
 - Verified the app compiles with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build -quiet` (`BUILD SUCCEEDED`).
+
+## 2026-02-18
+- Migrated `HomeView` analyzer flow from captured-image completion to VisionKit scan completion (`[RecognizedItem]`) so navigation to `ProductOverView` is triggered by `DataScannerViewController` results.
+- Refactored `ProductOverViewModel` to parse text/barcode payloads directly from `RecognizedItem`, generate product output from `RecognizedData`, and expose scan-summary state (item/text/barcode counts + preview rows).
+- Updated `ProductOverView` to replace the image hero card with a scan summary card that reflects VisionKit output while preserving the existing item-detail layout style.
+- Verified compile success with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build -quiet` (`BUILD SUCCEEDED`).

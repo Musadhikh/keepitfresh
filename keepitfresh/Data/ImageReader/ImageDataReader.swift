@@ -12,13 +12,10 @@ import Foundation
 import Vision
 import CameraModule
 
-enum ObservedType: String, Sendable, ModelStringConvertible {
-    case barcode
-    case text
-}
-struct ImageData: Sendable, ModelStringConvertible {
-    var value: [String?]
-    var type: ObservedType
+enum ObservedType: Sendable, ModelStringConvertible {
+    case barcode(value: String, symbology: BarcodeSymbology)
+    case text(value: String)
+    case paragraph(value: [String])
 }
 
 actor ImageDataReader: Sendable {
@@ -28,7 +25,7 @@ actor ImageDataReader: Sendable {
         self.maxConcurrentRequests = maxConcurrentRequests
     }
     
-    func readData(images: [CameraCapturedImage]) async -> [ImageData] {
+    func readData(images: [CameraCapturedImage]) async -> [[ObservedType]] {
         let cgImages = images.compactMap { image in
             if let cgImage = image.image.cgImage {
                 return (cgImage, CGImagePropertyOrientation(image.image.imageOrientation))
@@ -37,41 +34,141 @@ actor ImageDataReader: Sendable {
         }
         
         let results = await read(images: cgImages)
-        return prepareDataFrom(results: results)
+        
+        var allResults: [[ObservedType]] = []
+        
+        for result in results {
+            let observedResults = examine(results: result)
+            allResults.append(observedResults)
+            
+        }
+        
+        return allResults
     }
 }
 
 extension ImageDataReader {
-    private func prepareDataFrom(results: [VisionResult]) -> [ImageData] {
-        
-        var imageData: [ImageData] = []
-        
+    private func examine(results: [VisionResult]) -> [ObservedType] {
+        var observedResults: [ObservedType] = []
         for result in results {
-            if case let .detectBarcodes(_, observations)  = result {
-                let barcodeData = observations.compactMap { observation -> ImageData? in
-                    return ImageData(value: [observation.payloadString], type: .barcode)
-                }
-                imageData.append(contentsOf: barcodeData)
-            } else if case let .recognizeText(_, observations) = result {
-                let textData = observations.compactMap { observation -> ImageData? in
-                    let values = observation
-                        .topCandidates(3)
-                        .map(\.string)
-                        
-                    
-                    return ImageData(value: values, type: .text)
-                }
-                imageData.append(contentsOf: textData)
+            if let values = examine(result: result) {
+                observedResults.append(contentsOf: values)
             }
         }
         
-        return imageData
+        return observedResults
     }
+    
+    private func examine(result: VisionResult) -> [ObservedType]? {
+        switch result {
+        case .detectBarcodes(_, let observations):
+            return examine(barcodes: observations)
+            
+        case .recognizeText(_, let observations):
+            return examine(text: observations)
+            
+        case .recognizeDocuments(_, let observations):
+            var observedTypes: [ObservedType] = []
+            
+            for observation in observations {
+                let paragraphs = observation.document.paragraphs
+                if let observed = examine(paragraphs: paragraphs) {
+                    observedTypes.append(contentsOf: observed)
+                }
+                
+            }
+            return observedTypes
+        default: return nil
+        }
+    }
+    
+    private func examine(barcodes: [BarcodeObservation]) -> [ObservedType]? {
+        if barcodes.isEmpty { return nil }
+        
+        let values = barcodes
+            .sorted(by: { $0.confidence > $1.confidence })
+            .compactMap { barcode in
+                if let value = barcode.payloadString {
+                    return ObservedType.barcode(value: value, symbology: barcode.symbology)
+                }
+                return nil
+            }
+
+        return values
+    }
+    
+    private func examine(paragraphs: [DocumentObservation.Container.Text]) -> [ObservedType]? {
+        if paragraphs.isEmpty { return nil }
+        let wholeParagraph = paragraphs.map(\.transcript)
+        return [ObservedType.paragraph(value: wholeParagraph)]
+        
+    }
+    
+    private func examine(text observations: [RecognizedTextObservation]) -> [ObservedType]? {
+        if observations.isEmpty { return nil }
+        let observedTypes = observations.sorted {
+            $0.confidence > $1.confidence
+        }
+        .compactMap { observation in
+            observation.topCandidates(1).first
+        }
+        .map { text in
+            ObservedType.text(value: text.string)
+        }
+        
+        return observedTypes
+    }
+}
+
+extension ImageDataReader {
+    private func examine(lists: [DocumentObservation.Container.List]) {
+        if lists.isEmpty { return }
+        for list in lists {
+            for item in list.items {
+                examine(item: item)
+            }
+        }
+    }
+    
+    private func examine(tables: [DocumentObservation.Container.Table]) {
+        if tables.isEmpty { return }
+        
+        for table in tables {
+            examine(cellGroups: table.rows)
+            examine(cellGroups: table.columns)
+        }
+    }
+    
+    private func examine(cellGroups: [[DocumentObservation.Container.Table.Cell]]) {
+        if cellGroups.isEmpty { return }
+        
+        for cells in cellGroups {
+            if cells.isEmpty { continue }
+            
+            for cell in cells {
+                _ = examine(barcodes: cell.content.barcodes)
+                examine(lists: cell.content.lists)
+                examine(tables: cell.content.tables)
+            }
+        }
+    }
+    
+    private func examine(item: DocumentObservation.Container.List.Item) {
+        _ = examine(barcodes: item.content.barcodes)
+        _ = examine(paragraphs: item.content.paragraphs)
+        examine(text: item.content.text)
+        
+        if let title = item.content.title {
+            examine(text: title)
+        }
+    }
+    
+    private func examine(text: DocumentObservation.Container.Text) {}
 }
 
 extension ImageDataReader {
     
-    private func read(images: [(CGImage, CGImagePropertyOrientation?)]) async -> [VisionResult] {
+    private func read(images: [(CGImage, CGImagePropertyOrientation?)]) async -> [[VisionResult]] {
         var results: [[VisionResult]?] = Array(repeating: nil, count: images.count)
         
         var nextIndex = 0
@@ -95,8 +192,8 @@ extension ImageDataReader {
                 }
             }
         }
-    
-        return results.compactMap(\.self).flatMap(\.self)
+        
+        return results.compactMap(\.self)
     }
     
     private func addTask(
@@ -113,14 +210,18 @@ extension ImageDataReader {
     private func read(image: CGImage, orientation: CGImagePropertyOrientation?) async -> [VisionResult] {
         let barcodeRequest = DetectBarcodesRequest()
         
+        let docRequest = RecognizeDocumentsRequest()
+        
+        
         var textRequest = RecognizeTextRequest()
         textRequest.recognitionLevel = .accurate
         textRequest.usesLanguageCorrection = true
         textRequest.automaticallyDetectsLanguage = true
         
+        
         let handler = ImageRequestHandler(image, orientation: orientation)
         
-        let requests: [any ImageProcessingRequest] = [barcodeRequest, textRequest]
+        let requests: [any ImageProcessingRequest] = [barcodeRequest, docRequest]
         let responses = handler.performAll(requests)
         
         var results: [VisionResult] = []
