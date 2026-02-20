@@ -40,6 +40,12 @@ struct FirebaseConstants {
         
         /// Notifications collection
         static let notifications = "Notifications"
+        
+        /// Open Food Facts product catalog collection
+        static let openFoodFactsProducts = "OpenFoodFactsProducts"
+
+        /// Open Food Facts categories and subcategories collection
+        static let openFoodFactsCategories = "OpenFoodFactsCategories"
     }
     
     // MARK: - Document IDs
