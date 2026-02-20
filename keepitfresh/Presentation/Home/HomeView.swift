@@ -8,18 +8,26 @@
 
 import SwiftUI
 import CameraModule
+import BarcodeScannerModule
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @State private var isCameraPresented = false
     @State private var shouldPresentAnalyserResult = false
-    @State private var isAnalyserPresented = false
+    @State private var isBarcodeScannerPresented = false
     @State private var capturedImages: [CameraCapturedImage] = []
+    @State private var latestScannedBarcode: ScannedBarcode?
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             List {
                 Section("Quick Actions") {
+                    Button {
+                        isBarcodeScannerPresented = true
+                    } label: {
+                        Label("Scan Barcode", systemImage: Theme.Icon.productBarcode.systemName)
+                    }
+
                     Button {
                         appState.navigate(to: .appInfo)
                     } label: {
@@ -36,6 +44,21 @@ struct HomeView: View {
                         appState.navigate(to: .householdSelection)
                     } label: {
                         Label("Select Household", systemImage: Theme.Icon.householdSelection.systemName)
+                    }
+                }
+
+                if let latestScannedBarcode {
+                    Section("Latest Barcode") {
+                        VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
+                            Text(latestScannedBarcode.payload)
+                                .font(Theme.Fonts.body(17, weight: .semibold, relativeTo: .headline))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+
+                            Text(latestScannedBarcode.symbology.uppercased())
+                                .font(Theme.Fonts.body(13, weight: .medium, relativeTo: .caption))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
+                        .padding(.vertical, Theme.Spacing.s4)
                     }
                 }
                 
@@ -76,7 +99,6 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $isCameraPresented, onDismiss: {
             if shouldPresentAnalyserResult {
                 shouldPresentAnalyserResult = false
-                isAnalyserPresented = true
             }
         }) {
             CameraScannerView(
@@ -92,6 +114,15 @@ struct HomeView: View {
             NavigationStack {
                 ProductOverView(viewModel: ProductOverViewModel(capturedImages: capturedImages))
             }
+        }
+        .fullScreenCover(isPresented: $isBarcodeScannerPresented) {
+            BarcodeScannerView(
+                onCancel: { isBarcodeScannerPresented = false },
+                onBarcodeDetected: { barcode in
+                    latestScannedBarcode = barcode
+                    isBarcodeScannerPresented = false
+                }
+            )
         }
     }
 }

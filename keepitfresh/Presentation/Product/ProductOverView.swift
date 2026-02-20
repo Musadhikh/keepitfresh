@@ -200,13 +200,13 @@ private struct ProductOverviewStatusChip: View {
 }
 
 private struct ProductOverviewBarcodeCard: View {
-    let barcode: Barcode.PartiallyGenerated
+    let barcode: BarcodeExtraction.PartiallyGenerated
 
     var body: some View {
         ProductOverviewCard {
             HStack(alignment: .center, spacing: Theme.Spacing.s12) {
                 VStack(alignment: .leading, spacing: Theme.Spacing.s4) {
-                    if let barcodeText = barcode.barcode {
+                    if let barcodeText = barcode.value {
                         Text("Barcode")
                             .font(Theme.Fonts.caption)
                             .foregroundStyle(Theme.Colors.textSecondary)
@@ -215,7 +215,7 @@ private struct ProductOverviewBarcodeCard: View {
                             .foregroundStyle(Theme.Colors.textPrimary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
-                        if let type = barcode.barcodeType {
+                        if let type = barcode.symbology {
                             Text(type.rawValue)
                                 .font(Theme.Fonts.body(14, weight: .medium, relativeTo: .headline))
                                 .foregroundStyle(Theme.Colors.textPrimary)
@@ -236,7 +236,7 @@ private struct ProductOverviewBarcodeCard: View {
 }
 
 private struct ProductOverviewDatesCard: View {
-    let dateInfo: [DateInfo].PartiallyGenerated
+    let dateInfo: [ProductDateInfoExtraction].PartiallyGenerated
 
     var body: some View {
         ProductOverviewCard {
@@ -250,11 +250,11 @@ private struct ProductOverviewDatesCard: View {
                         .foregroundStyle(Theme.Colors.textPrimary)
                 }
                 
-                if let packedDate = dateInfo.first(where: { $0.kind == .manufactured || $0.kind == .packed_on }), let date = packedDate.isoDate {
+                if let packedDate = dateInfo.first(where: { $0.kind == .manufactured || $0.kind == .packedOn }), let date = packedDate.isoDate {
                     ProductOverviewDateRow(label: "Packed", value: date, valueColor: Theme.Colors.textPrimary)
                 }
                 
-                if let expiryDate = dateInfo.first(where: { $0.kind == .best_before || $0.kind == .expiry || $0.kind == .use_by }), let date = expiryDate.isoDate {
+                if let expiryDate = dateInfo.first(where: { $0.kind == .bestBefore || $0.kind == .expiry || $0.kind == .useBy }), let date = expiryDate.isoDate {
                     ProductOverviewDateRow(label: "Expiry", value: date, valueColor: Theme.Colors.danger)
                 }
             }
@@ -284,7 +284,7 @@ private struct ProductOverviewDateRow: View {
 }
 
 private struct ProductOverviewCategoryCard: View {
-    let category: ProductCategory
+    let category: MainCategoryExtraction
 
     var body: some View {
         ProductOverviewCard {

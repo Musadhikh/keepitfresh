@@ -20,13 +20,13 @@ class ProductOverViewModel {
     let imageDataReader: ImageDataReader = ImageDataReader()
     let imageDataGenerator: ImageDataGenerator = ImageDataGenerator(model: .init(useCase: .contentTagging))
     
-    private(set) var product: Product.PartiallyGenerated?
+    private(set) var product: ProductBaseExtraction.PartiallyGenerated?
     
     private(set) var title: String?
-    private(set) var category: ProductCategory?
-    private(set) var barcode: Barcode.PartiallyGenerated?
+    private(set) var category: MainCategoryExtraction?
+    private(set) var barcode: BarcodeExtraction.PartiallyGenerated?
     private(set) var brand: String?
-    private(set) var dateInfo: [DateInfo].PartiallyGenerated?
+    private(set) var dateInfo: [ProductDateInfoExtraction].PartiallyGenerated?
     
     
     private(set) var isGenerating = false
@@ -61,7 +61,7 @@ class ProductOverViewModel {
 }
 
 extension ProductOverViewModel {
-    private func updateUI(with product: Product.PartiallyGenerated?) {
+    private func updateUI(with product: ProductBaseExtraction.PartiallyGenerated?) {
         guard let product else { return }
         if let title = product.title {
             self.title = title
@@ -77,13 +77,9 @@ extension ProductOverViewModel {
         }
         
         if let brand = product.brand {
-            self.brand = product.brand
+            self.brand = brand
         }
         
-        if let dateInfo = product.dateInfo {
-            logger.debug("date info: \(String(describing: dateInfo))")
-            self.dateInfo = dateInfo
-        }
     }
 }
 
@@ -106,10 +102,10 @@ extension ProductOverViewModel {
     var categoryConfidenceText: String {
         let filledFieldCount = [
             product?.title,
-            product?.barcode?.barcode,
+            product?.barcode?.value,
             product?.brand,
             product?.category?.rawValue,
-            product?.dateInfo?.isEmpty == false ? "date" : nil
+            product?.shortDescription
         ]
             .compactMap(\.self)
             .count
@@ -155,7 +151,7 @@ private extension ProductOverViewModel {
             .joined(separator: " ")
     }
 
-    func formatted(dateInfo: DateInfo.PartiallyGenerated?) -> String {
+    func formatted(dateInfo: ProductDateInfoExtraction.PartiallyGenerated?) -> String {
         guard let dateInfo else {
             return "Not found"
         }

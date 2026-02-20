@@ -19,7 +19,7 @@ final class ImageDataGenerator: Sendable {
         self.model = model
     }
     
-    func generateModel(from data: [ObservedType]) -> AsyncThrowingStream<Product.PartiallyGenerated?, Error> {
+    func generateModel(from data: [ObservedType]) -> AsyncThrowingStream<ProductBaseExtraction.PartiallyGenerated?, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -27,7 +27,7 @@ final class ImageDataGenerator: Sendable {
                     
                     let prompt = self.prompt(from: data)
                     
-                    let stream = session.streamResponse(to: prompt, generating: Product.self)
+                    let stream = session.streamResponse(to: prompt, generating: ProductBaseExtraction.self)
                     
                     for try await generatedProduct in stream {
                         continuation.yield(generatedProduct.content)

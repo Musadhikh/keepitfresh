@@ -42,7 +42,10 @@ Packages/*
 !Packages/HouseModule/**
 !Packages/CameraModule/
 !Packages/CameraModule/**
+!Packages/BarcodeScannerModule/
+!Packages/BarcodeScannerModule/**
 Packages/CameraModule/.swiftpm/
+Packages/BarcodeScannerModule/.swiftpm/
 Package.pins
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 .build/

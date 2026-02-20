@@ -48,3 +48,22 @@
 - Refactored `ProductOverViewModel` to parse text/barcode payloads directly from `RecognizedItem`, generate product output from `RecognizedData`, and expose scan-summary state (item/text/barcode counts + preview rows).
 - Updated `ProductOverView` to replace the image hero card with a scan summary card that reflects VisionKit output while preserving the existing item-detail layout style.
 - Verified compile success with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build -quiet` (`BUILD SUCCEEDED`).
+
+## 2026-02-19
+- Added a dedicated local Swift package at `Packages/BarcodeScannerModule` for live barcode scanning with VisionKit (`DataScannerViewController`) and a clean public API (`BarcodeScannerView`, `ScannedBarcode`, scanner configuration/availability models).
+- Tuned scanner UX for responsiveness: stable controller lifecycle (no restart on SwiftUI updates), immediate callback delivery, duplicate-event cooldown gating, lightweight debounce for continuous mode, and built-in haptic confirmation on successful scans.
+- Integrated the module into `HomeView` with a new “Scan Barcode” quick action and instant dismiss-on-detection flow, plus a “Latest Barcode” section to surface the most recent scan payload/symbology.
+- Added focused unit tests in `Packages/BarcodeScannerModule/Tests/BarcodeScannerModuleTests/BarcodeEmissionGateTests.swift` to validate duplicate suppression behavior in the scan emission gate.
+- Verified app build with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+
+## 2026-02-20
+- Built a large-scale OpenFoodFacts Firestore ingestion pipeline (`openfoodfacts/firestore_importer.py`) that streams JSONL safely (line-by-line, batched commits, resumable checkpoints), with barcode enforced as the product document ID.
+- Restructured product image handling so image metadata now lives under `productDetails.images` as a grouped dictionary (`direct`, `selected`, and OFF image IDs), while preserving `imageUrl` as a primary convenience field.
+- Added automatic category graph maintenance during import: `OpenFoodFactsCategories` documents are created/updated with parent-child relationships to model categories and subcategories.
+- Added `openfoodfacts/README.md` and `openfoodfacts/requirements.txt` with operational runbook details (dry run, real import, filtering, category toggles, and cost cautions).
+- Added `openfoodfacts/DAILY_IMPORT_RUNBOOK.md` with a day-by-day quota-safe resume playbook (checkpoint continuity, anti-duplicate guarantees, background run command, monitoring commands, and quota-exceeded recovery steps).
+- Extended Firestore constants with `openFoodFactsProducts` and `openFoodFactsCategories` so app-side usage remains centralized and typo-safe.
+- Re-architected product modeling into a strict Domain vs AI split: added stable Firestore/UI domain models (`Product`, `ProductDetails`, discriminator-based `ProductDetailsPayload`, common/detail structs), parallel `@Generable` extraction models for 3-pass LLM extraction, and dedicated mappers from extraction output to domain documents.
+- Added Firestore codable/path helpers for product base + details subcollection patterns, including timestamp normalization and document-id injection when decoding product documents.
+- Updated extraction pipeline compatibility by switching generator output from legacy `@Generable Product` to `ProductBaseExtraction`, and adjusted product overview references to the new extraction model names.
+- Verified compile success with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build -quiet` (`BUILD SUCCEEDED`).
