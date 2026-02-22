@@ -1,5 +1,5 @@
 {
-  "originHash" : "73a1498b1046f512d16292fa891019bc8507526ea1f2628bc929dc1ed6e564b6",
+  "originHash" : "8595cdb212666129ad85b79cad925e1a4be2b1ec74f58e9f11255f61891278f2",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -168,8 +168,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/realm/realm-swift.git",
       "state" : {
-        "branch" : "master",
-        "revision" : "c22f9303d446fc3c044e4c151ed19597464b6bd7"
+        "revision" : "1c105d34f25af7851c5a3ff146be006de247a6b4",
+        "version" : "10.54.6"
       }
     },
     {
