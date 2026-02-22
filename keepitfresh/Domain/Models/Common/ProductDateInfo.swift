@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ProductDateInfo: Codable, Equatable, Sendable {
+struct ProductDateInfo: Codable, Equatable, Hashable, Sendable {
     var kind: Kind
     var rawText: String?
     var isoDate: Date?
@@ -28,7 +28,7 @@ struct ProductDateInfo: Codable, Equatable, Sendable {
 }
 
 extension ProductDateInfo {
-    enum Kind: String, Codable, CaseIterable, Sendable {
+    enum Kind: String, Codable, CaseIterable, Hashable, Sendable {
         case expiry
         case bestBefore = "best_before"
         case useBy = "use_by"

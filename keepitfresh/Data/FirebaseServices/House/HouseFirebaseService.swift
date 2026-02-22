@@ -12,14 +12,19 @@ import Foundation
 actor HouseFirebaseService: HouseProviding {
     private let db = Firestore.firestore()
     
-    func getHouse(for houseId: String) async throws -> House {
+    func getHouse(for houseId: String) async throws -> House? {
+        if FirebaseWritePolicy.isMockWriteEnabled,
+           let mockedHouse = await DebugFirestoreStore.shared.getHouseIfPresent(id: houseId) {
+            return mockedHouse
+        }
+
         let document = try await db
             .collection(FirebaseConstants.Collections.houses)
             .document(houseId)
             .getDocument()
         
         guard document.exists else {
-            throw HouseServiceError.houseNotFound(houseId)
+            return nil
         }
         
         return try document.data(as: House.self)
@@ -27,23 +32,17 @@ actor HouseFirebaseService: HouseProviding {
     
     func getHouses(for houseIds: [String]) async throws -> [House] {
         guard !houseIds.isEmpty else { return [] }
-        
-        var loaded: [House] = []
-        
-        for batch in houseIds.chunked(into: 10) {
-            let snapshot = try await db
-                .collection(FirebaseConstants.Collections.houses)
-                .whereField(FieldPath.documentID(), in: batch)
-                .getDocuments()
-            
-            let houses = try snapshot.documents.map { document in
-                try document.data(as: House.self)
-            }
-            loaded.append(contentsOf: houses)
+
+        if FirebaseWritePolicy.isMockWriteEnabled {
+            let mocked = await DebugFirestoreStore.shared.getHouses(ids: houseIds)
+            let mockedByID = Dictionary(uniqueKeysWithValues: mocked.map { ($0.id, $0) })
+            let missingIDs = houseIds.filter { mockedByID[$0] == nil }
+            let remote = try await fetchRemoteHouses(for: missingIDs)
+            let remoteByID = Dictionary(uniqueKeysWithValues: remote.map { ($0.id, $0) })
+            return houseIds.compactMap { mockedByID[$0] ?? remoteByID[$0] }
         }
         
-        let byId = Dictionary(uniqueKeysWithValues: loaded.map { ($0.id, $0) })
-        return houseIds.compactMap { byId[$0] }
+        return try await fetchRemoteHouses(for: houseIds)
     }
     
     func createHouse(
@@ -52,6 +51,15 @@ actor HouseFirebaseService: HouseProviding {
         ownerId: String,
         memberIds: [String]
     ) async throws -> House {
+        if FirebaseWritePolicy.isMockWriteEnabled {
+            return await DebugFirestoreStore.shared.createHouse(
+                name: name,
+                description: description,
+                ownerId: ownerId,
+                memberIds: memberIds
+            )
+        }
+
         let document = db.collection(FirebaseConstants.Collections.houses).document()
         let now = Date()
         let house = House(
@@ -66,6 +74,26 @@ actor HouseFirebaseService: HouseProviding {
         
         try await document.setData(house.toFirebaseDictionary())
         return house
+    }
+
+    private func fetchRemoteHouses(for houseIds: [String]) async throws -> [House] {
+        guard !houseIds.isEmpty else { return [] }
+
+        var loaded: [House] = []
+        for batch in houseIds.chunked(into: 10) {
+            let snapshot = try await db
+                .collection(FirebaseConstants.Collections.houses)
+                .whereField(FieldPath.documentID(), in: batch)
+                .getDocuments()
+
+            let houses = try snapshot.documents.map { document in
+                try document.data(as: House.self)
+            }
+            loaded.append(contentsOf: houses)
+        }
+
+        let byId = Dictionary(uniqueKeysWithValues: loaded.map { ($0.id, $0) })
+        return houseIds.compactMap { byId[$0] }
     }
 }
 

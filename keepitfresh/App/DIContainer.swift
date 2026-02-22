@@ -3,6 +3,7 @@
 //  keepitfresh
 //
 //  Created by Musadhikh Muhammed on 14/1/26.
+//  Summary: Registers app dependencies using Factory.
 //
 
 import Factory

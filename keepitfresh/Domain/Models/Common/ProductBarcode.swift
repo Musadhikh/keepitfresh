@@ -1,5 +1,5 @@
 //
-//  Barcode.swift
+//  ProductBarcode.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
@@ -8,13 +8,13 @@
 
 import Foundation
 
-struct Barcode: Codable, Equatable, Sendable {
+struct Barcode: Codable, Equatable, Hashable, Sendable {
     var value: String
     var symbology: Symbology
 }
 
 extension Barcode {
-    enum Symbology: String, Codable, CaseIterable, Sendable {
+    enum Symbology: String, Codable, CaseIterable, Hashable, Sendable {
         case ean13
         case ean8
         case upcA = "upc_a"

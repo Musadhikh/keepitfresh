@@ -3,6 +3,7 @@
 //  keepitfresh
 //
 //  Created by Musadhikh Muhammed K on 31/8/25.
+//  Summary: App entry point that configures Firebase services and global app state.
 //
 
 import SwiftUI
@@ -20,8 +21,8 @@ struct KeepItFreshApp: App {
         
         // Configure Google Sign-In
         GoogleSignInConfig.configure()
-        
-        // Configure Firestore with offline persistence
+
+        // Configure Firestore with offline persistence.
         let db = Firestore.firestore()
         let settings = db.settings
         settings.cacheSettings = PersistentCacheSettings(sizeBytes: FirebaseConstants.cacheSize)

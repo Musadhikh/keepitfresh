@@ -21,4 +21,11 @@ public struct LoadHouseholdsUseCase: Sendable {
     ) async throws -> [Household] {
         try await repository.loadHouseholds(ids: ids, policy: policy)
     }
+    
+    public func execute(
+        id: String,
+        policy: HouseLoadPolicy
+    ) async throws -> Household? {
+        try await repository.loadHousehold(id: id, policy: policy)
+    }
 }

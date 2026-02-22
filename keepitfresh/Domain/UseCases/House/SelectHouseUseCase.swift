@@ -29,9 +29,9 @@ struct SelectHouseUseCase: Sendable {
         }
         
         guard let selectedHousehold = try await houseDomainModule.loadHouseholds.execute(
-            ids: [houseID],
+            id: houseID,
             policy: .remoteFirst
-        ).first else {
+        ) else {
             throw SelectHouseUseCaseError.houseNotFound
         }
         
@@ -47,7 +47,7 @@ struct SelectHouseUseCase: Sendable {
             createdAt: profile.createdAt,
             updatedAt: Date()
         )
-        try await profileProvider.update(profile: updatedProfile)
+//        try await profileProvider.update(profile: updatedProfile)
         
         return Output(
             profile: updatedProfile,
