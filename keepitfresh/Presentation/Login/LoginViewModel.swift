@@ -16,7 +16,7 @@ class LoginViewModel {
     let availableMethods: [LoginMethod] = [.apple, .google, .anonymous]
     var isLoading: Bool = false
     var errorMessage: String?
-    var nextStep: AppLaunchState?
+    var nextStep: AppLaunchDecision?
     
     let useCase: LoginUseCase
     

@@ -15,8 +15,19 @@ actor ProfileRemoteServiceAdapter: ProfileRemoteServicing {
         self.profileProvider = profileProvider
     }
     
+    func fetchProfile(for userId: String) async throws -> Profile? {
+        try await profileProvider.getProfile(for: userId)?.remoteNormalized()
+    }
+
+    func createProfile(_ profile: Profile) async throws -> Profile {
+        let remotePayload = profile.remoteNormalized()
+        try await profileProvider.create(profile: remotePayload)
+        return remotePayload
+    }
+
     func updateProfile(_ profile: Profile) async throws -> Profile {
-        try await profileProvider.update(profile: profile)
-        return profile
+        let remotePayload = profile.remoteNormalized()
+        try await profileProvider.update(profile: remotePayload)
+        return remotePayload
     }
 }

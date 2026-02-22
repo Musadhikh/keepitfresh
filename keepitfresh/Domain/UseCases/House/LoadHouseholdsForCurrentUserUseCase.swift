@@ -17,20 +17,23 @@ struct LoadHouseholdsForCurrentUserUseCase: Sendable {
     }
     
     @Injected(\.userProvider) private var userProvider: UserProviding
-    @Injected(\.profileProvider) private var profileProvider: ProfileProviding
+    @Injected(\.profileSyncRepository) private var profileSyncRepository: ProfileSyncRepository
     @Injected(\.houseDomainModule) private var houseDomainModule: HouseModule
     
     func execute() async throws -> Output {
         guard let user = try await userProvider.current() else {
             throw LoadHouseholdsForCurrentUserUseCaseError.missingAuthenticatedUser
         }
-        guard let profile = try await profileProvider.getProfile(for: user.id) else {
+
+        guard let profile = try await profileSyncRepository.currentProfile(for: user.id) else {
             throw LoadHouseholdsForCurrentUserUseCaseError.missingProfile
         }
+
+        await profileSyncRepository.synchronizeInBackground(for: user)
         
         let households = try await houseDomainModule.loadHouseholds.execute(
             ids: profile.householdIds,
-            policy: .remoteFirst
+            policy: .localFirst
         )
         let houses = households.map(House.init(moduleHousehold:))
         

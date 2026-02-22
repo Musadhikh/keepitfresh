@@ -13,7 +13,7 @@ import Observation
 final class SplashViewModel {
     private(set) var isLoading = true
     private(set) var shouldNavigate = false
-    private(set) var launchState: AppLaunchState?
+    private(set) var launchDecision: AppLaunchDecision?
     private(set) var launchError: Error?
     
     private let minimumSplashDuration: TimeInterval = 2.0
@@ -50,8 +50,8 @@ final class SplashViewModel {
     
     private func performInitializationTasks() async {
         do {
-            let launchState = try await launchUseCase.execute()
-            self.launchState = launchState
+            let launchDecision = try await launchUseCase.execute()
+            self.launchDecision = launchDecision
         } catch {
             launchError = error
         }

@@ -36,6 +36,18 @@ struct RootTabView: View {
             }
             .interactiveDismissDisabled()
         }
+        .alert("Profile Updated", isPresented: Binding(
+            get: { appState.globalProfileErrorMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    appState.globalProfileErrorMessage = nil
+                }
+            }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(appState.globalProfileErrorMessage ?? "Your profile changed.")
+        }
     }
     
     @ViewBuilder

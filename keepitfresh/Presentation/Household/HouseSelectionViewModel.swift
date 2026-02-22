@@ -9,6 +9,7 @@
 import Foundation
 import Factory
 import Observation
+import HouseModule
 
 @MainActor
 @Observable
@@ -24,6 +25,14 @@ final class HouseSelectionViewModel {
     @ObservationIgnored
     @Injected(\.selectHouseUseCase)
     private var selectHouseUseCase: SelectHouseUseCase
+
+    @ObservationIgnored
+    @Injected(\.profileSyncRepository)
+    private var profileSyncRepository: ProfileSyncRepository
+
+    @ObservationIgnored
+    @Injected(\.houseDomainModule)
+    private var houseDomainModule: HouseModule
     
     private(set) var profile: Profile?
     private(set) var houses: [House] = []
@@ -31,6 +40,9 @@ final class HouseSelectionViewModel {
     private(set) var isCreatingHouse = false
     var selectedHouseID: String?
     var errorMessage: String?
+
+    @ObservationIgnored
+    private var profileObservationTask: Task<Void, Never>?
     
     func loadHouseholds() async {
         isLoading = true
@@ -44,6 +56,7 @@ final class HouseSelectionViewModel {
             houses = output.houses.sorted {
                 $0.name.localizedStandardCompare($1.name) == .orderedAscending
             }
+            startObservingProfileChanges(for: output.profile.userId)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -88,6 +101,40 @@ final class HouseSelectionViewModel {
         houses.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         
         return output.house
+    }
+}
+
+private extension HouseSelectionViewModel {
+    func startObservingProfileChanges(for userId: String) {
+        profileObservationTask?.cancel()
+        profileObservationTask = Task { [weak self] in
+            guard let self else { return }
+            let stream = await profileSyncRepository.observeRecord(for: userId)
+            for await record in stream {
+                guard !Task.isCancelled, let profile = record?.profile else { continue }
+                await applyProfileUpdate(profile)
+            }
+        }
+    }
+
+    func applyProfileUpdate(_ profile: Profile) async {
+        self.profile = profile
+        selectedHouseID = profile.lastSelectedHouseholdId
+
+        let loadedHouseholds: [Household]
+        do {
+            loadedHouseholds = try await houseDomainModule.loadHouseholds.execute(
+                ids: profile.householdIds,
+                policy: .localFirst
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+            return
+        }
+
+        houses = loadedHouseholds
+            .map(House.init(moduleHousehold:))
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 }
 
