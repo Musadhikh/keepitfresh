@@ -16,6 +16,20 @@ actor HouseNetworkServiceAdapter: HouseNetworkServicing {
         self.houseProvider = houseProvider
     }
     
+    func fetchHousehold(id: String) async throws -> Household? {
+        guard let house = try await houseProvider.getHouse(for: id) else { return nil }
+        return Household(
+            id: house.id,
+            name: house.name,
+            description: house.description,
+            ownerId: house.ownerId,
+            memberIds: house.memberIds,
+            createdAt: house.createdAt,
+            updatedAt: house.updatedAt ?? house.createdAt,
+            syncState: .synced
+        )
+    }
+    
     func fetchHouseholds(ids: [String]) async throws -> [Household] {
         let houses = try await houseProvider.getHouses(for: ids)
         return houses.map { house in

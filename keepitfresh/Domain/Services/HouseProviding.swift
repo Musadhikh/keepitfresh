@@ -9,7 +9,7 @@
 import Foundation
 
 protocol HouseProviding: Sendable {
-    func getHouse(for houseId: String) async throws -> House
+    func getHouse(for houseId: String) async throws -> House?
     func getHouses(for houseIds: [String]) async throws -> [House]
     func createHouse(
         name: String,

@@ -3,7 +3,7 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 15/2/26.
-//  Summary: Displays home actions and presents camera scanning plus analyser result flows.
+//  Summary: Displays home actions and starts add-product flow by scanning real barcodes from Home.
 //
 
 import SwiftUI
@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var isCameraPresented = false
     @State private var shouldPresentAnalyserResult = false
     @State private var isBarcodeScannerPresented = false
+    @State private var pendingAddProductBarcode: ScannedBarcode?
     @State private var capturedImages: [CameraCapturedImage] = []
     @State private var latestScannedBarcode: ScannedBarcode?
     
@@ -23,9 +24,21 @@ struct HomeView: View {
             List {
                 Section("Quick Actions") {
                     Button {
-                        isBarcodeScannerPresented = true
+                        startAddProductWithScan()
+                    } label: {
+                        Label("Add Product", systemImage: Theme.Icon.houseCreate.systemName)
+                    }
+
+                    Button {
+                        startAddProductWithScan()
                     } label: {
                         Label("Scan Barcode", systemImage: Theme.Icon.productBarcode.systemName)
+                    }
+                    
+                    Button {
+                        isCameraPresented = true
+                    } label: {
+                        Label("Scan Images", systemImage: Theme.Icon.cameraScanner.systemName)
                     }
 
                     Button {
@@ -74,13 +87,13 @@ struct HomeView: View {
             .navigationTitle("Home")
             
             Button {
-                isCameraPresented = true
+                startAddProductWithScan()
             } label: {
                 Label {
-                    Text("Scan")
+                    Text("Add Product")
                         .font(Theme.Fonts.body(16, weight: .semibold, relativeTo: .headline))
                 } icon: {
-                    Image(icon: .cameraScanner)
+                    Image(icon: .houseCreate)
                         
                 }
             }
@@ -120,10 +133,26 @@ struct HomeView: View {
                 onCancel: { isBarcodeScannerPresented = false },
                 onBarcodeDetected: { barcode in
                     latestScannedBarcode = barcode
+                    pendingAddProductBarcode = barcode
                     isBarcodeScannerPresented = false
                 }
             )
         }
+        .onChange(of: isBarcodeScannerPresented) { oldValue, newValue in
+            guard oldValue == true, newValue == false, let barcode = pendingAddProductBarcode else { return }
+            pendingAddProductBarcode = nil
+            appState.navigate(
+                to: .addProduct(
+                    barcodePayload: barcode.payload,
+                    symbology: barcode.symbology
+                )
+            )
+        }
+    }
+
+    private func startAddProductWithScan() {
+        pendingAddProductBarcode = nil
+        isBarcodeScannerPresented = true
     }
 }
 

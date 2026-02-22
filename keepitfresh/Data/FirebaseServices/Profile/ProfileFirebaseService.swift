@@ -12,6 +12,11 @@ actor ProfileFirebaseService: ProfileProviding {
     private let db = Firestore.firestore()
     
     func getProfile(for userId: String) async throws -> Profile? {
+        if FirebaseWritePolicy.isMockWriteEnabled,
+           let mocked = await DebugFirestoreStore.shared.getProfile(userId: userId) {
+            return mocked
+        }
+
         let doc = try await db
             .collection(FirebaseConstants.Collections.profiles)
             .document(userId)
@@ -23,6 +28,11 @@ actor ProfileFirebaseService: ProfileProviding {
     }
 
     func create(profile: Profile) async throws {
+        if FirebaseWritePolicy.isMockWriteEnabled {
+            await DebugFirestoreStore.shared.createProfile(profile)
+            return
+        }
+
         let data = try profile.toFirebaseDictionary()
         try await db
             .collection(FirebaseConstants.Collections.profiles)
@@ -31,6 +41,11 @@ actor ProfileFirebaseService: ProfileProviding {
     }
 
     func update(profile: Profile) async throws {
+        if FirebaseWritePolicy.isMockWriteEnabled {
+            await DebugFirestoreStore.shared.updateProfile(profile)
+            return
+        }
+
         let data = try profile.toFirebaseDictionary()
         try await db
             .collection(FirebaseConstants.Collections.profiles)
@@ -39,6 +54,11 @@ actor ProfileFirebaseService: ProfileProviding {
     }
 
     func delete(userId: String) async throws {
+        if FirebaseWritePolicy.isMockWriteEnabled {
+            await DebugFirestoreStore.shared.deleteProfile(userId: userId)
+            return
+        }
+
         try await db
             .collection(FirebaseConstants.Collections.profiles)
             .document(userId)

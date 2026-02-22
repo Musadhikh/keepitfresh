@@ -12,6 +12,10 @@ import HouseModule
 actor InMemoryHouseStorageService: HouseStorageServicing {
     private var householdsByID: [String: Household] = [:]
     
+    func fetchHousehold(id: String) async throws -> Household? {
+        householdsByID[id]
+    }
+    
     func fetchHouseholds(ids: [String]) async throws -> [Household] {
         if ids.isEmpty {
             return householdsByID.values.sorted {

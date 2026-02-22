@@ -43,15 +43,6 @@ struct PlaygroundProductDetails {
 }
 
 @Generable
-struct BarcodeInfo {
-    @Guide(description: "Barcode value")
-    let barcode: String?
-    
-    @Guide(description: "Type of barcode")
-    let barcodeType: String?
-}
-
-@Generable
 struct PlaygroundProductDateInfo {
     @Guide(description: "Type of Date (Packed, Expiry, etc.) printed on the product")
     let dateType: DateTypeEnum?
@@ -59,15 +50,6 @@ struct PlaygroundProductDateInfo {
     let date: String?
 }
 
-@Generable(description: "Date type to infer from the label on the product. pkd, packed, packed on means => packed. prod, mfd, manufactured, manufactured on means => manufactured. exp, expiry, expiry on means => expiry. use by, useBy, useBy on means => useBy. bb, best before, bestBefore, bestBefore on means => bestBefore. use before, useBefore, useBefore on means => useBefore.")
-enum DateTypeEnum: String, CaseIterable {
-    case packed
-    case manufactured
-    case expiry
-    case useBy
-    case bestBefore
-    case useBefore
-}
 
 extension ObservedType: PromptRepresentable {
     var promptRepresentation: Prompt {

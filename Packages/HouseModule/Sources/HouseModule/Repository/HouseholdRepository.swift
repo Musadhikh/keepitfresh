@@ -20,6 +20,28 @@ public actor HouseholdRepository {
         self.networkService = networkService
     }
     
+    public func loadHousehold(id: String, policy: HouseLoadPolicy) async throws -> Household? {
+        switch policy {
+        case .localOnly:
+            return try await loadLocal(id: id)
+        case .remoteOnly:
+            return try await loadRemote(id: id)
+        case .localFirst:
+            if let local = try await loadLocal(id: id) {
+                return local
+            }
+            
+            return try await loadRemote(id: id)
+        case .remoteFirst:
+            if let remote = try await loadRemote(id: id) {
+                return remote
+            }
+            
+            return try await loadLocal(id: id)
+        }
+    }
+    
+    
     public func loadHouseholds(
         ids: [String],
         policy: HouseLoadPolicy
@@ -135,10 +157,36 @@ public actor HouseholdRepository {
         try await networkService.deleteHousehold(id: id)
         try await storageService.deleteHousehold(id: id)
     }
+}
+
+extension HouseholdRepository {
+    private func loadLocal(id: String) async throws -> Household? {
+        let local = try await storageService.fetchHousehold(id: id)
+        return local
+    }
     
     private func loadLocal(ids: [String]) async throws -> [Household] {
         let local = try await storageService.fetchHouseholds(ids: ids)
         return order(local, by: ids)
+    }
+    
+    private func loadRemote(id: String) async throws -> Household? {
+        guard let remote = try await networkService.fetchHousehold(id: id) else { return nil }
+        
+        let house = Household(
+            id: remote.id,
+            name: remote.name,
+            description: remote.description,
+            ownerId: remote.ownerId,
+            memberIds: remote.memberIds,
+            createdAt: remote.createdAt,
+            updatedAt: remote.updatedAt,
+            syncState: .synced
+        )
+        
+        try await storageService.upsertHousehold(house)
+        
+        return house
     }
     
     private func loadRemote(ids: [String]) async throws -> [Household] {

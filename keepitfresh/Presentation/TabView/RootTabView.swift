@@ -47,7 +47,20 @@ struct RootTabView: View {
             ProfileDetailsView()
         case .householdSelection:
             HouseSelectionScreen(mode: .manage)
+        case .addProduct(let barcodePayload, let symbology):
+            addProductDestination(barcodePayload: barcodePayload, symbology: symbology)
         }
+    }
+
+    private func addProductDestination(barcodePayload: String?, symbology: String?) -> some View {
+        let initialBarcode = barcodePayload.flatMap { payload in
+            payload.isEmpty ? nil : Barcode(value: payload, symbologyLabel: symbology)
+        }
+
+        return AddProductModuleAssembler(
+            defaultHouseholdId: appState.selectedHouse?.id ?? "default-household"
+        )
+        .makeRootView(initialBarcode: initialBarcode)
     }
 }
 

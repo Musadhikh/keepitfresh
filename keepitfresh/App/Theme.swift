@@ -112,6 +112,7 @@ public enum Theme {
         case productDates = "calendar"
         case productCategory = "square.grid.2x2"
         case productDetails = "shippingbox.fill"
+        case lock = "lock.fill"
         
         public var systemName: String { rawValue }
     }
