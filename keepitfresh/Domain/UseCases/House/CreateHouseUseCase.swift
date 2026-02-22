@@ -23,7 +23,7 @@ struct CreateHouseUseCase: Sendable {
     }
     
     @Injected(\.userProvider) private var userProvider: UserProviding
-    @Injected(\.profileProvider) private var profileProvider: ProfileProviding
+    @Injected(\.profileSyncRepository) private var profileSyncRepository: ProfileSyncRepository
     @Injected(\.houseDomainModule) private var houseDomainModule: HouseModule
     @Injected(\.updateProfileHouseholdsUseCase) private var updateProfileHouseholdsUseCase: UpdateProfileHouseholdsUseCase
     
@@ -31,7 +31,7 @@ struct CreateHouseUseCase: Sendable {
         guard let user = try await userProvider.current() else {
             throw CreateHouseUseCaseError.missingAuthenticatedUser
         }
-        guard let profile = try await profileProvider.getProfile(for: user.id) else {
+        guard let profile = try await profileSyncRepository.currentProfile(for: user.id) else {
             throw CreateHouseUseCaseError.missingProfile
         }
         

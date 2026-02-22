@@ -37,10 +37,8 @@ struct UpdateProfileHouseholdsUseCase: Sendable {
             updatedAt: Date()
         )
         
-        let existingRecord = try await repository.record(for: profile.userId)
-        return try await repository.updateProfile(
-            updatedProfile,
-            syncMetadataPreservingExisting: existingRecord
-        )
+        try await repository.stageSharedProfileUpdate(updatedProfile)
+        await repository.synchronizeInBackground(for: profile.userId)
+        return updatedProfile
     }
 }

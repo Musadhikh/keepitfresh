@@ -54,7 +54,7 @@ struct LoginView: View {
         .disabled(viewModel.isLoading)
         .onChange(of: viewModel.nextStep) { _, newStep in
             guard let newStep else { return }
-            appState.applyLaunchState(newStep)
+            appState.applyLaunchDecision(newStep)
         }
     }
     

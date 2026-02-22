@@ -3,6 +3,7 @@
 //  keepitfresh
 //
 //  Created by Musadhikh Muhammed on 16/1/26.
+//  Summary: Loads profile offline-first and observes background sync updates in real time.
 //
 
 import Foundation
@@ -20,6 +21,9 @@ class ProfileViewModel {
     
     @ObservationIgnored
     @Injected(\.profileProvider) private var profileProvider: ProfileProviding
+
+    @ObservationIgnored
+    @Injected(\.profileSyncRepository) private var profileSyncRepository: ProfileSyncRepository
     
     // MARK: - State
     
@@ -28,6 +32,9 @@ class ProfileViewModel {
     var errorMessage: String?
     var showDeleteConfirmation = false
     var isDeleting = false
+
+    @ObservationIgnored
+    private var profileObservationTask: Task<Void, Never>?
     
     // MARK: - Actions
     
@@ -44,7 +51,9 @@ class ProfileViewModel {
                 return
             }
             
-            profile = try await profileProvider.getProfile(for: user.id)
+            profile = try await profileSyncRepository.currentProfile(for: user.id)
+            startObservingProfileUpdates(for: user.id)
+            await profileSyncRepository.synchronizeInBackground(for: user.id)
         } catch {
             errorMessage = "Failed to load profile: \(error.localizedDescription)"
         }
@@ -78,6 +87,22 @@ class ProfileViewModel {
             try await Auth.auth().currentUser?.delete()
         } catch {
             errorMessage = "Failed to delete account: \(error.localizedDescription)"
+        }
+    }
+}
+
+private extension ProfileViewModel {
+    func startObservingProfileUpdates(for userId: String) {
+        profileObservationTask?.cancel()
+        profileObservationTask = Task { [weak self] in
+            guard let self else { return }
+            let stream = await profileSyncRepository.observeRecord(for: userId)
+            for await record in stream {
+                guard !Task.isCancelled else { break }
+                if let profile = record?.profile {
+                    self.profile = profile
+                }
+            }
         }
     }
 }

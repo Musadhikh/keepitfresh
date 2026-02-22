@@ -17,37 +17,28 @@ struct SelectHouseUseCase: Sendable {
     }
     
     @Injected(\.userProvider) private var userProvider: UserProviding
-    @Injected(\.profileProvider) private var profileProvider: ProfileProviding
+    @Injected(\.profileSyncRepository) private var profileSyncRepository: ProfileSyncRepository
     @Injected(\.houseDomainModule) private var houseDomainModule: HouseModule
     
     func execute(houseID: String) async throws -> Output {
         guard let user = try await userProvider.current() else {
             throw SelectHouseUseCaseError.missingAuthenticatedUser
         }
-        guard let profile = try await profileProvider.getProfile(for: user.id) else {
+        guard let profile = try await profileSyncRepository.currentProfile(for: user.id) else {
             throw SelectHouseUseCaseError.missingProfile
         }
         
         guard let selectedHousehold = try await houseDomainModule.loadHouseholds.execute(
             id: houseID,
-            policy: .remoteFirst
+            policy: .localFirst
         ) else {
             throw SelectHouseUseCaseError.houseNotFound
         }
         
-        let updatedProfile = Profile(
-            id: profile.id,
-            userId: profile.userId,
-            name: profile.name,
-            email: profile.email,
-            avatarURL: profile.avatarURL,
-            householdIds: profile.householdIds,
-            lastSelectedHouseholdId: selectedHousehold.id,
-            isActive: profile.isActive,
-            createdAt: profile.createdAt,
-            updatedAt: Date()
-        )
-//        try await profileProvider.update(profile: updatedProfile)
+        let updatedProfile = try await profileSyncRepository.setLocalSelectedHousehold(
+            for: user.id,
+            houseId: selectedHousehold.id
+        ) ?? profile.withLocalSelectedHouseholdId(selectedHousehold.id)
         
         return Output(
             profile: updatedProfile,

@@ -39,16 +39,16 @@ struct SplashView: View {
         .task {
             await viewModel.start()
         }
-        .onChange(of: viewModel.launchState) { _, newState in
-            guard let newState else { return }
-            handleLaunchState(newState)
+        .onChange(of: viewModel.launchDecision) { _, newDecision in
+            guard let newDecision else { return }
+            handleLaunchDecision(newDecision)
         }
         .dynamicTypeSize(.xSmall ... .accessibility2)
         .accessibilityLabel("Keep It Fresh app loading screen")
     }
     
-    private func handleLaunchState(_ state: AppLaunchState) {
-        appState.applyLaunchState(state)
+    private func handleLaunchDecision(_ decision: AppLaunchDecision) {
+        appState.applyLaunchDecision(decision)
     }
 }
 
