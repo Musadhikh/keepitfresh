@@ -50,7 +50,7 @@ extension Container {
     }
     
     var profileStorageService: Factory<any ProfileStorageServicing> {
-        self { InMemoryProfileStorageService() }
+        self { RealmProfileStorageService() }
             .singleton
     }
     

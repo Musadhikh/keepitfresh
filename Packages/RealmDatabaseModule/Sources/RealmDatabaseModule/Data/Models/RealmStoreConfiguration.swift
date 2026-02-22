@@ -2,7 +2,7 @@
 //  RealmStoreConfiguration.swift
 //  RealmDatabaseModule
 //
-//  Created by Codex on 22/2/26.
+//  Created by musadhikh on 22/2/26.
 //  Summary: Sendable Realm configuration model independent from Realm runtime types.
 //
 

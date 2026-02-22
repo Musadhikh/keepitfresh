@@ -2,7 +2,7 @@
 //  RealmDatabaseError.swift
 //  RealmDatabaseModule
 //
-//  Created by Codex on 22/2/26.
+//  Created by musadhikh on 22/2/26.
 //  Summary: Errors exposed by the Realm database module.
 //
 
