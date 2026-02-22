@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		C695422B2F17A46D007C44CD /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = C695422A2F17A46D007C44CD /* Factory */; };
 		C695422D2F17A46D007C44CD /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = C695422C2F17A46D007C44CD /* FactoryKit */; };
+		C7709F692F4AEA6D0054B134 /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = C7709F682F4AEA6D0054B134 /* Realm */; };
+		C7709F6B2F4AEA6D0054B134 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C7709F6A2F4AEA6D0054B134 /* RealmSwift */; };
 		C7B4FB102E6411830017569D /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB0F2E6411830017569D /* FirebaseAnalytics */; };
 		C7B4FB122E6411830017569D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB112E6411830017569D /* FirebaseAuth */; };
 		C7B4FB142E6411830017569D /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB132E6411830017569D /* FirebaseCore */; };
@@ -83,6 +85,7 @@
 			files = (
 				C7B4FB102E6411830017569D /* FirebaseAnalytics in Frameworks */,
 				C7CD258F2F41B7EC00FD3ED4 /* CameraModule in Frameworks */,
+				C7709F6B2F4AEA6D0054B134 /* RealmSwift in Frameworks */,
 				C7B4FB162E6411830017569D /* FirebaseCrashlytics in Frameworks */,
 				C7D900012F458AAA00B5AA01 /* BarcodeScannerModule in Frameworks */,
 				C7E8F0592E6D5F01002CE0AA /* GoogleSignInSwift in Frameworks */,
@@ -92,6 +95,7 @@
 				C7B4FB122E6411830017569D /* FirebaseAuth in Frameworks */,
 				C7CD24762F41883A00FD3ED4 /* HouseModule in Frameworks */,
 				C7E8F0572E6D5F01002CE0AA /* GoogleSignIn in Frameworks */,
+				C7709F692F4AEA6D0054B134 /* Realm in Frameworks */,
 				C695422B2F17A46D007C44CD /* Factory in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -172,6 +176,8 @@
 				C7CD24752F41883A00FD3ED4 /* HouseModule */,
 				C7CD258E2F41B7EC00FD3ED4 /* CameraModule */,
 				C7D900002F458AAA00B5AA01 /* BarcodeScannerModule */,
+				C7709F682F4AEA6D0054B134 /* Realm */,
+				C7709F6A2F4AEA6D0054B134 /* RealmSwift */,
 			);
 			productName = keepitfresh;
 			productReference = C7DA738B2E63FE5000331A4A /* keepitfresh.app */;
@@ -262,6 +268,7 @@
 				C7CD24742F41883A00FD3ED4 /* XCLocalSwiftPackageReference "Packages/HouseModule" */,
 				C7CD258D2F41B7EC00FD3ED4 /* XCLocalSwiftPackageReference "Packages/CameraModule" */,
 				C7D900022F458AAA00B5AA01 /* XCLocalSwiftPackageReference "Packages/BarcodeScannerModule" */,
+				C7709F672F4AEA6D0054B134 /* XCRemoteSwiftPackageReference "realm-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C7DA738C2E63FE5000331A4A /* Products */;
@@ -736,6 +743,14 @@
 				minimumVersion = 2.5.3;
 			};
 		};
+		C7709F672F4AEA6D0054B134 /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		C7B4FB0E2E6411830017569D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -764,6 +779,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C69542292F17A46D007C44CD /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = FactoryKit;
+		};
+		C7709F682F4AEA6D0054B134 /* Realm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7709F672F4AEA6D0054B134 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = Realm;
+		};
+		C7709F6A2F4AEA6D0054B134 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7709F672F4AEA6D0054B134 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
 		};
 		C7B4FB0F2E6411830017569D /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
