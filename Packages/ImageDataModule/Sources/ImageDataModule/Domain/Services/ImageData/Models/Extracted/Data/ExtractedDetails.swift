@@ -11,8 +11,8 @@ import FoundationModels
 public enum ExtractedDetails: Sendable {
     case food(ExtractedFoodDetails?)
     case beverage(ExtractedFoodDetails?)
-    case household
-    case personalCare
+    case household(ExtractedHouseholdDetails?)
+    case personalCare(ExtractedPersonalCareDetails?)
     case medicine
     case electronics
     case pet
@@ -21,16 +21,4 @@ public enum ExtractedDetails: Sendable {
 
 extension ExtractedDetails.PartiallyGenerated: Sendable {}
 
-@Generable(description: "Food specific information")
-public struct ExtractedFoodDetails: Sendable {
-    @Guide(description: "Ingredients used in the product")
-    public let ingredients: [String]?
 
-    @Guide(description: "Quantity of the  product")
-    public let quantity: String?
-
-    @Guide(description: "Number of items in the product")
-    public let numberOfItems: String?
-}
-
-extension ExtractedFoodDetails.PartiallyGenerated: Sendable {}

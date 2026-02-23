@@ -20,7 +20,7 @@ public struct ExtractedData: Sendable {
     @Guide(description: "Describe the product briefly")
     public let description: String?
 
-    @Guide(description: "Barcode/UPC details")
+    @Guide(description: "Primary Barcode/UPC details")
     public let barcodeInfo: ExtractedBarcodeInfo?
 
     @Guide(description: "All date information printed on the product. Keep same date format for all dates in the list. Preferred date format is dd/MM/yyyy")
