@@ -16,29 +16,22 @@ struct AddProductModuleAssembler {
     let inventoryRepository: any InventoryRepository
     let catalogRepository: any CatalogRepository
     let householdContextProvider: any HouseholdContextProviding
-    let visionExtractor: any VisionExtracting
-//    let dataBuilder: any AIDataGenerating
 
     init(
         inventoryRepository: (any InventoryRepository)? = nil,
         catalogRepository: (any CatalogRepository)? = nil,
         householdContextProvider: (any HouseholdContextProviding)? = nil,
-        visionExtractor: (any VisionExtracting)? = nil,
-        dataBuilder: (any AIDataGenerating)? = nil,
         defaultHouseholdId: String = "default-household"
     ) {
         self.inventoryRepository = inventoryRepository ?? InMemoryInventoryRepository()
         self.catalogRepository = catalogRepository ?? InMemoryCatalogRepository()
         self.householdContextProvider = householdContextProvider ?? DefaultHouseholdContextProvider(householdId: defaultHouseholdId)
-        self.visionExtractor = visionExtractor ?? StubVisionExtractor()
     }
 
     func makeUseCase() -> AddProductFlowUseCase {
         AddProductFlowUseCase(
             inventoryRepository: inventoryRepository,
             catalogRepository: catalogRepository,
-            visionExtractor: visionExtractor,
-//            dataBuilder: dataBuilder,
             householdProvider: householdContextProvider
         )
     }
@@ -142,11 +135,5 @@ struct DefaultHouseholdContextProvider: HouseholdContextProviding {
 
     func currentHouseholdId() async throws -> String {
         householdId
-    }
-}
-
-struct StubVisionExtractor: VisionExtracting {
-    func extract(from images: [ImagesCaptured]) async throws -> [ExtractedType] {
-        []
     }
 }

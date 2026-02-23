@@ -11,8 +11,6 @@ import Foundation
 actor AddProductFlowUseCase {
     private let inventoryRepository: any InventoryRepository
     private let catalogRepository: any CatalogRepository
-    private let visionExtractor: any VisionExtracting
-//    private let dataBuilder: any AIDataGenerating
     private let householdProvider: any HouseholdContextProviding
 
     private var state: AddProductState = .idle
@@ -24,14 +22,10 @@ actor AddProductFlowUseCase {
     init(
         inventoryRepository: any InventoryRepository,
         catalogRepository: any CatalogRepository,
-        visionExtractor: any VisionExtracting,
-//        dataBuilder: any AIDataGenerating,
         householdProvider: any HouseholdContextProviding
     ) {
         self.inventoryRepository = inventoryRepository
         self.catalogRepository = catalogRepository
-        self.visionExtractor = visionExtractor
-//        self.dataBuilder = dataBuilder
         self.householdProvider = householdProvider
     }
 

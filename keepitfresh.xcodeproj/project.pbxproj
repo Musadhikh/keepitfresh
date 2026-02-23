@@ -10,6 +10,7 @@
 		C695422B2F17A46D007C44CD /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = C695422A2F17A46D007C44CD /* Factory */; };
 		C695422D2F17A46D007C44CD /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = C695422C2F17A46D007C44CD /* FactoryKit */; };
 		C7709F6E2F4AECE30054B134 /* RealmDatabaseModule in Frameworks */ = {isa = PBXBuildFile; productRef = C7709F6D2F4AECE30054B134 /* RealmDatabaseModule */; };
+		C770A1422F4C30DB0054B134 /* ImageDataModule in Frameworks */ = {isa = PBXBuildFile; productRef = C770A1412F4C30DB0054B134 /* ImageDataModule */; };
 		C7B4FB102E6411830017569D /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB0F2E6411830017569D /* FirebaseAnalytics */; };
 		C7B4FB122E6411830017569D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB112E6411830017569D /* FirebaseAuth */; };
 		C7B4FB142E6411830017569D /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C7B4FB132E6411830017569D /* FirebaseCore */; };
@@ -86,6 +87,7 @@
 				C7CD258F2F41B7EC00FD3ED4 /* CameraModule in Frameworks */,
 				C7B4FB162E6411830017569D /* FirebaseCrashlytics in Frameworks */,
 				C7D900012F458AAA00B5AA01 /* BarcodeScannerModule in Frameworks */,
+				C770A1422F4C30DB0054B134 /* ImageDataModule in Frameworks */,
 				C7E8F0592E6D5F01002CE0AA /* GoogleSignInSwift in Frameworks */,
 				C695422D2F17A46D007C44CD /* FactoryKit in Frameworks */,
 				C7B4FB142E6411830017569D /* FirebaseCore in Frameworks */,
@@ -175,6 +177,7 @@
 				C7CD258E2F41B7EC00FD3ED4 /* CameraModule */,
 				C7D900002F458AAA00B5AA01 /* BarcodeScannerModule */,
 				C7709F6D2F4AECE30054B134 /* RealmDatabaseModule */,
+				C770A1412F4C30DB0054B134 /* ImageDataModule */,
 			);
 			productName = keepitfresh;
 			productReference = C7DA738B2E63FE5000331A4A /* keepitfresh.app */;
@@ -266,6 +269,7 @@
 				C7CD258D2F41B7EC00FD3ED4 /* XCLocalSwiftPackageReference "Packages/CameraModule" */,
 				C7D900022F458AAA00B5AA01 /* XCLocalSwiftPackageReference "Packages/BarcodeScannerModule" */,
 				C7709F6C2F4AECE30054B134 /* XCLocalSwiftPackageReference "Packages/RealmDatabaseModule" */,
+				C770A1402F4C30DB0054B134 /* XCLocalSwiftPackageReference "Packages/ImageDataModule" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C7DA738C2E63FE5000331A4A /* Products */;
@@ -721,6 +725,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/RealmDatabaseModule;
 		};
+		C770A1402F4C30DB0054B134 /* XCLocalSwiftPackageReference "Packages/ImageDataModule" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/ImageDataModule;
+		};
 		C7CD24742F41883A00FD3ED4 /* XCLocalSwiftPackageReference "Packages/HouseModule" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/HouseModule;
@@ -776,6 +784,10 @@
 		C7709F6D2F4AECE30054B134 /* RealmDatabaseModule */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealmDatabaseModule;
+		};
+		C770A1412F4C30DB0054B134 /* ImageDataModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ImageDataModule;
 		};
 		C7B4FB0F2E6411830017569D /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

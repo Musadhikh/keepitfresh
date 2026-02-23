@@ -10,12 +10,13 @@
 
 import Foundation
 import Observation
+import ImageDataModule
 
 @Observable
 @MainActor
 class ProductReviewViewModel {
-    private let extractionService: VisionExtracting
-    private let aiDataGeneratingService: AIDataGenerating
+    
+    private let imageProcessor: ImageProcessor
     let capturedImages: [ImagesCaptured]
     
     var generatedData: ExtractedData.PartiallyGenerated?
@@ -24,19 +25,15 @@ class ProductReviewViewModel {
     
     init(capturedImages:[ImagesCaptured]) {
         self.capturedImages = capturedImages
-        self.extractionService = ImageDataExtractorService()
-        self.aiDataGeneratingService = ImageDataGeneratorService(instruction: .inventoryAssistant)
+        self.imageProcessor = ImageProcessor(instruction: .inventoryAssistant)
     }
     
     func startReviewProcess() async {
         do {
-            let extracted = try await extractionService.extract(from: capturedImages)
-            let dataGenerator = aiDataGeneratingService.generateData(
-                from: .inventory(extracted),
-                type: ExtractedData.self
-            )
             
-            for try await data in dataGenerator {
+            let inventoryDataGenerator = imageProcessor.inventoryData(images: capturedImages)
+            
+            for try await data in inventoryDataGenerator {
                 generatedData = data
             }
             

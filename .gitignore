@@ -46,9 +46,12 @@ Packages/*
 !Packages/BarcodeScannerModule/**
 !Packages/RealmDatabaseModule/
 !Packages/RealmDatabaseModule/**
+!Packages/ImageDataModule/
+!Packages/ImageDataModule/**
 Packages/CameraModule/.swiftpm/
 Packages/BarcodeScannerModule/.swiftpm/
 Packages/RealmDatabaseModule/.swiftpm/
+Packages/ImageDataModule/.swiftpm/
 Package.pins
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 .build/
