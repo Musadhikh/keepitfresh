@@ -13,7 +13,6 @@ import BarcodeScannerModule
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @State private var isCameraPresented = false
-    @State private var shouldPresentAnalyserResult = false
     @State private var isBarcodeScannerPresented = false
     @State private var pendingAddProductBarcode: ScannedBarcode?
     @State private var capturedImages: [CameraCapturedImage] = []
@@ -106,14 +105,7 @@ struct HomeView: View {
             .padding(.trailing, Theme.Spacing.s20)
             .padding(.bottom, Theme.Spacing.s20)
         }
-        .onChange(of: capturedImages) {
-            shouldPresentAnalyserResult = true
-        }
-        .fullScreenCover(isPresented: $isCameraPresented, onDismiss: {
-            if shouldPresentAnalyserResult {
-                shouldPresentAnalyserResult = false
-            }
-        }) {
+        .fullScreenCover(isPresented: $isCameraPresented) {
             CameraScannerView(
                 onCancel: { isCameraPresented = false },
                 onComplete: { result in
@@ -122,11 +114,6 @@ struct HomeView: View {
                     isCameraPresented = false
                 }
             )
-        }
-        .fullScreenCover(isPresented: $shouldPresentAnalyserResult) {
-            NavigationStack {
-                ProductOverView(viewModel: ProductOverViewModel(capturedImages: capturedImages))
-            }
         }
         .fullScreenCover(isPresented: $isBarcodeScannerPresented) {
             BarcodeScannerView(

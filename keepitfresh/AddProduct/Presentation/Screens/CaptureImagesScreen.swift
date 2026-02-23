@@ -9,8 +9,12 @@
 import SwiftUI
 import PhotosUI
 import CameraModule
+import ImageDataModule
 
-struct ImagesCaptured: Identifiable, Equatable, Sendable {
+struct ImagesCaptured: ImageData,  Identifiable, Equatable, Sendable {
+    var cgImage: CGImage
+    var orientation: CGImagePropertyOrientation
+    
     public let id: UUID
     public let image: UIImage
     public let boundingBox: CGRect
@@ -26,6 +30,9 @@ struct ImagesCaptured: Identifiable, Equatable, Sendable {
         self.image = image
         self.boundingBox = boundingBox
         self.imageSize = imageSize
+        
+        self.cgImage = image.cgImage!
+        self.orientation = CGImagePropertyOrientation(image.imageOrientation)
     }
 }
 
