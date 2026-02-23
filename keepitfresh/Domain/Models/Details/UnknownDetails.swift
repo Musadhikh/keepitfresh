@@ -3,7 +3,7 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
-//  Summary: Fallback payload for unknown or undecodable detail data.
+//  Summary: Fallback payload for unknown or un-decodable detail data.
 //
 
 import Foundation
