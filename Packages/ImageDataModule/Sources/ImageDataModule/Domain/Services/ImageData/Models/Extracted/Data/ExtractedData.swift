@@ -18,7 +18,7 @@ public struct ExtractedData: Sendable {
     public let brand: String?
 
     @Guide(description: "Describe the product briefly")
-    public let description: String?
+    public let shortDescription: String?
 
     @Guide(description: "Primary Barcode/UPC details")
     public let barcodeInfo: ExtractedBarcodeInfo?

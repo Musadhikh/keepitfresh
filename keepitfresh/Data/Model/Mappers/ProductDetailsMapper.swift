@@ -10,10 +10,5 @@ import Foundation
 import ImageDataModule
 
 struct ProductDetailsMapper {
-    func makeDetails(
-        productId: String,
-        classification: ExtractedProductCategory,
-    ) -> ProductDetails? {
-        fatalError("Missing implementation")
-    }
+    
 }

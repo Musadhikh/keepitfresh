@@ -31,19 +31,9 @@ struct AddProductFlowRootView: View {
                 )
 
             case .reviewing:
-                if let draftBinding = draftBinding {
-                    ReviewProductScreen(
-                        draft: draftBinding,
-                        onSave: viewModel.saveDraft,
-                        onSaveAndAddAnother: viewModel.saveAndAddAnother,
-                        onBack: viewModel.retryLastBarcode
-                    )
-                } else {
                     progressScreen(title: "Preparing", message: "Loading draft…")
-                }
-
             case .saving:
-                progressScreen(title: "Saving", message: "Persisting product locally and syncing…")
+                    progressScreen(title: "Saving", message: "Persisting product locally and syncing…")
 
             case .success(let savedItemId):
                 successScreen(savedItemId: savedItemId)
@@ -76,14 +66,6 @@ struct AddProductFlowRootView: View {
                 onEditDates: viewModel.editDates
             )
         }
-    }
-
-    private var draftBinding: Binding<ProductDraft>? {
-        guard viewModel.draft != nil else { return nil }
-        return Binding(
-            get: { viewModel.draft ?? .makeManual() },
-            set: { viewModel.draft = $0 }
-        )
     }
 
     private func progressScreen(title: String, message: String) -> some View {

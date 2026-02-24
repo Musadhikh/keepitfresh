@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct FoodDetails: Codable, Equatable, Sendable {
+struct FoodDetail: Codable, Equatable, Sendable { 
     var ingredients: [String]?
     var allergens: [String]?
     var nutritionPer100gOrMl: NutritionFacts?

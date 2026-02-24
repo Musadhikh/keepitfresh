@@ -141,7 +141,7 @@ struct ProductReviewView: View {
     }
 
     private var summaryText: String {
-        generatedData?.description ?? "We are extracting details from the captured images."
+        generatedData?.shortDescription ?? "We are extracting details from the captured images."
     }
 
     private var barcodeText: String {

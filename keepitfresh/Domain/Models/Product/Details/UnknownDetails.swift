@@ -9,7 +9,6 @@
 import Foundation
 
 struct UnknownDetails: Codable, Equatable, Sendable {
-    var raw: [String: String]?
-
-    static let empty = UnknownDetails(raw: nil)
+    var raw: [String: String]
+    var category: String?
 }
