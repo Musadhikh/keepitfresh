@@ -13,7 +13,7 @@ enum MainCategory: String, Codable, CaseIterable, Sendable {
     case food
     case beverage
     case household
-    case personalCare = "personal_care"
+    case personalCare
     case medicine
     case electronics
     case pet
@@ -23,12 +23,7 @@ enum MainCategory: String, Codable, CaseIterable, Sendable {
 /// Product category pair with an optional subtype.
 struct ProductCategory: Codable, Equatable, Sendable {
     var main: MainCategory
-    var sub: String?
-
-    init(main: MainCategory, sub: String? = nil) {
-        self.main = main
-        self.sub = Self.sanitized(sub)
-    }
+    var subCategory: String?
 }
 
 private extension ProductCategory {

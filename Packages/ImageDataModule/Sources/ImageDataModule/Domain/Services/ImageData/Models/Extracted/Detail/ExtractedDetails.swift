@@ -13,10 +13,10 @@ public enum ExtractedDetails: Sendable {
     case beverage(ExtractedFoodDetails?)
     case household(ExtractedHouseholdDetails?)
     case personalCare(ExtractedPersonalCareDetails?)
-    case medicine
-    case electronics
-    case pet
-    case other
+//    case medicine
+//    case electronics
+//    case pet
+    case other(ExtractedUnknownDetails?)
 }
 
 extension ExtractedDetails.PartiallyGenerated: Sendable {}

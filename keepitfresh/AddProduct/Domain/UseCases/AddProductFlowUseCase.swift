@@ -177,65 +177,7 @@ actor AddProductFlowUseCase {
 //        transition(to: .reviewing(draft: draft))
     }
 
-    func saveDraft(_ draft: ProductDraft) async {
-        transition(to: .saving)
-
-        do {
-            let householdId = try await householdProvider.currentHouseholdId()
-            let now = Date()
-            let batch = InventoryBatch(
-                quantity: max(1, draft.quantity),
-                unit: draft.unit,
-                dates: draft.dateInfo,
-                notes: draft.notes
-            )
-
-            if let barcode = draft.barcode {
-                let itemId = inventoryItemID(householdId: householdId, barcode: barcode)
-                let existingItem = try await inventoryRepository.findLocal(householdId: householdId, barcode: barcode)
-
-                var item = existingItem ?? InventoryItem(
-                    id: itemId,
-                    householdId: householdId,
-                    barcode: barcode,
-                    catalogRefId: draft.catalog?.id ?? barcode.value,
-                    batches: [],
-                    updatedAt: nil,
-                    needsBarcode: false
-                )
-
-                item.barcode = barcode
-                item.catalogRefId = draft.catalog?.id ?? barcode.value
-                item.needsBarcode = false
-                item.batches.append(batch)
-                item.updatedAt = now
-
-                try? await ensureCatalogExists(from: draft, barcode: barcode)
-                let didSave = await saveInventoryWithFallback(item)
-                guard didSave else { return }
-                currentInventoryHit = (item, .inventoryLocal)
-                transition(to: .success(savedItemId: item.id))
-            } else {
-                let generatedId = "\(householdId)_local_\(UUID().uuidString)"
-                var item = InventoryItem(
-                    id: generatedId,
-                    householdId: householdId,
-                    barcode: nil,
-                    catalogRefId: nil,
-                    batches: [batch],
-                    updatedAt: now,
-                    needsBarcode: true
-                )
-                item.updatedAt = now
-
-                let didSave = await saveInventoryWithFallback(item)
-                guard didSave else { return }
-                transition(to: .success(savedItemId: item.id))
-            }
-        } catch {
-            transition(to: .failure(message: "Could not save product. Please retry."))
-        }
-    }
+    
 }
 
 private extension AddProductFlowUseCase {

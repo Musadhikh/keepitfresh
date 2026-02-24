@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct PersonalCareDetails: Codable, Equatable, Sendable {
+struct PersonalCareDetail: Codable, Equatable, Sendable {
     var usageDirections: [String]?
     var ingredients: [String]?
     var warnings: [String]?

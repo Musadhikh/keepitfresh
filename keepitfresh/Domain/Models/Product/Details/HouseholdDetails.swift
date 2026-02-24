@@ -8,8 +8,8 @@
 
 import Foundation
 
-struct HouseholdDetails: Codable, Equatable, Sendable {
-    var usageInstructions: [String]?
-    var safetyWarnings: [String]?
-    var materials: [String]?
+struct HouseholdDetail: Codable, Equatable, Sendable {
+    var usageInstructions: [String]
+    var safetyWarnings: [String]
+    var materials: [String]
 }

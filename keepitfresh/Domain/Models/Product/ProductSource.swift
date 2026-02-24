@@ -11,6 +11,6 @@ import Foundation
 enum ProductSource: String, Codable, CaseIterable, Sendable {
     case scan
     case manual
-    case `import`
+    case remote
     case unknown
 }
