@@ -13,12 +13,12 @@ import ImageDataModule
 
 struct ProductReviewView: View {
     @State private var viewModel: ProductReviewViewModel
-    let onAdd: () -> Void
+    let onAdd: (Product) -> Void
 
     @State private var selectedImageIndex: Int = 0
     @State private var hasStartedReview: Bool = false
 
-    init(viewModel: ProductReviewViewModel, onAdd: @escaping () -> Void) {
+    init(viewModel: ProductReviewViewModel, onAdd: @escaping (Product) -> Void) {
         _viewModel = State(initialValue: viewModel)
         self.onAdd = onAdd
     }
@@ -95,8 +95,9 @@ struct ProductReviewView: View {
 
             VStack(spacing: Theme.Spacing.s8) {
                 Button("Add") {
-                    viewModel.prepareData()
-                    onAdd()
+                    if let product = viewModel.prepareData() {
+                        onAdd(product)
+                    }
                 }
                 .primaryButtonStyle(height: 50)
             }

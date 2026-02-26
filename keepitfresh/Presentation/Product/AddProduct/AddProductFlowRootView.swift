@@ -27,7 +27,9 @@ struct AddProductFlowRootView: View {
             case .extracting(let images):
                 ProductReviewView(
                     viewModel: ProductReviewViewModel(capturedImages: images),
-                    onAdd: {}
+                    onAdd: { product in
+                        // TODO: Save the product to Realm database
+                    }
                 )
 
             case .reviewing:

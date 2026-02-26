@@ -22,5 +22,15 @@ extension Barcode {
         case qr
         case code128
         case unknown
+        
+        init(value: String?) {
+            guard let value else {
+                self = .unknown
+                return
+            }
+            
+            self = Symbology(rawValue: value) ?? .unknown
+        }
+        
     }
 }
