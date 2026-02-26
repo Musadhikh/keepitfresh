@@ -92,3 +92,4 @@ google-services.json
 .env.development
 .env.test
 .env.production
+keepitfresh/Resources/GoogleService-Info.plist

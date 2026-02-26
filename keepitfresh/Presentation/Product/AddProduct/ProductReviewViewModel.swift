@@ -42,7 +42,7 @@ class ProductReviewViewModel {
         }
     }
     
-    func prepareData() {
-        
+    func prepareData() -> Product? {
+        generatedData?.toProduct()
     }
 }
