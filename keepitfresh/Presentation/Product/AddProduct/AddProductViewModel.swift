@@ -98,15 +98,11 @@ final class AddProductViewModel {
     }
 
     func openManualDraft() {
-        draft = .makeManual()
-        state = .reviewing(draft: draft ?? .makeManual())
+        
     }
 
     func saveDraft() {
-        guard let draft else { return }
-        Task {
-            await useCase.saveDraft(draft)
-        }
+        
     }
 
     func saveAndAddAnother() {

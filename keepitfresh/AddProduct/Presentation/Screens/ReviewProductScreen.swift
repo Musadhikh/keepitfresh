@@ -82,42 +82,43 @@ struct ReviewProductScreen: View {
 
                 fieldSection(title: "Date Info", field: .dateInfo, confidence: nil) {
                     VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
-                        ForEach(Array(draft.dateInfo.enumerated()), id: \.offset) { index, info in
-                            VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
-                                Picker("Date Kind", selection: Binding(
-                                    get: { draft.dateInfo[index].kind },
-                                    set: { draft.dateInfo[index].kind = $0 }
-                                )) {
-                                    ForEach(DateKind.allCases, id: \.self) { kind in
-                                        Text(kind.rawValue).tag(kind)
-                                    }
-                                }
-
-                                TextField("Raw date text", text: Binding(
-                                    get: { draft.dateInfo[index].rawText ?? "" },
-                                    set: { draft.dateInfo[index].rawText = $0.isEmpty ? nil : $0 }
-                                ))
-
-                                if let isoDate = info.isoDate {
-                                    Text("ISO: \(isoDate.formatted(date: .abbreviated, time: .omitted))")
-                                        .font(Theme.Fonts.caption)
-                                        .foregroundStyle(Theme.Colors.textSecondary)
-                                }
-                            }
-                            .padding(Theme.Spacing.s8)
-                            .background(Theme.Colors.surfaceAlt)
-                            .clipShape(.rect(cornerRadius: Theme.Radius.r12))
-                        }
+                        Text("TODO: Implement date info section")
+//                        ForEach(Array(draft.dateInfo.enumerated()), id: \.offset) { index, info in
+//                            VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
+//                                Picker("Date Kind", selection: Binding(
+//                                    get: { draft.dateInfo[index].kind },
+//                                    set: { draft.dateInfo[index].kind = $0 }
+//                                )) {
+//                                    ForEach(ProductDateInfo.Kind.allCases, id: \.self) { kind in
+//                                        Text(kind.rawValue).tag(kind)
+//                                    }
+//                                }
+//
+//                                TextField("Raw date text", text: Binding(
+//                                    get: { draft.dateInfo[index].rawText ?? "" },
+//                                    set: { draft.dateInfo[index].rawText = $0.isEmpty ? nil : $0 }
+//                                ))
+//
+//                                if let isoDate = info.isoDate {
+//                                    Text("ISO: \(isoDate.formatted(date: .abbreviated, time: .omitted))")
+//                                        .font(Theme.Fonts.caption)
+//                                        .foregroundStyle(Theme.Colors.textSecondary)
+//                                }
+//                            }
+//                            .padding(Theme.Spacing.s8)
+//                            .background(Theme.Colors.surfaceAlt)
+//                            .clipShape(.rect(cornerRadius: Theme.Radius.r12))
+//                        }
 
                         HStack(spacing: Theme.Spacing.s8) {
                             Button("Add date") {
-                                draft.dateInfo.append(DateInfo(kind: .unknown, rawText: nil, isoDate: nil, confidence: nil))
+//                                draft.dateInfo.append(DateInfo(kind: .unknown, rawText: nil, isoDate: nil, confidence: nil))
                             }
                             .font(Theme.Fonts.body(13, weight: .semibold, relativeTo: .caption))
                             .foregroundStyle(Theme.Colors.textPrimary)
 
                             Button("Clear") {
-                                draft.dateInfo.removeAll()
+//                                draft.dateInfo.removeAll()
                             }
                             .font(Theme.Fonts.body(13, weight: .semibold, relativeTo: .caption))
                             .foregroundStyle(Theme.Colors.textSecondary)
