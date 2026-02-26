@@ -69,15 +69,36 @@ struct ResolveBottomSheet: View {
             Button("Continue", action: onContinueCatalog)
                 .primaryButtonStyle(height: 44)
 
-        case .captureImages:
+        case .barcodeNotFound(let context):
             Text("No inventory/catalog match")
                 .font(Theme.Fonts.body(16, weight: .semibold, relativeTo: .headline))
                 .foregroundStyle(Theme.Colors.textPrimary)
-            Text("Continue to image capture for AI extraction.")
+            Text(context.message)
                 .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
                 .foregroundStyle(Theme.Colors.textSecondary)
-            Button("Continue to camera", action: onContinueCamera)
-                .primaryButtonStyle(height: 44)
+            HStack(spacing: Theme.Spacing.s8) {
+                Button("Take Pictures", action: onContinueCamera)
+                    .primaryButtonStyle(height: 44)
+                Button("Add Manually", action: onManual)
+                    .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .subheadline))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(Theme.Colors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.r16)
+                            .stroke(Theme.Colors.border, lineWidth: 1)
+                    )
+                    .clipShape(.rect(cornerRadius: Theme.Radius.r16))
+            }
+
+        case .captureImages(_, let plan):
+            Text("Image Capture")
+                .font(Theme.Fonts.body(16, weight: .semibold, relativeTo: .headline))
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Text("Capture up to \(plan.maximumImageCount) photos for analysis.")
+                .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
+                .foregroundStyle(Theme.Colors.textSecondary)
 
         case .failure(let message):
             Text("Something went wrong")

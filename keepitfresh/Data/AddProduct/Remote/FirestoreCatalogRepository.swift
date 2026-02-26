@@ -23,4 +23,8 @@ actor FirestoreCatalogRepository: CatalogRepository {
     func cacheLocal(_ item: ProductCatalogItem) async throws {
         // no-op for stub
     }
+
+    func upsertRemote(_ item: ProductCatalogItem) async throws {
+        throw CatalogRepositoryError.remoteUnavailable
+    }
 }

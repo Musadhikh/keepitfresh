@@ -98,11 +98,16 @@ final class AddProductViewModel {
     }
 
     func openManualDraft() {
-        
+        Task {
+            await useCase.openManualEntry()
+        }
     }
 
     func saveDraft() {
-        
+        guard let draft else { return }
+        Task {
+            await useCase.saveDraft(draft)
+        }
     }
 
     func saveAndAddAnother() {
@@ -130,7 +135,9 @@ final class AddProductViewModel {
                     break
                 }
                 self.state = nextState
-                if case .reviewing(let draft) = nextState {
+                if case .reviewing(let draft, _) = nextState {
+                    self.draft = draft
+                } else if case .manualEntry(let draft) = nextState {
                     self.draft = draft
                 }
             }

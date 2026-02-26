@@ -37,6 +37,7 @@ struct ImagesCaptured: ImageData,  Identifiable, Equatable, Sendable {
 }
 
 struct CaptureImagesScreen: View {
+    let maxImages: Int
     let onSubmit: ([ImagesCaptured]) -> Void
     let onBack: () -> Void
 
@@ -52,11 +53,11 @@ struct CaptureImagesScreen: View {
                 .font(Theme.Fonts.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
 
-            Text("Select 1-3 images (front, back, date area).")
+            Text("Select 1-\(maxImages) images (front, back, date area).")
                 .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
                 .foregroundStyle(Theme.Colors.textSecondary)
 
-            Text("Selected: \(capturedImages.count)/3")
+            Text("Selected: \(capturedImages.count)/\(maxImages)")
                 .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .subheadline))
                 .foregroundStyle(Theme.Colors.textPrimary)
 
@@ -103,11 +104,11 @@ struct CaptureImagesScreen: View {
         }
         .padding(Theme.Spacing.s16)
         .background(Theme.Colors.background)
-        .fullScreenCover(isPresented: $showCamera) {
+            .fullScreenCover(isPresented: $showCamera) {
             CameraScannerView {
                 showCamera = false
             } onComplete: { capturedImages in
-                self.capturedImages = capturedImages
+                self.capturedImages = Array(capturedImages.prefix(maxImages))
                 showCamera = false
             }
         }
