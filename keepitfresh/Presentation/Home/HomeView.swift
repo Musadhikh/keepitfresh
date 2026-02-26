@@ -131,6 +131,9 @@ struct HomeView: View {
                 ),
                 onCancel: { isBarcodeScannerPresented = false },
                 onBarcodeDetected: { barcode in
+                    guard pendingAddProductBarcode == nil else {
+                        return
+                    }
                     latestScannedBarcode = barcode
                     pendingAddProductBarcode = barcode
                     isBarcodeScannerPresented = false

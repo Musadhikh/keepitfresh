@@ -42,6 +42,7 @@ final class BarcodeScannerContainerViewController: UIViewController {
 
     private var scannerViewController: DataScannerViewController?
     private var isScanningActive = false
+    private var lastReportedAvailability: BarcodeScannerAvailability?
     private var lastContinuousEmissionTime: CFTimeInterval = 0
     private var emissionGate: BarcodeEmissionGate
     private let feedbackGenerator = UINotificationFeedbackGenerator()
@@ -156,7 +157,9 @@ final class BarcodeScannerContainerViewController: UIViewController {
             feedbackGenerator.prepare()
         }
 
-        onBarcodeDetected(barcode)
+        Task { @MainActor [onBarcodeDetected] in
+            onBarcodeDetected(barcode)
+        }
     }
 
     private func mapToScannedBarcode(from item: RecognizedItem) -> ScannedBarcode? {
@@ -173,7 +176,14 @@ final class BarcodeScannerContainerViewController: UIViewController {
     }
 
     private func reportAvailability(_ state: BarcodeScannerAvailability) {
-        onAvailabilityChange(state)
+        guard state != lastReportedAvailability else {
+            return
+        }
+
+        lastReportedAvailability = state
+        Task { @MainActor [onAvailabilityChange] in
+            onAvailabilityChange(state)
+        }
     }
 }
 

@@ -36,6 +36,13 @@ actor InMemoryCatalogRepository: CatalogRepository {
         localItemsByBarcode[item.barcode.value] = item
     }
 
+    func upsertRemote(_ item: ProductCatalogItem) async throws {
+        guard remoteAvailable else {
+            throw CatalogRepositoryError.remoteUnavailable
+        }
+        remoteItemsByBarcode[item.barcode.value] = item
+    }
+
     // MARK: Debug/Test helpers
 
     func setRemoteAvailable(_ isAvailable: Bool) {
