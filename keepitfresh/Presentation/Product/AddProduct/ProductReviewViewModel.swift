@@ -11,6 +11,7 @@
 import Foundation
 import Observation
 import ImageDataModule
+import UIKit
 
 @Observable
 @MainActor
@@ -18,6 +19,7 @@ class ProductReviewViewModel {
     
     private let imageProcessor: ImageProcessor
     let capturedImages: [ImagesCaptured]
+    let displayImages: [UIImage]
     
     var generatedData: ExtractedData.PartiallyGenerated?
     
@@ -25,6 +27,7 @@ class ProductReviewViewModel {
     
     init(capturedImages:[ImagesCaptured]) {
         self.capturedImages = capturedImages
+        self.displayImages = capturedImages.map(\.image)
         self.imageProcessor = ImageProcessor(instruction: .inventoryAssistant)
     }
     
