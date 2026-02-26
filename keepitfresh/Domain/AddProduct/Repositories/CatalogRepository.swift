@@ -18,4 +18,5 @@ protocol CatalogRepository: Sendable {
     func findRemote(barcode: Barcode) async throws -> ProductCatalogItem?
 
     func cacheLocal(_ item: ProductCatalogItem) async throws
+    func upsertRemote(_ item: ProductCatalogItem) async throws
 }

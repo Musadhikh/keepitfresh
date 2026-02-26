@@ -14,10 +14,14 @@ enum ProductField: String, Codable, Sendable, Equatable, Hashable, CaseIterable 
     case brand
     case description
     case categories
+    case category
+    case productDetail
     case size
     case images
     case quantity
+    case numberOfItems
     case unit
     case dateInfo
+    case dateEntries
     case notes
 }

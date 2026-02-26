@@ -18,6 +18,7 @@ public struct BarcodeScannerView: View {
 
     @State private var availability: BarcodeScannerAvailability = .ready
     @State private var latestBarcode: ScannedBarcode?
+    @State private var hasForwardedDetection = false
     @State private var reticlePulse = false
 
     public init(
@@ -35,15 +36,16 @@ public struct BarcodeScannerView: View {
             BarcodeScannerControllerView(
                 configuration: configuration,
                 onAvailabilityChange: { availability in
-                    Task { @MainActor in
-                        self.availability = availability
-                    }
+                    self.availability = availability
                 },
                 onBarcodeDetected: { barcode in
-                    Task { @MainActor in
-                        latestBarcode = barcode
-                        onBarcodeDetected(barcode)
+                    guard hasForwardedDetection == false else {
+                        return
                     }
+
+                    hasForwardedDetection = true
+                    latestBarcode = barcode
+                    onBarcodeDetected(barcode)
                 }
             )
             .ignoresSafeArea()

@@ -14,9 +14,11 @@ enum AddProductState: Sendable, Equatable {
     case resolving(barcode: Barcode)
     case inventoryFound(item: InventoryItem, source: ProductDataSource)
     case catalogFound(item: ProductCatalogItem, source: ProductDataSource)
-    case captureImages
+    case barcodeNotFound(context: AddProductNotFoundContext)
+    case captureImages(context: AddProductNotFoundContext, plan: AddProductCapturePlan)
     case extracting([ImagesCaptured])
-    case reviewing(draft: ProductDraft)
+    case manualEntry(draft: ProductDraft)
+    case reviewing(draft: ProductDraft, isEditable: Bool)
     case saving
     case success(savedItemId: String)
     case failure(message: String)
