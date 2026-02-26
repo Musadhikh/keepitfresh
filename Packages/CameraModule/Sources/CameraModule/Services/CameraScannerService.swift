@@ -27,6 +27,7 @@ public final class CameraScannerService: NSObject {
     private var isRunning = false
     private var hasFlashHardware = false
     private var isFlashManuallyManaged = false
+    nonisolated(unsafe) private var lastBrightnessDispatchTime: TimeInterval = 0
     
     public private(set) var capturedImages: [CameraCapturedImage] = []
     public private(set) var flashMode: CameraFlashMode = .off
@@ -96,14 +97,26 @@ public final class CameraScannerService: NSObject {
     }
     
     public func appendLibraryImage(_ image: UIImage) {
-        let normalizedImage = image.normalizedOrientation()
-        let imageSize = normalizedImage.size
+        let imageSize = image.size
         let item = CameraCapturedImage(
             id: UUID(),
-            image: normalizedImage,
+            image: image,
             boundingBox: CGRect(origin: .zero, size: imageSize),
             imageSize: imageSize
         )
+        capturedImages.append(item)
+        onUpdate?()
+    }
+
+    public func appendLibraryImageData(_ data: Data) async throws {
+        let item = try await Task.detached(priority: .userInitiated) {
+            Self.decodeCapturedImage(from: data)
+        }.value
+
+        guard let item else {
+            throw CameraScannerServiceError.photoDataUnavailable
+        }
+
         capturedImages.append(item)
         onUpdate?()
     }
@@ -265,6 +278,22 @@ public final class CameraScannerService: NSObject {
             onUpdate?()
         }
     }
+
+    nonisolated private static func decodeCapturedImage(from data: Data) -> CameraCapturedImage? {
+        autoreleasepool {
+            guard let image = UIImage(data: data) else {
+                return nil
+            }
+
+            let imageSize = image.size
+            return CameraCapturedImage(
+                id: UUID(),
+                image: image,
+                boundingBox: CGRect(origin: .zero, size: imageSize),
+                imageSize: imageSize
+            )
+        }
+    }
 }
 
 extension CameraScannerService: AVCapturePhotoCaptureDelegate {
@@ -275,34 +304,33 @@ extension CameraScannerService: AVCapturePhotoCaptureDelegate {
     ) {
         let photoData = photo.fileDataRepresentation()
 
-        Task { @MainActor in
-            guard let continuation = self.captureContinuation else {
-                return
+        Task(priority: .userInitiated) {
+            let decodedItem: CameraCapturedImage?
+            if let data = photoData {
+                decodedItem = Self.decodeCapturedImage(from: data)
+            } else {
+                decodedItem = nil
             }
-            self.captureContinuation = nil
-            
-            if let error {
-                continuation.resume(throwing: error)
-                return
+
+            await MainActor.run {
+                guard let continuation = self.captureContinuation else {
+                    return
+                }
+                self.captureContinuation = nil
+
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let item = decodedItem else {
+                    continuation.resume(throwing: CameraScannerServiceError.photoDataUnavailable)
+                    return
+                }
+
+                self.capturedImages.append(item)
+                self.onUpdate?()
+                continuation.resume(returning: item)
             }
-            guard let data = photoData,
-                  let image = UIImage(data: data) else {
-                continuation.resume(throwing: CameraScannerServiceError.photoDataUnavailable)
-                return
-            }
-            
-            let normalizedImage = image.normalizedOrientation()
-            let imageSize = normalizedImage.size
-            let item = CameraCapturedImage(
-                id: UUID(),
-                image: normalizedImage,
-                boundingBox: CGRect(origin: .zero, size: imageSize),
-                imageSize: imageSize
-            )
-            
-            self.capturedImages.append(item)
-            self.onUpdate?()
-            continuation.resume(returning: item)
         }
     }
 }
@@ -322,23 +350,15 @@ extension CameraScannerService: AVCaptureVideoDataOutputSampleBufferDelegate {
         let brightnessValue = exif[kCGImagePropertyExifBrightnessValue as String] as? Double else {
             return
         }
+
+        let now = CFAbsoluteTimeGetCurrent()
+        if now - lastBrightnessDispatchTime < 0.2 {
+            return
+        }
+        lastBrightnessDispatchTime = now
         
         Task { @MainActor in
             self.handleAmbientBrightness(brightnessValue)
         }
-    }
-}
-
-private extension UIImage {
-    func normalizedOrientation() -> UIImage {
-        if imageOrientation == .up {
-            return self
-        }
-        
-        UIGraphicsBeginImageContextWithOptions(size, false, scale)
-        draw(in: CGRect(origin: .zero, size: size))
-        let normalizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return normalizedImage ?? self
     }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 import UIKit
 import Vision
 import VisionKit
+import QuartzCore
 
 struct BarcodeScannerControllerView: UIViewControllerRepresentable {
     let configuration: BarcodeScannerConfiguration
@@ -41,7 +42,7 @@ final class BarcodeScannerContainerViewController: UIViewController {
 
     private var scannerViewController: DataScannerViewController?
     private var isScanningActive = false
-    private var debounceTimer: Timer?
+    private var lastContinuousEmissionTime: CFTimeInterval = 0
     private var emissionGate: BarcodeEmissionGate
     private let feedbackGenerator = UINotificationFeedbackGenerator()
 
@@ -80,9 +81,6 @@ final class BarcodeScannerContainerViewController: UIViewController {
     }
 
     func stopScanning() {
-        debounceTimer?.invalidate()
-        debounceTimer = nil
-
         guard let scannerViewController, isScanningActive else { return }
         scannerViewController.stopScanning()
         isScanningActive = false
@@ -137,21 +135,15 @@ final class BarcodeScannerContainerViewController: UIViewController {
               let firstBarcode = items.lazy.compactMap(mapToScannedBarcode(from:)).first else {
             return
         }
-
-        scheduleDebouncedEmission(for: firstBarcode)
-    }
-
-    private func scheduleDebouncedEmission(for barcode: ScannedBarcode) {
-        debounceTimer?.invalidate()
-
-        guard configuration.continuousDebounceInterval > 0 else {
-            emitIfAllowed(barcode)
+        
+        let now = CACurrentMediaTime()
+        if configuration.continuousDebounceInterval > 0,
+           now - lastContinuousEmissionTime < configuration.continuousDebounceInterval {
             return
         }
+        lastContinuousEmissionTime = now
 
-        debounceTimer = Timer.scheduledTimer(withTimeInterval: configuration.continuousDebounceInterval, repeats: false) { [weak self] _ in
-            self?.emitIfAllowed(barcode)
-        }
+        emitIfAllowed(firstBarcode)
     }
 
     private func emitIfAllowed(_ barcode: ScannedBarcode) {
@@ -206,7 +198,7 @@ extension BarcodeScannerContainerViewController: DataScannerViewControllerDelega
         didUpdate updatedItems: [RecognizedItem],
         allItems: [RecognizedItem]
     ) {
-        handleRecognizedItems(updatedItems)
+        // `didUpdate` is extremely chatty; handling only `didAdd` keeps UI responsive.
     }
 }
 

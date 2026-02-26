@@ -10,6 +10,7 @@ import SwiftUI
 
 struct AddProductFlowRootView: View {
     @State var viewModel: AddProductViewModel
+    @State private var reviewViewModel: ProductReviewViewModel?
 
     var body: some View {
         Group {
@@ -25,12 +26,16 @@ struct AddProductFlowRootView: View {
             case .scanning:
                 ProgressView("Scanning...")
             case .extracting(let images):
-                ProductReviewView(
-                    viewModel: ProductReviewViewModel(capturedImages: images),
-                    onAdd: { product in
-                        // TODO: Save the product to Realm database
-                    }
-                )
+                if let reviewViewModel {
+                    ProductReviewView(
+                        viewModel: reviewViewModel,
+                        onAdd: { product in
+                            // TODO: Save the product to Realm database
+                        }
+                    )
+                } else {
+                    progressScreen(title: "Preparing", message: "Building review draft…")
+                }
 
             case .reviewing:
                     progressScreen(title: "Preparing", message: "Loading draft…")
@@ -45,7 +50,11 @@ struct AddProductFlowRootView: View {
             }
         }
         .task {
+            syncReviewViewModel(for: viewModel.state)
             await viewModel.start()
+        }
+        .onChange(of: viewModel.state) { _, newState in
+            syncReviewViewModel(for: newState)
         }
         .dynamicTypeSize(.xSmall ... .accessibility2)
     }
@@ -103,6 +112,19 @@ struct AddProductFlowRootView: View {
         .padding(Theme.Spacing.s20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.Colors.background)
+    }
+
+    private func syncReviewViewModel(for state: AddProductState) {
+        guard case let .extracting(images) = state else {
+            reviewViewModel = nil
+            return
+        }
+
+        let incomingIDs = images.map(\.id)
+        let currentIDs = reviewViewModel?.capturedImages.map(\.id)
+        if incomingIDs != currentIDs {
+            reviewViewModel = ProductReviewViewModel(capturedImages: images)
+        }
     }
 }
 

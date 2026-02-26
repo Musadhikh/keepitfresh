@@ -35,11 +35,15 @@ public struct BarcodeScannerView: View {
             BarcodeScannerControllerView(
                 configuration: configuration,
                 onAvailabilityChange: { availability in
-                    self.availability = availability
+                    Task { @MainActor in
+                        self.availability = availability
+                    }
                 },
                 onBarcodeDetected: { barcode in
-                    latestBarcode = barcode
-                    onBarcodeDetected(barcode)
+                    Task { @MainActor in
+                        latestBarcode = barcode
+                        onBarcodeDetected(barcode)
+                    }
                 }
             )
             .ignoresSafeArea()

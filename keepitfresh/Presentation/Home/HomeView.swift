@@ -117,6 +117,18 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: $isBarcodeScannerPresented) {
             BarcodeScannerView(
+                configuration: BarcodeScannerConfiguration(
+                    mode: .continuous,
+                    quality: .fast,
+                    symbologies: [.ean13, .ean8, .upce, .code128],
+                    isHighFrameRateTrackingEnabled: true,
+                    isPinchToZoomEnabled: true,
+                    isGuidanceEnabled: false,
+                    isHighlightingEnabled: false,
+                    isHapticsEnabled: true,
+                    continuousDebounceInterval: 0.08,
+                    duplicateFilterInterval: 0.75
+                ),
                 onCancel: { isBarcodeScannerPresented = false },
                 onBarcodeDetected: { barcode in
                     latestScannedBarcode = barcode

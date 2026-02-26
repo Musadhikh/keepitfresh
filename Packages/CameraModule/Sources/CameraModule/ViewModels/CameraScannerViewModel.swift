@@ -84,18 +84,39 @@ final class CameraScannerViewModel {
         guard !items.isEmpty else {
             return
         }
-        
-        for item in items {
-            do {
-                if let data = try await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    cameraService.appendLibraryImage(image)
+
+        var loadedResults: [(index: Int, data: Data?, errorMessage: String?)] = []
+        await withTaskGroup(of: (Int, Data?, String?).self) { group in
+            for (index, item) in items.enumerated() {
+                group.addTask {
+                    do {
+                        let data = try await item.loadTransferable(type: Data.self)
+                        return (index, data, nil)
+                    } catch {
+                        return (index, nil, error.localizedDescription)
+                    }
                 }
-            } catch {
-                errorMessage = error.localizedDescription
+            }
+
+            for await result in group {
+                loadedResults.append((index: result.0, data: result.1, errorMessage: result.2))
             }
         }
-        
+
+        for result in loadedResults.sorted(by: { $0.index < $1.index }) {
+            if let data = result.data {
+                do {
+                    try await cameraService.appendLibraryImageData(data)
+                } catch {
+                    if errorMessage == nil {
+                        errorMessage = error.localizedDescription
+                    }
+                }
+            } else if let message = result.errorMessage, errorMessage == nil {
+                errorMessage = message
+            }
+        }
+
         syncStateFromService()
     }
     

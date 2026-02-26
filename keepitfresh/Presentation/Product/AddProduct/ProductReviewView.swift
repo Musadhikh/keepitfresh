@@ -30,7 +30,7 @@ struct ProductReviewView: View {
             ScrollView {
                 VStack(spacing: Theme.Spacing.s16) {
                     ProductReviewHeroSection(
-                        images: viewModel.capturedImages.map(\.image),
+                        images: viewModel.displayImages,
                         selectedImageIndex: $selectedImageIndex,
                         title: titleText,
                         subtitle: subtitleText,
