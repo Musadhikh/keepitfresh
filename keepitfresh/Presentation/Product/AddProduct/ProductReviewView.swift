@@ -12,6 +12,8 @@ import UIKit
 import ImageDataModule
 
 struct ProductReviewView: View {
+    @Environment(AppState.self) private var appState
+    
     @State private var viewModel: ProductReviewViewModel
     let onAdd: (Product) -> Void
 
@@ -35,57 +37,66 @@ struct ProductReviewView: View {
                         summary: summaryText,
                         itemCount: $viewModel.numberOfItems
                     )
-
+                    
                     LazyVGrid(columns: metricColumns, spacing: Theme.Spacing.s12) {
                         ProductReviewInfoTile(
                             icon: .productBarcode,
                             title: "Barcode",
                             value: barcodeText
                         )
-
+                        
                         ProductReviewInfoTile(
                             icon: .productDetails,
                             title: "Unit",
                             value: unitText
                         )
-
+                        
                         ProductReviewInfoTile(
                             icon: .productDates,
                             title: "Packed Date",
                             value: packedDateText
                         )
-
+                        
                         ProductReviewInfoTile(
                             icon: .productDates,
                             title: "Expiry Date",
                             value: expiryDateText
                         )
-
+                        
                         ProductReviewInfoTile(
                             icon: .productCategory,
                             title: "Category",
                             value: mainCategoryText
                         )
-
+                        
                         ProductReviewInfoTile(
                             icon: .productCategory,
                             title: "Sub-Category",
                             value: subCategoryText
                         )
                     }
-
-                    ProductReviewSectionHeader(title: "Nutritional Information")
-                    ProductReviewNutritionCard(
-                        servingSize: servingSizeText,
-                        calories: caloriesText,
-                        allergens: allergens
-                    )
-
-                    ProductReviewSectionHeader(title: "Household Details")
-                    ProductReviewHouseholdCard(
-                        packagingMaterial: packagingMaterialText,
-                        storageInstructions: storageInstructionsText
-                    )
+                    
+                    if let generatedData = viewModel.generatedData {
+                        switch generatedData.productDetails {
+                            case .food(let detail), .beverage(let detail):
+                                ProductReviewSectionHeader(title: "Nutritional Information")
+                                ProductReviewNutritionCard(
+                                    servingSize: servingSizeText,
+                                    calories: caloriesText,
+                                    detail: detail
+                                )
+                            
+                            case .household(_):
+                                ProductReviewSectionHeader(title: "Household Details")
+                                ProductReviewHouseholdCard(
+                                    packagingMaterial: packagingMaterialText,
+                                    storageInstructions: storageInstructionsText
+                                )
+                            case .personalCare(_): Text("Personal care UI goes here")
+                            case .other(_): Text("Other UI goes here")
+                            case nil: EmptyView()
+                        }
+                    }
                 }
                 .padding(.horizontal, Theme.Spacing.s16)
                 .padding(.top, Theme.Spacing.s12)
@@ -97,6 +108,7 @@ struct ProductReviewView: View {
                 Button("Add") {
                     if let product = viewModel.prepareData() {
                         onAdd(product)
+                        appState.navigateBack()
                     }
                 }
                 .primaryButtonStyle(height: 50)
@@ -104,6 +116,7 @@ struct ProductReviewView: View {
             .padding(.horizontal, Theme.Spacing.s16)
             .padding(.vertical, Theme.Spacing.s12)
             .background(Theme.Colors.background.opacity(0.96))
+            .disabled(viewModel.generatedData.isNil)
         }
         .background(
             LinearGradient(
@@ -266,272 +279,5 @@ struct ProductReviewView: View {
         }
 
         return "Not available"
-    }
-}
-
-private struct ProductReviewHeroSection: View {
-    let images: [UIImage]
-    @Binding var selectedImageIndex: Int
-    let title: String
-    let subtitle: String
-    let summary: String
-    @Binding var itemCount: Int
-
-    private var pageCount: Int {
-        max(images.count, 1)
-    }
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $selectedImageIndex) {
-                if images.isEmpty {
-                    ZStack {
-                        Theme.Colors.surfaceAlt
-                        Image(icon: .analyserResult)
-                            .font(Theme.Fonts.display(36, weight: .semibold, relativeTo: .title))
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                    }
-                    .tag(0)
-                } else {
-                    ForEach(images.enumerated(), id: \.offset) { index, image in
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .tag(index)
-                    }
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 240)
-            .clipShape(.rect(cornerRadius: Theme.Radius.r20))
-
-            HStack(spacing: Theme.Spacing.s8) {
-                ForEach(0 ..< pageCount, id: \.self) { index in
-                    Circle()
-                        .fill(index == selectedImageIndex ? Theme.Colors.accent : Theme.Colors.border)
-                        .frame(width: Theme.Spacing.s8, height: Theme.Spacing.s8)
-                }
-            }
-            .padding(.bottom, Theme.Spacing.s8)
-
-            ProductReviewCard {
-                VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
-                    Text(title)
-                        .font(Theme.Fonts.body(24, weight: .semibold, relativeTo: .title2))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .lineLimit(2)
-
-                    Text(subtitle)
-                        .font(Theme.Fonts.body(13, weight: .semibold, relativeTo: .subheadline))
-                        .foregroundStyle(Theme.Colors.accent)
-
-                    Text(summary)
-                        .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .subheadline))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .lineLimit(3)
-
-                    ProductReviewCounterRow(itemCount: $itemCount)
-                }
-            }
-            .padding(.horizontal, Theme.Spacing.s12)
-            .offset(y: Theme.Spacing.s20)
-        }
-        .padding(.bottom, Theme.Spacing.s20)
-    }
-}
-
-private struct ProductReviewCounterRow: View {
-    @Binding var itemCount: Int
-
-    var body: some View {
-        HStack(spacing: Theme.Spacing.s12) {
-            Text("Number of Items")
-                .font(Theme.Fonts.body(12, weight: .semibold, relativeTo: .caption))
-                .foregroundStyle(Theme.Colors.textPrimary)
-
-            Spacer()
-
-            Button {
-                if itemCount > 1 {
-                    itemCount -= 1
-                }
-            } label: {
-                Text("−")
-                    .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .body))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .frame(width: 28, height: 28)
-                    .background(Theme.Colors.surfaceAlt)
-                    .clipShape(.circle)
-            }
-            .disabled(itemCount <= 1)
-
-            Text(itemCount.formatted())
-                .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .body))
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .monospacedDigit()
-
-            Button {
-                itemCount += 1
-            } label: {
-                Text("+")
-                    .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .body))
-                    .foregroundStyle(.white)
-                    .frame(width: 28, height: 28)
-                    .background(Theme.Colors.accent)
-                    .clipShape(.circle)
-            }
-        }
-        .padding(.horizontal, Theme.Spacing.s12)
-        .padding(.vertical, Theme.Spacing.s8)
-        .background(Theme.Colors.surfaceAlt)
-        .clipShape(.rect(cornerRadius: Theme.Radius.r12))
-    }
-}
-
-private struct ProductReviewInfoTile: View {
-    let icon: Theme.Icon
-    let title: String
-    let value: String
-
-    var body: some View {
-        ProductReviewCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
-                Image(icon: icon)
-                    .font(Theme.Fonts.body(12, weight: .semibold, relativeTo: .caption))
-                    .foregroundStyle(Theme.Colors.accent)
-
-                Text(title.uppercased())
-                    .font(Theme.Fonts.body(11, weight: .medium, relativeTo: .caption))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-
-                Text(value)
-                    .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .subheadline))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .lineLimit(2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-}
-
-private struct ProductReviewSectionHeader: View {
-    let title: String
-
-    var body: some View {
-        HStack(spacing: Theme.Spacing.s8) {
-            Image(icon: .splashLeaf)
-                .font(Theme.Fonts.body(12, weight: .semibold, relativeTo: .caption))
-                .foregroundStyle(Theme.Colors.accent)
-            Text(title)
-                .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .headline))
-                .foregroundStyle(Theme.Colors.textPrimary)
-            Spacer()
-        }
-    }
-}
-
-private struct ProductReviewNutritionCard: View {
-    let servingSize: String
-    let calories: String
-    let allergens: [String]
-
-    private var chipColumns: [GridItem] {
-        [GridItem(.adaptive(minimum: 96), spacing: Theme.Spacing.s8)]
-    }
-
-    var body: some View {
-        ProductReviewCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.s12) {
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: Theme.Spacing.s8),
-                    GridItem(.flexible(), spacing: Theme.Spacing.s8)
-                ], spacing: Theme.Spacing.s8) {
-                    ProductReviewMetricPill(title: "Serving Size", value: servingSize)
-                    ProductReviewMetricPill(title: "Calories", value: calories)
-                }
-
-                Text("Allergens")
-                    .font(Theme.Fonts.body(11, weight: .medium, relativeTo: .caption))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-
-                if allergens.isEmpty {
-                    Text("No allergen information available.")
-                        .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .subheadline))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                } else {
-                    LazyVGrid(columns: chipColumns, alignment: .leading, spacing: Theme.Spacing.s8) {
-                        ForEach(allergens, id: \.self) { allergen in
-                            ProductReviewTagChip(text: allergen)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct ProductReviewHouseholdCard: View {
-    let packagingMaterial: String
-    let storageInstructions: String
-
-    var body: some View {
-        ProductReviewCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.s12) {
-                ProductReviewMetricPill(title: "Packaging Material", value: packagingMaterial)
-                ProductReviewMetricPill(title: "Storage Instructions", value: storageInstructions)
-            }
-        }
-    }
-}
-
-private struct ProductReviewMetricPill: View {
-    let title: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.s4) {
-            Text(title.uppercased())
-                .font(Theme.Fonts.body(11, weight: .medium, relativeTo: .caption))
-                .foregroundStyle(Theme.Colors.textSecondary)
-
-            Text(value)
-                .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .subheadline))
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(Theme.Spacing.s12)
-        .background(Theme.Colors.surfaceAlt)
-        .clipShape(.rect(cornerRadius: Theme.Radius.r12))
-    }
-}
-
-private struct ProductReviewTagChip: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(Theme.Fonts.body(12, weight: .semibold, relativeTo: .caption))
-            .foregroundStyle(Theme.Colors.accent)
-            .padding(.horizontal, Theme.Spacing.s8)
-            .padding(.vertical, Theme.Spacing.s4)
-            .background(Theme.Colors.accentSoft)
-            .clipShape(.capsule)
-            .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-private struct ProductReviewCard<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        content
-            .padding(Theme.Spacing.s12)
-            .background(Theme.Colors.surface)
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.r16)
-                    .stroke(Theme.Colors.border, lineWidth: 1)
-            )
-            .clipShape(.rect(cornerRadius: Theme.Radius.r16))
     }
 }

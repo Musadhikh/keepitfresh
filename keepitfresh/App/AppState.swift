@@ -140,6 +140,11 @@ final class AppState {
         navigationPath.append(route)
     }
     
+    func navigateBack() {
+        guard !navigationPath.isEmpty else { return }
+        navigationPath.removeLast()
+    }
+    
     func popToRoot() {
         navigationPath = NavigationPath()
     }
