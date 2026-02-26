@@ -66,7 +66,7 @@ struct RootTabView: View {
 
     private func addProductDestination(barcodePayload: String?, symbology: String?) -> some View {
         let initialBarcode = barcodePayload.flatMap { payload in
-            payload.isEmpty ? nil : Barcode(value: payload, symbologyLabel: symbology)
+            payload.isEmpty ? nil : Barcode(value: payload, symbology: .init(value: symbology))
         }
 
         return AddProductModuleAssembler(
