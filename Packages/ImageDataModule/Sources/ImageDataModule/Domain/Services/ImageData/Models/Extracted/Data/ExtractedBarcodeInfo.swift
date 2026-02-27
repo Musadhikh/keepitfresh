@@ -9,7 +9,7 @@ import FoundationModels
 
 @Generable
 public struct ExtractedBarcodeInfo: Sendable {
-    @Guide(description: "arcode value as printed or scanned")
+    @Guide(description: "Barcode value as printed or scanned. Normalise the barcode. Verify if the barcode is a valid format.")
     public let barcode: String?
 
     @Guide(description: "Barcode symbology such as ean13, upca, qr")
