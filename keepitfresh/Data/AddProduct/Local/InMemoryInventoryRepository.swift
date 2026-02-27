@@ -39,6 +39,14 @@ actor InMemoryInventoryRepository: InventoryRepository {
         }
     }
 
+    func fetchAllLocal(householdId: String?) async throws -> [InventoryItem] {
+        let all = Array(localItemsByID.values)
+        guard let householdId else {
+            return all
+        }
+        return all.filter { $0.householdId == householdId }
+    }
+
     func upsertLocal(_ item: InventoryItem) async throws {
         localItemsByID[item.id] = item
     }

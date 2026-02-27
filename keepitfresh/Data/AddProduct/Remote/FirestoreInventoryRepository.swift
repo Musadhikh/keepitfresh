@@ -20,6 +20,10 @@ actor FirestoreInventoryRepository: InventoryRepository {
         nil
     }
 
+    func fetchAllLocal(householdId: String?) async throws -> [InventoryItem] {
+        []
+    }
+
     func upsertLocal(_ item: InventoryItem) async throws {
         // no-op: local persistence is handled by a local repository implementation.
     }

@@ -80,6 +80,29 @@ public actor RealmCodableRepository<Model: Codable & Sendable>: CodableRealmRepo
         }
     }
 
+    public func fetchAll() async throws -> [Model] {
+        let realm = try openRealm()
+        let objects = realm.objects(RealmCodableEnvelopeObject.self)
+            .where { $0.namespace == namespace }
+
+        var models: [Model] = []
+        models.reserveCapacity(objects.count)
+
+        for object in objects {
+            do {
+                let model = try decoder.decode(Model.self, from: object.payload)
+                models.append(model)
+            } catch {
+                throw RealmDatabaseError.conversionFailed(
+                    typeName: String(describing: Model.self),
+                    reason: error.localizedDescription
+                )
+            }
+        }
+
+        return models
+    }
+
     public func delete(primaryKey: String) async throws {
         let realm = try openRealm()
 
@@ -136,4 +159,3 @@ final class RealmCodableEnvelopeObject: Object {
     @Persisted var payload: Data = Data()
     @Persisted var updatedAt: Date = .distantPast
 }
-

@@ -16,6 +16,7 @@ enum CatalogRepositoryError: Error, Sendable {
 protocol CatalogRepository: Sendable {
     func findLocal(barcode: Barcode) async throws -> ProductCatalogItem?
     func findRemote(barcode: Barcode) async throws -> ProductCatalogItem?
+    func fetchAllLocal() async throws -> [ProductCatalogItem]
 
     func cacheLocal(_ item: ProductCatalogItem) async throws
     func upsertRemote(_ item: ProductCatalogItem) async throws

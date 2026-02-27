@@ -61,6 +61,8 @@ struct RootTabView: View {
             HouseSelectionScreen(mode: .manage)
         case .addProduct(let barcodePayload, let symbology):
             addProductDestination(barcodePayload: barcodePayload, symbology: symbology)
+        case .productsList:
+            ProductsListScreen()
         }
     }
 

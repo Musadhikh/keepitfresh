@@ -20,6 +20,10 @@ actor FirestoreCatalogRepository: CatalogRepository {
         nil
     }
 
+    func fetchAllLocal() async throws -> [ProductCatalogItem] {
+        []
+    }
+
     func cacheLocal(_ item: ProductCatalogItem) async throws {
         // no-op for stub
     }
