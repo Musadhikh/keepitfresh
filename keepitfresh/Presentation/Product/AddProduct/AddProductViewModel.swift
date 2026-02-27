@@ -110,6 +110,14 @@ final class AddProductViewModel {
         }
     }
 
+    func saveExtractedProduct(_ product: Product, numberOfItems: Int) {
+        let draft = makeDraft(from: product, numberOfItems: numberOfItems)
+        self.draft = draft
+        Task {
+            await useCase.saveDraft(draft)
+        }
+    }
+
     func saveAndAddAnother() {
         saveDraft()
         Task {
@@ -142,5 +150,42 @@ final class AddProductViewModel {
                 }
             }
         }
+    }
+
+    private func makeDraft(from product: Product, numberOfItems: Int) -> ProductDraft {
+        let normalizedItemCount = max(1, numberOfItems)
+        let categories = makeCategories(from: product.category)
+
+        return ProductDraft(
+            id: product.id,
+            source: .aiExtraction,
+            isEditable: true,
+            barcode: product.barcode,
+            catalog: nil,
+            title: product.title,
+            brand: product.brand,
+            description: product.shortDescription,
+            categories: categories,
+            category: product.category,
+            productDetail: product.productDetail,
+            size: nil,
+            images: [],
+            quantity: normalizedItemCount,
+            numberOfItems: normalizedItemCount,
+            unit: nil,
+            dateEntries: [],
+            notes: nil,
+            lockedFields: [],
+            fieldConfidences: [:]
+        )
+    }
+
+    private func makeCategories(from category: ProductCategory) -> [String] {
+        if let subCategory = category.subCategory?.trimmingCharacters(in: .whitespacesAndNewlines),
+           subCategory.isEmpty == false {
+            return [category.main.rawValue, subCategory]
+        }
+
+        return [category.main.rawValue]
     }
 }

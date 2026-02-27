@@ -48,7 +48,8 @@ struct AddProductFlowRootView: View {
                     ProductReviewView(
                         viewModel: reviewViewModel,
                         onAdd: { product in
-                            // TODO: Save the product to Realm database
+                            let numberOfItems = max(1, reviewViewModel.numberOfItems)
+                            viewModel.saveExtractedProduct(product, numberOfItems: numberOfItems)
                         }
                     )
                 } else {
