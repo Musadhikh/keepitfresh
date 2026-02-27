@@ -32,6 +32,10 @@ actor InMemoryCatalogRepository: CatalogRepository {
         return remoteItemsByBarcode[barcode.value]
     }
 
+    func fetchAllLocal() async throws -> [ProductCatalogItem] {
+        Array(localItemsByBarcode.values)
+    }
+
     func cacheLocal(_ item: ProductCatalogItem) async throws {
         localItemsByBarcode[item.barcode.value] = item
     }

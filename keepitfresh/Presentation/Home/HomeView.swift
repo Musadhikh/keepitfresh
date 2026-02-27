@@ -12,6 +12,7 @@ import BarcodeScannerModule
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
+    @State private var inventoryViewModel = HomeInventoryViewModel()
     @State private var isCameraPresented = false
     @State private var isBarcodeScannerPresented = false
     @State private var pendingAddProductBarcode: ScannedBarcode?
@@ -57,6 +58,31 @@ struct HomeView: View {
                     } label: {
                         Label("Select Household", systemImage: Theme.Icon.householdSelection.systemName)
                     }
+
+                    Button {
+                        appState.navigate(to: .productsList)
+                    } label: {
+                        Label("Show Products", systemImage: Theme.Icon.productCategory.systemName)
+                    }
+                }
+
+                Section("Inventory (Realm)") {
+                    if inventoryViewModel.isLoading && inventoryViewModel.inventoryItems.isEmpty {
+                        ProgressView("Loading inventory...")
+                            .tint(Theme.Colors.accent)
+                    } else if let loadErrorMessage = inventoryViewModel.loadErrorMessage {
+                        Text(loadErrorMessage)
+                            .font(Theme.Fonts.bodyRegular)
+                            .foregroundStyle(Theme.Colors.danger)
+                    } else if inventoryViewModel.inventoryItems.isEmpty {
+                        Text("No local inventory saved yet.")
+                            .font(Theme.Fonts.bodyRegular)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                    } else {
+                        ForEach(inventoryViewModel.inventoryItems, id: \.id) { item in
+                            HomeInventoryRow(item: item)
+                        }
+                    }
                 }
 
                 if let latestScannedBarcode {
@@ -79,11 +105,15 @@ struct HomeView: View {
                     Text("keepitfresh://profile/details")
                     Text("keepitfresh://app-info")
                     Text("keepitfresh://households/select")
+                    Text("keepitfresh://home/products")
                 }
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             }
             .navigationTitle("Home")
+            .refreshable {
+                await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
+            }
             
             Button {
                 startAddProductWithScan()
@@ -150,11 +180,53 @@ struct HomeView: View {
                 )
             )
         }
+        .task(id: appState.selectedHouse?.id) {
+            await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
+        }
     }
 
     private func startAddProductWithScan() {
         pendingAddProductBarcode = nil
         isBarcodeScannerPresented = true
+    }
+}
+
+private struct HomeInventoryRow: View {
+    let item: InventoryItem
+
+    var body: some View {
+        let quantity = item.batches.reduce(0) { partialResult, batch in
+            partialResult + batch.quantity
+        }
+
+        VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
+            Text(item.id)
+                .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .headline))
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .lineLimit(1)
+
+            Label(item.barcode?.value ?? "No barcode", systemImage: Theme.Icon.productBarcode.systemName)
+                .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
+                .foregroundStyle(Theme.Colors.textSecondary)
+
+            HStack(spacing: Theme.Spacing.s12) {
+                Label("Qty \(quantity)", systemImage: Theme.Icon.productDetails.systemName)
+                Label("Batches \(item.batches.count)", systemImage: Theme.Icon.productCategory.systemName)
+            }
+            .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .caption))
+            .foregroundStyle(Theme.Colors.textSecondary)
+
+            Text("Household: \(item.householdId)")
+                .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .caption))
+                .foregroundStyle(Theme.Colors.textSecondary)
+
+            if let updatedAt = item.updatedAt {
+                Text("Updated: \(updatedAt, format: .dateTime.year().month().day().hour().minute())")
+                    .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .caption))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+        }
+        .padding(.vertical, Theme.Spacing.s4)
     }
 }
 

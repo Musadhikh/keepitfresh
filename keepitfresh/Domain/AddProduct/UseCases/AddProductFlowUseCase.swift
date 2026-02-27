@@ -65,6 +65,7 @@ actor AddProductFlowUseCase {
             if let localInventory = try await inventoryRepository.findLocal(householdId: householdId, barcode: barcode) {
                 currentInventoryHit = (localInventory, .inventoryLocal)
                 currentCatalogHit = nil
+                currentNotFoundContext = nil
                 let localCatalog = await loadCatalogForInventory(localInventory)
                 let draft = makeInventoryDraft(
                     item: localInventory,
@@ -76,14 +77,20 @@ actor AddProductFlowUseCase {
                 return
             }
 
-            async let remoteInventoryTask: InventoryItem? = try? await inventoryRepository.findRemote(householdId: householdId, barcode: barcode)
-            async let localCatalogTask: ProductCatalogItem? = try? await catalogRepository.findLocal(barcode: barcode)
+            if let localCatalog = try await catalogRepository.findLocal(barcode: barcode) {
+                currentCatalogHit = (localCatalog, .catalogLocal)
+                currentInventoryHit = nil
+                currentNotFoundContext = nil
+                let draft = makeCatalogDraft(item: localCatalog, source: .catalogLocal, isEditable: false)
+                transition(to: .reviewing(draft: draft, isEditable: false))
+                return
+            }
 
-            let remoteInventory = await remoteInventoryTask
-            if let remoteInventory {
+            if let remoteInventory = try? await inventoryRepository.findRemote(householdId: householdId, barcode: barcode) {
                 try? await inventoryRepository.upsertLocal(remoteInventory)
                 currentInventoryHit = (remoteInventory, .inventoryRemote)
                 currentCatalogHit = nil
+                currentNotFoundContext = nil
                 let localCatalog = await loadCatalogForInventory(remoteInventory)
                 let draft = makeInventoryDraft(
                     item: remoteInventory,
@@ -95,19 +102,11 @@ actor AddProductFlowUseCase {
                 return
             }
 
-            let localCatalog = await localCatalogTask
-            if let localCatalog {
-                currentCatalogHit = (localCatalog, .catalogLocal)
-                currentInventoryHit = nil
-                let draft = makeCatalogDraft(item: localCatalog, source: .catalogLocal, isEditable: false)
-                transition(to: .reviewing(draft: draft, isEditable: false))
-                return
-            }
-
             if let remoteCatalog = try? await catalogRepository.findRemote(barcode: barcode) {
                 try? await catalogRepository.cacheLocal(remoteCatalog)
                 currentCatalogHit = (remoteCatalog, .catalogRemote)
                 currentInventoryHit = nil
+                currentNotFoundContext = nil
                 let draft = makeCatalogDraft(item: remoteCatalog, source: .catalogRemote, isEditable: false)
                 transition(to: .reviewing(draft: draft, isEditable: false))
                 return
@@ -462,6 +461,6 @@ private extension AddProductFlowUseCase {
 
 // MARK: Test Plan
 // 1. Validate inventory-local hit short-circuits remote/catalog lookups.
-// 2. Validate inventory-remote beats catalog-local when both are available.
+// 2. Validate local catalog lookup runs before remote inventory/catalog fallbacks.
 // 3. Validate saveDraft performs local upsert before remote and enqueues on remote failure.
 // 4. Validate lock rules are present on drafts produced from inventory/catalog vs extraction.
