@@ -21,6 +21,7 @@ enum InventoryRepositoryError: Error, Sendable {
 protocol InventoryRepository: Sendable {
     func findLocal(householdId: String, barcode: Barcode) async throws -> InventoryItem?
     func findRemote(householdId: String, barcode: Barcode) async throws -> InventoryItem?
+    func fetchAllLocal(householdId: String?) async throws -> [InventoryItem]
 
     func upsertLocal(_ item: InventoryItem) async throws
     func upsertRemote(_ item: InventoryItem) async throws

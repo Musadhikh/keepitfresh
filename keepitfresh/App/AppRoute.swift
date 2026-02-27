@@ -18,6 +18,7 @@ enum AppRoute: Hashable {
     case profileDetails
     case householdSelection
     case addProduct(barcodePayload: String?, symbology: String?)
+    case productsList
 }
 
 enum AppDeepLinkParser {
@@ -33,6 +34,9 @@ enum AppDeepLinkParser {
         case "home":
             if pathComponents.first?.lowercased() == "add-product" {
                 return (.home, [.addProduct(barcodePayload: nil, symbology: nil)])
+            }
+            if pathComponents.first?.lowercased() == "products" {
+                return (.home, [.productsList])
             }
             return (.home, [])
         case "profile":

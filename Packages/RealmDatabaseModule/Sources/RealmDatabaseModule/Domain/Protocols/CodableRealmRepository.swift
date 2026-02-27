@@ -13,7 +13,7 @@ public protocol CodableRealmRepository<Model>: Sendable {
 
     func upsert(_ model: Model) async throws
     func fetch(primaryKey: String) async throws -> Model?
+    func fetchAll() async throws -> [Model]
     func delete(primaryKey: String) async throws
     func deleteAll() async throws
 }
-

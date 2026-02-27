@@ -23,8 +23,8 @@ struct AddProductModuleAssembler {
         householdContextProvider: (any HouseholdContextProviding)? = nil,
         defaultHouseholdId: String = "default-household"
     ) {
-        self.inventoryRepository = inventoryRepository ?? InMemoryInventoryRepository()
-        self.catalogRepository = catalogRepository ?? InMemoryCatalogRepository()
+        self.inventoryRepository = inventoryRepository ?? RealmInventoryRepository()
+        self.catalogRepository = catalogRepository ?? RealmCatalogRepository()
         self.householdContextProvider = householdContextProvider ?? DefaultHouseholdContextProvider(householdId: defaultHouseholdId)
     }
 
@@ -50,7 +50,13 @@ struct AddProductModuleAssembler {
 #if canImport(Factory)
 extension Container {
     var addProductModuleAssembler: Factory<AddProductModuleAssembler> {
-        self { AddProductModuleAssembler() }.singleton
+        self {
+            AddProductModuleAssembler(
+                inventoryRepository: self.addProductInventoryRepository(),
+                catalogRepository: self.addProductCatalogRepository()
+            )
+        }
+        .singleton
     }
 }
 #endif
