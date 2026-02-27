@@ -14,24 +14,31 @@ import Factory
 
 struct AddProductModuleAssembler {
     let inventoryRepository: any InventoryRepository
-    let catalogRepository: any CatalogRepository
+    let catalogService: any AddProductCatalogServicing
     let householdContextProvider: any HouseholdContextProviding
 
     init(
         inventoryRepository: (any InventoryRepository)? = nil,
-        catalogRepository: (any CatalogRepository)? = nil,
+        catalogService: (any AddProductCatalogServicing)? = nil,
         householdContextProvider: (any HouseholdContextProviding)? = nil,
         defaultHouseholdId: String = "default-household"
     ) {
         self.inventoryRepository = inventoryRepository ?? RealmInventoryRepository()
-        self.catalogRepository = catalogRepository ?? RealmCatalogRepository()
+        #if canImport(Factory)
+        self.catalogService = catalogService ?? Container.shared.addProductCatalogService()
+        #else
+        guard let catalogService else {
+            preconditionFailure("AddProductCatalogServicing is required when Factory is unavailable.")
+        }
+        self.catalogService = catalogService
+        #endif
         self.householdContextProvider = householdContextProvider ?? DefaultHouseholdContextProvider(householdId: defaultHouseholdId)
     }
 
     func makeUseCase() -> AddProductFlowUseCase {
         AddProductFlowUseCase(
             inventoryRepository: inventoryRepository,
-            catalogRepository: catalogRepository,
+            catalogService: catalogService,
             householdProvider: householdContextProvider
         )
     }
@@ -53,7 +60,7 @@ extension Container {
         self {
             AddProductModuleAssembler(
                 inventoryRepository: self.addProductInventoryRepository(),
-                catalogRepository: self.addProductCatalogRepository()
+                catalogService: self.addProductCatalogService()
             )
         }
         .singleton

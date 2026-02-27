@@ -154,3 +154,8 @@
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build -quiet` (`BUILD SUCCEEDED`).
 - Refreshed `Documentation/PRODUCT_MODULE_PROGRESS_HANDOFF.md` to reflect newly completed work (ProductModule app adapters, Factory wiring, app-wide connectivity runtime, SwiftUI connectivity modifier/environment injection), updated the handoff base commit, and reordered next/pending steps to start with Add Product flow migration to ProductModule.
 - Verification: not run (documentation-only update).
+- Migrated Add Product catalog path to ProductModule using a domain protocol boundary (`AddProductCatalogServicing`) so `AddProductFlowUseCase` no longer depends on `CatalogRepository` for product/catalog retrieval and upsert. The new ProductModule-backed adapter (`ProductModuleAddProductCatalogService`) uses ProductModule local store for local barcode/productId lookup and ProductModule service for offline-first retrieval/upsert.
+- Updated Add Product composition/DI wiring: `AddProductModuleAssembler` now injects `AddProductCatalogServicing`, and `DIContainer` now registers `addProductCatalogService` backed by `productModuleService` + `productModuleLocalStore`.
+- Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Updated `Documentation/PRODUCT_MODULE_PROGRESS_HANDOFF.md` to mark Add Product ProductModule migration as completed and moved the immediate next step to Home products list migration.
+- Verification: not run (documentation-only update).

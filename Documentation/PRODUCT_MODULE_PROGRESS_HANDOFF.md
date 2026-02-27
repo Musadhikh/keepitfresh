@@ -74,10 +74,10 @@ References:
 
 ### Existing app behavior (outside ProductModule)
 - Add Product local persistence is Realm-backed through existing AddProduct repositories.
-- Barcode resolution order in Add Product flow is inventory local first, then catalog local, before remote attempts.
+- Add Product flow now resolves product/catalog data via `AddProductCatalogServicing` backed by ProductModule adapters, while keeping inventory lookups/writes in inventory repositories.
 - Home screen now lists local Realm inventory.
 - Home has "Show Products" route to a product list screen backed by local Realm catalog cache.
-- Add Product and Home product list flows are still using AddProduct catalog repositories directly (not yet migrated to ProductModule service).
+- Home product list flow is still using AddProduct catalog repository directly (not yet migrated to ProductModule query).
 
 References:
 - `keepitfresh/Data/AddProduct/Local/RealmInventoryRepository.swift`
@@ -90,42 +90,37 @@ References:
 
 ## 2) Immediate Next Step (Do This First)
 
-Migrate Add Product catalog/product path to ProductModule service while keeping inventory behavior unchanged.
+Migrate Home products list screen to ProductModule query.
 
 Goal:
-- Route product retrieval/upsert logic through `ProductModuleServicing`.
-- Keep inventory lookup/writes in the existing inventory repository for now.
-- Preserve current Add Product state-machine UX and transitions.
+- Replace direct local catalog repository list read with ProductModule retrieval query.
+- Keep current sorting/filtering behavior equivalent.
+- Keep the UI contract unchanged while swapping the data source.
 
 Why this is next:
-- Core module, adapters, and DI wiring are already complete.
-- Add Product flow is the highest-value integration point and unblocks end-to-end offline-first validation.
+- ProductModule integration is now active in Add Product flow.
+- Home products list is the next visible surface still bypassing ProductModule.
 
 ## 3) Ordered Pending Steps
 
-1. Migrate Add Product flow to ProductModule for product/catalog retrieval and upsert.
-   - Replace direct catalog repository orchestration in `AddProductFlowUseCase` where ProductModule should own it.
-   - Keep inventory operations in current inventory repo for now.
-   - Preserve current UX/state machine behavior in `AddProductFlowUseCase`.
-
-2. Migrate Home products list screen to ProductModule query.
+1. Migrate Home products list screen to ProductModule query.
    - Replace direct `CatalogRepository.fetchAllLocal()` path with `retrieveProducts(query:)`.
    - Keep current sorting/filtering behavior equivalent during migration.
 
-3. Introduce periodic/manual sync trigger path using `syncPending(limit:)`.
+2. Introduce periodic/manual sync trigger path using `syncPending(limit:)`.
    - Add trigger point (app launch/foreground, pull-to-refresh, or dedicated sync action).
    - Ensure sync errors are surfaced as actionable user messages.
 
-4. Apply connectivity observation where UX needs live connectivity state.
+3. Apply connectivity observation where UX needs live connectivity state.
    - Use `.onNetworkConnectivityChange(...)` in SwiftUI screens needing reactive connectivity feedback.
    - Use `NetworkConnectivityProviding` in non-UI classes for current-state checks and observation.
 
-5. Expand tests after integration.
+4. Expand tests after integration.
    - Adapter-level tests (Realm mapping + sync metadata behavior).
    - Integration tests for offline-first flows from app entry points.
    - Regression checks for barcode lookup semantics and identity invariant enforcement.
 
-6. Follow-up module extraction (future task).
+5. Follow-up module extraction (future task).
    - Extract Inventory into separate package/module.
    - Keep Product -> Inventory dependency direction one-way (`Inventory` references `productId`).
 
@@ -147,6 +142,7 @@ Why this is next:
 - `keepitfresh/Data/ProductModule/Local/RealmProductLocalStore.swift`
 - `keepitfresh/Data/ProductModule/Remote/CatalogProductRemoteGateway.swift`
 - `keepitfresh/Data/ProductModule/Sync/RealmProductSyncStateStore.swift`
+- `keepitfresh/Data/ProductModule/Adapters/ProductModuleAddProductCatalogService.swift`
 - `keepitfresh/Data/ProductModule/Mappers/ProductModuleCatalogMapper.swift`
 - `keepitfresh/Data/ProductModule/Runtime/AppConnectivityProvider+ProductModule.swift`
 - `keepitfresh/Data/Runtime/AppConnectivityProvider.swift`
@@ -155,9 +151,10 @@ Why this is next:
 - `keepitfresh/App/KeepItFreshApp.swift`
 
 ### Current app integration points to migrate
+- `keepitfresh/Presentation/Home/ProductsListViewModel.swift`
+- `keepitfresh/Domain/AddProduct/Services/AddProductCatalogServicing.swift`
 - `keepitfresh/Domain/AddProduct/UseCases/AddProductFlowUseCase.swift`
 - `keepitfresh/Presentation/Product/AddProduct/AddProductModuleAssembler.swift`
-- `keepitfresh/Presentation/Home/ProductsListViewModel.swift`
 - `keepitfresh/Data/AddProduct/Local/RealmCatalogRepository.swift`
 - `keepitfresh/Data/AddProduct/Local/RealmInventoryRepository.swift`
 
