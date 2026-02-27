@@ -110,3 +110,8 @@
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - UI regression fix for Add Product root: replaced mixed scanner+bottom-sheet composition with explicit full-screen state screens (manual barcode entry, resolving, not-found actions, capture, failure, review, success) to restore predictable navigation and remove overlapping/broken layouts after scan transitions.
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+
+## 2026-02-27
+- Completed the `AddProductFlowRootView` extraction-review `onAdd` TODO path by delegating to `AddProductViewModel.saveExtractedProduct(...)`, so the add action now flows into the existing use-case pipeline that persists catalog/inventory locally first and then syncs remotely/fallback-queues.
+- Added extracted `Product` -> `ProductDraft` mapping in `AddProductViewModel` (source set to `.aiExtraction`, editable fields unlocked, number of items carried from review UI) to keep persistence orchestration out of the view layer.
+- Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).

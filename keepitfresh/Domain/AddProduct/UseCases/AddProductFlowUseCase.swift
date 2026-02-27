@@ -167,6 +167,8 @@ actor AddProductFlowUseCase {
                         try? await catalogRepository.upsertRemote(catalogItem)
                     }
                 }
+            } else {
+                logger.error("barcode not found")
             }
 
             let inventory = makeInventoryItem(from: draft, householdId: householdId, barcode: barcode)
