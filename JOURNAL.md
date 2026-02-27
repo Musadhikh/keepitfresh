@@ -159,3 +159,11 @@
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - Updated `Documentation/PRODUCT_MODULE_PROGRESS_HANDOFF.md` to mark Add Product ProductModule migration as completed and moved the immediate next step to Home products list migration.
 - Verification: not run (documentation-only update).
+- Added repository-level Stitch MCP config at `stitch.config.json` with shared project pointer (`projectId: 5941626074478125770`) so the same Stitch workspace can be used consistently from other machines.
+- Verification: not run (configuration-only update).
+- Added `Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md` based on Stitch screens (`Design System - Liquid Glass Edition` dark plus Liquid Glass light references), including dark/light token tables, component behavior specs, accessibility constraints, and direct mapping guidance to existing `Theme` tokens for SwiftUI implementation.
+- Verification: not run (documentation-only update).
+- Upgraded `Theme.swift` to a fuller Liquid Glass token surface (semantic + palette aliases, interaction state colors, typography aliases, glass radius/spacing aliases, elevation/border tokens, and additional icon cases) while keeping compatibility with existing token names.
+- Updated `MaintenanceView` to remove the last non-token UI styling (`Color(.systemBackground)`, hardcoded spacing/fonts) and align it with theme tokens.
+- Added cross-machine design-system enforcement: expanded `stitch.config.json` with design-system metadata, updated `AGENTS.md` and `.github/copilot-instructions.md` to make `Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md` mandatory, and added automated guard checks via `scripts/verify_design_system.sh` + `.github/workflows/design-system-guard.yml`.
+- Verification: `bash scripts/verify_design_system.sh` (`Design system guard passed.`) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).

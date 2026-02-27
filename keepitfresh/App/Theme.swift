@@ -3,14 +3,14 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 15/2/26.
-//  Summary: Defines app-wide color, typography, spacing, and radius tokens with light/dark support.
+//  Summary: Defines the Liquid Glass design-system tokens for color, typography, spacing, radius, and elevation.
 //
 
 import SwiftUI
 
 public enum Theme {
     public enum Colors {
-        // Tokens from design/initial.pen
+        // Core semantic tokens from the Liquid Glass design system.
         public static let accent = Color(dynamicLight: "#3CB371", dark: "#52C884")
         public static let accentSoft = Color(dynamicLight: "#E8F7EE", dark: "#1E382A")
         public static let background = Color(dynamicLight: "#F6F8F7", dark: "#111412")
@@ -23,8 +23,22 @@ public enum Theme {
         public static let textPrimary = Color(dynamicLight: "#17201B", dark: "#F1F5F2")
         public static let textSecondary = Color(dynamicLight: "#5E6E65", dark: "#A6B6AD")
 
-        // Existing semantic aliases kept for compatibility
+        // Liquid palette aliases used in Stitch boards.
         public static let primary = accent
+        public static let deep = success
+        public static let mint = accentSoft
+        public static let honeydew = surfaceAlt
+        public static let pure = surface
+
+        // Interaction and surface state colors.
+        public static let textOnAccent = Color(dynamicLight: "#FFFFFF", dark: "#0F1D15")
+        public static let glassBorder = border
+        public static let glassHighlight = accent.opacity(0.15)
+        public static let successSoft = success.opacity(0.16)
+        public static let warningSoft = warning.opacity(0.16)
+        public static let dangerSoft = danger.opacity(0.16)
+
+        // Existing aliases kept for compatibility with older screens.
         public static let primary10 = accent.opacity(0.10)
         public static let primary20 = accent.opacity(0.20)
         public static let primary30 = accent.opacity(0.30)
@@ -73,6 +87,11 @@ public enum Theme {
         public static var bodyRegular: Font { body(16, weight: .regular, relativeTo: .body) }
         public static var bodyMedium: Font { body(16, weight: .medium, relativeTo: .body) }
         public static var caption: Font { body(12, weight: .medium, relativeTo: .caption) }
+
+        // Liquid Glass typography aliases.
+        public static var displayBold: Font { display(28, weight: .bold, relativeTo: .largeTitle) }
+        public static var headingLarge: Font { display(22, weight: .semibold, relativeTo: .title2) }
+        public static var base: Font { bodyRegular }
     }
 
     public enum Icon: String, CaseIterable {
@@ -113,6 +132,14 @@ public enum Theme {
         case productCategory = "square.grid.2x2"
         case productDetails = "shippingbox.fill"
         case lock = "lock.fill"
+
+        // Liquid Glass navigation and quick actions
+        case kitchen = "fork.knife"
+        case basket = "basket.fill"
+        case stock = "archivebox.fill"
+        case config = "gearshape.fill"
+        case scanTab = "barcode.viewfinder"
+        case notifications = "bell.fill"
         
         public var systemName: String { rawValue }
     }
@@ -123,6 +150,11 @@ public enum Theme {
         public static let r20: CGFloat = 20
         public static let r24: CGFloat = 24
         public static let pill: CGFloat = 999
+
+        // Liquid Glass aliases.
+        public static let glassCard = r24
+        public static let glassControl = r16
+        public static let glassPill = pill
     }
 
     public enum Spacing {
@@ -132,7 +164,24 @@ public enum Theme {
         public static let s16: CGFloat = 16
         public static let s20: CGFloat = 20
         public static let s24: CGFloat = 24
+        public static let s28: CGFloat = 28
         public static let s32: CGFloat = 32
+
+        // Liquid Glass aliases.
+        public static let section = s24
+        public static let component = s16
+        public static let micro = s8
+    }
+
+    public enum Elevation {
+        public static let glassShadowColor = Colors.accent.opacity(0.18)
+        public static let glassShadowRadius: CGFloat = Theme.Spacing.s8
+        public static let glassShadowYOffset: CGFloat = Theme.Spacing.s4
+    }
+
+    public enum Border {
+        public static let hairline: CGFloat = 1
+        public static let regular: CGFloat = 1
     }
 }
 

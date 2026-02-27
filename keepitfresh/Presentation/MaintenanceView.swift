@@ -3,6 +3,7 @@
 //  keepitfresh
 //
 //  Created by Assistant on 11/12/25.
+//  Summary: Presents a design-system aligned maintenance fallback screen.
 //
 
 import SwiftUI
@@ -10,24 +11,26 @@ import SwiftUI
 struct MaintenanceView: View {
     var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
-            VStack(spacing: 16) {
+            Theme.Colors.background.ignoresSafeArea()
+
+            VStack(spacing: Theme.Spacing.s16) {
                 Image(icon: .maintenance)
-                    .font(.system(size: 64, weight: .regular))
-                    .foregroundStyle(.secondary)
+                    .font(Theme.Fonts.display(Theme.Spacing.s32 * 2, relativeTo: .largeTitle))
+                    .foregroundStyle(Theme.Colors.textSecondary)
                 
                 Text("We’ll be right back")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(Theme.Fonts.title)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .bold()
                     .multilineTextAlignment(.center)
                 
                 Text("Keep It Fresh is undergoing scheduled maintenance. Please check back soon.")
-                    .font(.body)
+                    .font(Theme.Fonts.bodyRegular)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 24)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .padding(.horizontal, Theme.Spacing.s24)
             }
-            .padding()
+            .padding(Theme.Spacing.s24)
         }
         .accessibilityLabel("App is under maintenance")
     }

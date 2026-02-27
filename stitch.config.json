@@ -1,0 +1,23 @@
+{
+  "stitch": {
+    "projectId": "5941626074478125770",
+    "projectResourceName": "projects/5941626074478125770",
+    "designSystemScreens": [
+      "Design System - Liquid Glass Edition",
+      "Design System - Liquid Glass Light",
+      "Design System - Liquid Glass Light (Matched)"
+    ]
+  },
+  "designSystem": {
+    "name": "Keep It Fresh Liquid Glass",
+    "sourceDocument": "Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md",
+    "requiredThemeFile": "keepitfresh/App/Theme.swift",
+    "requiredTokenUsage": {
+      "colors": "Theme.Colors.*",
+      "fonts": "Theme.Fonts.*",
+      "radius": "Theme.Radius.*",
+      "spacing": "Theme.Spacing.*",
+      "icons": "Theme.Icon + Image(icon:)"
+    }
+  }
+}
