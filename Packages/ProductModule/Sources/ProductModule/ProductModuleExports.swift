@@ -69,3 +69,35 @@ public enum ProductIdentity {
         ProductDomain.ProductIdentity.normalizedProductID(from: productID)
     }
 }
+
+// MARK: - Namespaced Exports
+
+public enum ProductModuleTypes {
+    public typealias Product = ProductDomain.Product
+    public typealias Barcode = ProductDomain.Barcode
+    public typealias ProductCategory = ProductDomain.ProductCategory
+    public typealias MainCategory = ProductDomain.MainCategory
+    public typealias ProductDetails = ProductDomain.ProductDetails
+    public typealias FoodDetails = ProductDomain.FoodDetails
+    public typealias HouseholdDetails = ProductDomain.HouseholdDetails
+    public typealias PersonalCareDetails = ProductDomain.PersonalCareDetails
+    public typealias UnknownDetails = ProductDomain.UnknownDetails
+    public typealias NutritionFacts = ProductDomain.NutritionFacts
+    public typealias ProductPackaging = ProductDomain.ProductPackaging
+    public typealias ProductImage = ProductDomain.ProductImage
+    public typealias ProductExtractionMetadata = ProductDomain.ProductExtractionMetadata
+    public typealias ProductQualitySignals = ProductDomain.ProductQualitySignals
+    public typealias ProductCompliance = ProductDomain.ProductCompliance
+    public typealias ProductSource = ProductDomain.ProductSource
+    public typealias ProductStatus = ProductDomain.ProductStatus
+    public typealias ProductQuery = ProductDomain.ProductQuery
+    public typealias PageRequest = ProductDomain.PageRequest
+    public typealias PageCursor = ProductDomain.PageCursor
+    public typealias ProductPage = ProductDomain.ProductPage
+    public typealias ProductSort = ProductDomain.ProductSort
+    public typealias SortOrder = ProductDomain.SortOrder
+    public typealias ProductFilter = ProductDomain.ProductFilter
+    public typealias ProductLookup = ProductDomain.ProductLookup
+    public typealias ProductSyncState = ProductDomain.ProductSyncState
+    public typealias ProductSyncMetadata = ProductDomain.ProductSyncMetadata
+}
