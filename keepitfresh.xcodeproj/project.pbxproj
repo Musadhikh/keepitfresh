@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C68239112F5190490094EED8 /* ProductModule in Frameworks */ = {isa = PBXBuildFile; productRef = C68239102F5190490094EED8 /* ProductModule */; };
 		C695422B2F17A46D007C44CD /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = C695422A2F17A46D007C44CD /* Factory */; };
 		C695422D2F17A46D007C44CD /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = C695422C2F17A46D007C44CD /* FactoryKit */; };
 		C7709F6E2F4AECE30054B134 /* RealmDatabaseModule in Frameworks */ = {isa = PBXBuildFile; productRef = C7709F6D2F4AECE30054B134 /* RealmDatabaseModule */; };
@@ -97,6 +98,7 @@
 				C7E8F0572E6D5F01002CE0AA /* GoogleSignIn in Frameworks */,
 				C7709F6E2F4AECE30054B134 /* RealmDatabaseModule in Frameworks */,
 				C695422B2F17A46D007C44CD /* Factory in Frameworks */,
+				C68239112F5190490094EED8 /* ProductModule in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -178,6 +180,7 @@
 				C7D900002F458AAA00B5AA01 /* BarcodeScannerModule */,
 				C7709F6D2F4AECE30054B134 /* RealmDatabaseModule */,
 				C770A1412F4C30DB0054B134 /* ImageDataModule */,
+				C68239102F5190490094EED8 /* ProductModule */,
 			);
 			productName = keepitfresh;
 			productReference = C7DA738B2E63FE5000331A4A /* keepitfresh.app */;
@@ -270,6 +273,7 @@
 				C7D900022F458AAA00B5AA01 /* XCLocalSwiftPackageReference "Packages/BarcodeScannerModule" */,
 				C7709F6C2F4AECE30054B134 /* XCLocalSwiftPackageReference "Packages/RealmDatabaseModule" */,
 				C770A1402F4C30DB0054B134 /* XCLocalSwiftPackageReference "Packages/ImageDataModule" */,
+				C682390F2F5190490094EED8 /* XCLocalSwiftPackageReference "Packages/ProductModule" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C7DA738C2E63FE5000331A4A /* Products */;
@@ -721,6 +725,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		C682390F2F5190490094EED8 /* XCLocalSwiftPackageReference "Packages/ProductModule" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/ProductModule;
+		};
 		C7709F6C2F4AECE30054B134 /* XCLocalSwiftPackageReference "Packages/RealmDatabaseModule" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/RealmDatabaseModule;
@@ -771,6 +779,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C68239102F5190490094EED8 /* ProductModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ProductModule;
+		};
 		C695422A2F17A46D007C44CD /* Factory */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C69542292F17A46D007C44CD /* XCRemoteSwiftPackageReference "Factory" */;
