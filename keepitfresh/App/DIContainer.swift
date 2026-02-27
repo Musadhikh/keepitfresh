@@ -95,6 +95,16 @@ extension Container {
             .singleton
     }
 
+    var addProductCatalogService: Factory<any AddProductCatalogServicing> {
+        self {
+            ProductModuleAddProductCatalogService(
+                productModuleService: self.productModuleService(),
+                localStore: self.productModuleLocalStore()
+            )
+        }
+            .singleton
+    }
+
     var appConnectivityProvider: Factory<AppConnectivityProvider> {
         self { .shared }
             .singleton

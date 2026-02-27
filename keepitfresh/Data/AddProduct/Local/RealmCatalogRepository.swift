@@ -36,7 +36,7 @@ actor RealmCatalogRepository: CatalogRepository {
 
     func findLocal(barcode: Barcode) async throws -> ProductCatalogItem? {
         let key = Self.localKey(forBarcode: barcode.value)
-        guard key.isEmpty == false else { return nil }
+        guard key.isNotEmpty else { return nil }
         return try await localRepository.fetch(primaryKey: key)
     }
 
