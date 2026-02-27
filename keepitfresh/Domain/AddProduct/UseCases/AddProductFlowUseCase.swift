@@ -10,7 +10,7 @@ import Foundation
 
 actor AddProductFlowUseCase {
     private let inventoryRepository: any InventoryRepository
-    private let catalogRepository: any CatalogRepository
+    private let catalogService: any AddProductCatalogServicing
     private let householdProvider: any HouseholdContextProviding
 
     private var state: AddProductState = .idle
@@ -22,11 +22,11 @@ actor AddProductFlowUseCase {
 
     init(
         inventoryRepository: any InventoryRepository,
-        catalogRepository: any CatalogRepository,
+        catalogService: any AddProductCatalogServicing,
         householdProvider: any HouseholdContextProviding
     ) {
         self.inventoryRepository = inventoryRepository
-        self.catalogRepository = catalogRepository
+        self.catalogService = catalogService
         self.householdProvider = householdProvider
     }
 
@@ -77,7 +77,7 @@ actor AddProductFlowUseCase {
                 return
             }
 
-            if let localCatalog = try await catalogRepository.findLocal(barcode: barcode) {
+            if let localCatalog = try await catalogService.retrieveLocalCatalog(byBarcode: barcode) {
                 currentCatalogHit = (localCatalog, .catalogLocal)
                 currentInventoryHit = nil
                 currentNotFoundContext = nil
@@ -102,8 +102,7 @@ actor AddProductFlowUseCase {
                 return
             }
 
-            if let remoteCatalog = try? await catalogRepository.findRemote(barcode: barcode) {
-                try? await catalogRepository.cacheLocal(remoteCatalog)
+            if let remoteCatalog = try? await catalogService.retrieveCatalog(byBarcode: barcode) {
                 currentCatalogHit = (remoteCatalog, .catalogRemote)
                 currentInventoryHit = nil
                 currentNotFoundContext = nil
@@ -156,16 +155,8 @@ actor AddProductFlowUseCase {
             let barcode = hasBarcode ? draft.barcode : nil
 
             if let barcode {
-                let localCatalog = try await catalogRepository.findLocal(barcode: barcode)
-                if localCatalog == nil {
-                    let catalogItem = makeCatalogItem(from: draft, barcode: barcode)
-                    try await catalogRepository.cacheLocal(catalogItem)
-
-                    let remoteCatalog = try? await catalogRepository.findRemote(barcode: barcode)
-                    if remoteCatalog == nil {
-                        try? await catalogRepository.upsertRemote(catalogItem)
-                    }
-                }
+                let catalogItem = makeCatalogItem(from: draft, barcode: barcode)
+                try await catalogService.upsertCatalog(catalogItem)
             } else {
                 logger.error("barcode not found")
             }
@@ -281,14 +272,13 @@ private extension AddProductFlowUseCase {
 
     func loadCatalogForInventory(_ item: InventoryItem) async -> ProductCatalogItem? {
         if let refId = item.catalogRefId,
-           let barcode = item.barcode,
-           refId == barcode.value,
-           let local = try? await catalogRepository.findLocal(barcode: barcode) {
+           refId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+           let local = try? await catalogService.retrieveLocalCatalog(productId: refId) {
             return local
         }
 
         if let barcode = item.barcode,
-           let local = try? await catalogRepository.findLocal(barcode: barcode) {
+           let local = try? await catalogService.retrieveLocalCatalog(byBarcode: barcode) {
             return local
         }
 
@@ -297,25 +287,6 @@ private extension AddProductFlowUseCase {
 
     func inventoryItemID(householdId: String, barcode: Barcode) -> String {
         "\(householdId)_\(barcode.value)"
-    }
-
-    func ensureCatalogExists(from draft: ProductDraft, barcode: Barcode) async throws {
-        if let catalog = draft.catalog {
-            try await catalogRepository.cacheLocal(catalog)
-            return
-        }
-
-        let item = ProductCatalogItem(
-            id: barcode.value,
-            barcode: barcode,
-            title: draft.title,
-            brand: draft.brand,
-            description: draft.description,
-            images: nil,
-            categories: draft.categories,
-            size: draft.size
-        )
-        try await catalogRepository.cacheLocal(item)
     }
 
     func saveInventoryWithFallback(_ item: InventoryItem) async -> Bool {
@@ -461,6 +432,6 @@ private extension AddProductFlowUseCase {
 
 // MARK: Test Plan
 // 1. Validate inventory-local hit short-circuits remote/catalog lookups.
-// 2. Validate local catalog lookup runs before remote inventory/catalog fallbacks.
-// 3. Validate saveDraft performs local upsert before remote and enqueues on remote failure.
+// 2. Validate local catalog lookup runs through AddProductCatalogServicing before remote fallbacks.
+// 3. Validate saveDraft upserts product data through AddProductCatalogServicing, then persists inventory with remote fallback queueing.
 // 4. Validate lock rules are present on drafts produced from inventory/catalog vs extraction.
