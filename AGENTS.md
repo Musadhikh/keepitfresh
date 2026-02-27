@@ -47,6 +47,8 @@ Avoid:
 ## 4) Design Source Requirements
 When implementing or updating visual UI, align with:
 - `design/initial.pen`
+- `Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md`
+- `stitch.config.json` (`stitch.designSystemScreens` + `designSystem` metadata)
 
 Apply both light and dark mode through theme tokens (do not duplicate hardcoded light/dark colors in views).
 
@@ -100,6 +102,18 @@ Required:
 Avoid:
 - Direct `Container.shared.someFactory()` calls inside feature logic (except composition root or explicit test wiring).
 - Mixing manual service location with `@Injected` in the same feature flow.
+
+## 10) Design System Enforcement (Cross-Machine)
+To keep UI consistency across machines and agents:
+
+Required:
+- Treat `Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md` as the visual source of truth for all UI updates.
+- Keep `keepitfresh/App/Theme.swift` synchronized with that document before changing screens/components.
+- Run `bash scripts/verify_design_system.sh` for any meaningful UI change.
+- Keep `stitch.config.json` updated when Stitch design-system screens or source project references change.
+
+Avoid:
+- Introducing new UI style conventions that are not represented in Theme tokens or the Liquid Glass design-system document.
 
 # Agent guide for Swift and SwiftUI
 

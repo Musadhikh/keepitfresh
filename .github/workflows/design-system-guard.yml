@@ -1,0 +1,34 @@
+name: Design System Guard
+
+on:
+  pull_request:
+    paths:
+      - "keepitfresh/**/*.swift"
+      - "Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md"
+      - "keepitfresh/App/Theme.swift"
+      - "stitch.config.json"
+      - "scripts/verify_design_system.sh"
+      - "AGENTS.md"
+      - ".github/copilot-instructions.md"
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "keepitfresh/**/*.swift"
+      - "Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md"
+      - "keepitfresh/App/Theme.swift"
+      - "stitch.config.json"
+      - "scripts/verify_design_system.sh"
+      - "AGENTS.md"
+      - ".github/copilot-instructions.md"
+
+jobs:
+  verify-design-system:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate design system usage
+        run: bash scripts/verify_design_system.sh

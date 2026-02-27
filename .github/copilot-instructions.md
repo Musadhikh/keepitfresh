@@ -94,7 +94,17 @@ No external SDKs (e.g., Firebase, Realm, AWS, etc.) should be mentioned or assum
 - Consistent layout spacing and adaptive designs.
 - Light and dark mode compliant.
 - Accessibility supported via modifiers.
-- Use system colors and SF Symbols.
+- Use **design-system tokens only** from `keepitfresh/App/Theme.swift`:
+  - `Theme.Colors.*`
+  - `Theme.Fonts.*`
+  - `Theme.Radius.*`
+  - `Theme.Spacing.*`
+- Use centralized icons only:
+  - `Theme.Icon.*`
+  - `Image(icon:)`
+- Design source of truth for UI work:
+  - `Documentation/LIQUID_GLASS_DESIGN_SYSTEM.md`
+  - `stitch.config.json` (project + design-system screens)
 - Use **NavigationStack** and **tab-based navigation**.
 - Animations must be lightweight and purposeful.
 - Previews for all views and only for views.
