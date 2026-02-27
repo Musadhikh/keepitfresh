@@ -14,6 +14,7 @@ import GoogleSignIn
 @main
 struct KeepItFreshApp: App {
     @State private var appState = AppState()
+    private let connectivityProvider: AppConnectivityProvider = .shared
     
     
     init() {
@@ -44,6 +45,7 @@ struct KeepItFreshApp: App {
                 }
             }
             .environment(appState)
+            .networkConnectivityProvider(connectivityProvider)
             .tint(Theme.Colors.accent)
             
             .onOpenURL { url in

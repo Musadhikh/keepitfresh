@@ -8,6 +8,7 @@
 
 import Factory
 import HouseModule
+import ProductModule
 
 extension Container {
     var appMetadataProvider: Factory<AppMetadataProviding> {
@@ -91,6 +92,59 @@ extension Container {
 
     var addProductCatalogRepository: Factory<any CatalogRepository> {
         self { RealmCatalogRepository() }
+            .singleton
+    }
+
+    var appConnectivityProvider: Factory<AppConnectivityProvider> {
+        self { .shared }
+            .singleton
+    }
+
+    var networkConnectivityProvider: Factory<any NetworkConnectivityProviding> {
+        self { self.appConnectivityProvider() }
+            .singleton
+    }
+
+    var productModuleLocalStore: Factory<any ProductLocalStore> {
+        self { RealmProductLocalStore(configuration: .default) }
+            .singleton
+    }
+
+    var productModuleCatalogRemoteRepository: Factory<any CatalogRepository> {
+        self { FirestoreCatalogRepository() }
+            .singleton
+    }
+
+    var productModuleRemoteGateway: Factory<any ProductRemoteGateway> {
+        self {
+            CatalogProductRemoteGateway(
+                catalogRepository: self.productModuleCatalogRemoteRepository()
+            )
+        }
+            .singleton
+    }
+
+    var productModuleSyncStateStore: Factory<any ProductSyncStateStore> {
+        self { RealmProductSyncStateStore(configuration: .default) }
+            .singleton
+    }
+
+    var productModuleConnectivityProvider: Factory<any ConnectivityProviding> {
+        self { self.appConnectivityProvider() }
+            .singleton
+    }
+
+    var productModuleService: Factory<any ProductModuleServicing> {
+        self {
+            DefaultProductModuleService(
+                localStore: self.productModuleLocalStore(),
+                remoteGateway: self.productModuleRemoteGateway(),
+                syncStateStore: self.productModuleSyncStateStore(),
+                connectivity: self.productModuleConnectivityProvider(),
+                clock: SystemClock(),
+                strategy: .offlineFirstDefault
+            )
+        }
             .singleton
     }
 }
