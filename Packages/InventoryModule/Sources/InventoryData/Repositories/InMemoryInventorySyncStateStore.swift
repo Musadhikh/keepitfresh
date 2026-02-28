@@ -37,6 +37,23 @@ public actor InMemoryInventorySyncStateStore: InventorySyncStateStore {
         }
     }
 
+    public func fetchByState(
+        householdId: String,
+        state: InventorySyncState,
+        limit: Int?
+    ) async throws -> [InventorySyncMetadata] {
+        let filtered = byCompositeKey.values
+            .filter { $0.householdId == householdId && $0.state == state }
+            .sorted { lhs, rhs in
+                (lhs.lastAttemptAt ?? .distantPast) < (rhs.lastAttemptAt ?? .distantPast)
+            }
+
+        guard let limit, limit > 0 else {
+            return filtered
+        }
+        return Array(filtered.prefix(limit))
+    }
+
     public func metadata(
         for itemId: String,
         householdId: String,

@@ -10,6 +10,11 @@ import Foundation
 
 public protocol InventorySyncStateStore: Sendable {
     func upsertMetadata(_ metadata: [InventorySyncMetadata]) async throws
+    func fetchByState(
+        householdId: String,
+        state: InventorySyncState,
+        limit: Int?
+    ) async throws -> [InventorySyncMetadata]
     func metadata(
         for itemId: String,
         householdId: String,
@@ -21,4 +26,3 @@ public protocol InventorySyncStateStore: Sendable {
         operation: InventorySyncOperation
     ) async throws -> InventorySyncMetadata?
 }
-

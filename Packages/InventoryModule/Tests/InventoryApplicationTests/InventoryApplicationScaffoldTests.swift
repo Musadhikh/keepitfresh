@@ -466,6 +466,116 @@ struct InventoryMutationOfflineFirstTests {
     }
 }
 
+struct InventorySummaryTests {
+    @Test
+    func summaryReflectsActiveBatchesAndEarliestExpiry() async throws {
+        let a = makeItem(id: "sum-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 5, quantity: 2)
+        let b = makeItem(id: "sum-2", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 3)
+        let fixture = await makeSummaryFixture(seed: [a, b])
+
+        let summary = try await fixture.useCase.execute(
+            GetInventorySummaryByProductInput(householdId: fixture.householdId, productId: "prod-1")
+        )
+
+        #expect(summary.batchCount == 2)
+        #expect(summary.totalQuantity.value == 5)
+        #expect(summary.earliestExpiry == b.expiryInfo?.isoDate)
+    }
+}
+
+struct InventorySyncCoordinatorTests {
+    @Test
+    func syncPendingOnlineMarksMetadataAsSynced() async throws {
+        let item = makeItem(id: "sync-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let fixture = await makeSyncFixture(online: true, seed: [item])
+        try await fixture.syncStore.upsertMetadata([
+            InventorySyncMetadata(
+                itemId: "sync-1",
+                householdId: fixture.householdId,
+                operation: .update,
+                state: .pending,
+                retryCount: 0,
+                lastError: nil,
+                lastAttemptAt: fixture.now,
+                lastSyncedAt: nil,
+                idempotencyRequestId: "sync-req",
+                addAction: nil
+            )
+        ])
+
+        let output = try await fixture.useCase.execute(SyncPendingInventoryInput(householdId: fixture.householdId))
+        let metadata = try await fixture.syncStore.metadata(for: "sync-1", householdId: fixture.householdId, operation: .update)
+
+        #expect(output.syncedCount == 1)
+        #expect(output.failedCount == 0)
+        #expect(metadata?.state == .synced)
+    }
+
+    @Test
+    func syncPendingRemoteFailureMarksFailedAndIncrementsRetry() async throws {
+        let item = makeItem(id: "sync-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let fixture = await makeSyncFixture(online: true, seed: [item])
+        await fixture.remoteGateway.setShouldFailUpsert(true)
+        try await fixture.syncStore.upsertMetadata([
+            InventorySyncMetadata(
+                itemId: "sync-1",
+                householdId: fixture.householdId,
+                operation: .update,
+                state: .pending,
+                retryCount: 0,
+                lastError: nil,
+                lastAttemptAt: fixture.now,
+                lastSyncedAt: nil,
+                idempotencyRequestId: "sync-req",
+                addAction: nil
+            )
+        ])
+
+        let output = try await fixture.useCase.execute(SyncPendingInventoryInput(householdId: fixture.householdId))
+        let metadata = try await fixture.syncStore.metadata(for: "sync-1", householdId: fixture.householdId, operation: .update)
+
+        #expect(output.syncedCount == 0)
+        #expect(output.failedCount == 1)
+        #expect(metadata?.state == .failed)
+        #expect(metadata?.retryCount == 1)
+    }
+}
+
+struct InventoryWarmupTests {
+    @Test
+    func warmupRunsOncePerLaunchAndSkipsSecondCall() async throws {
+        let now = Date(timeIntervalSince1970: 1_740_756_000)
+        let remote = makeItem(id: "warm-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let fixture = await makeWarmupFixture(online: true, localSeed: [], remoteSeed: [remote], now: now)
+
+        let first = try await fixture.useCase.execute(
+            WarmExpiringInventoryWindowInput(
+                householdId: fixture.householdId,
+                today: now,
+                windowDays: 14,
+                timeZone: fixture.timeZone,
+                launchId: "launch-1"
+            )
+        )
+        let second = try await fixture.useCase.execute(
+            WarmExpiringInventoryWindowInput(
+                householdId: fixture.householdId,
+                today: now,
+                windowDays: 14,
+                timeZone: fixture.timeZone,
+                launchId: "launch-1"
+            )
+        )
+        let fetchCalls = await fixture.remoteGateway.fetchCallsCount()
+
+        #expect(first.didRun == true)
+        #expect(first.refreshedCount == 1)
+        #expect(first.expiringCount == 1)
+        #expect(second.didRun == false)
+        #expect(fetchCalls == 1)
+    }
+}
+
 private struct AddUseCaseFixture {
     let useCase: DefaultAddInventoryItemUseCase
     let inventoryRepository: InMemoryInventoryRepository
@@ -526,6 +636,26 @@ private struct MutationUseCaseFixture {
     let remoteGateway: InMemoryInventoryRemoteGateway
     let syncStore: InMemoryInventorySyncStateStore
     let householdId: String
+}
+
+private struct SummaryFixture {
+    let useCase: DefaultGetInventorySummaryByProductUseCase
+    let householdId: String
+}
+
+private struct SyncFixture {
+    let useCase: DefaultSyncPendingInventoryUseCase
+    let syncStore: InMemoryInventorySyncStateStore
+    let remoteGateway: InMemoryInventoryRemoteGateway
+    let householdId: String
+    let now: Date
+}
+
+private struct WarmupFixture {
+    let useCase: DefaultWarmExpiringInventoryWindowUseCase
+    let remoteGateway: InMemoryInventoryRemoteGateway
+    let householdId: String
+    let timeZone: TimeZone
 }
 
 private func makeFixture(online: Bool) async throws -> AddUseCaseFixture {
@@ -693,6 +823,65 @@ private func makeMutationFixture(
         remoteGateway: remoteGateway,
         syncStore: syncStore,
         householdId: householdId
+    )
+}
+
+private func makeSummaryFixture(seed: [InventoryItem]) async -> SummaryFixture {
+    let inventoryRepository = InMemoryInventoryRepository(seed: seed)
+    let useCase = DefaultGetInventorySummaryByProductUseCase(inventoryRepository: inventoryRepository)
+    return SummaryFixture(useCase: useCase, householdId: "house-1")
+}
+
+private func makeSyncFixture(
+    online: Bool,
+    seed: [InventoryItem]
+) async -> SyncFixture {
+    let now = Date(timeIntervalSince1970: 1_740_756_000)
+    let householdId = "house-1"
+    let inventoryRepository = InMemoryInventoryRepository(seed: seed)
+    let remoteGateway = InMemoryInventoryRemoteGateway()
+    let syncStore = InMemoryInventorySyncStateStore()
+    let connectivity = TestConnectivityProvider(isOnline: online)
+    let useCase = DefaultSyncPendingInventoryUseCase(
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        syncStateStore: syncStore,
+        connectivity: connectivity,
+        clock: FixedClock(now: now)
+    )
+
+    return SyncFixture(
+        useCase: useCase,
+        syncStore: syncStore,
+        remoteGateway: remoteGateway,
+        householdId: householdId,
+        now: now
+    )
+}
+
+private func makeWarmupFixture(
+    online: Bool,
+    localSeed: [InventoryItem],
+    remoteSeed: [InventoryItem],
+    now: Date
+) async -> WarmupFixture {
+    let householdId = "house-1"
+    let inventoryRepository = InMemoryInventoryRepository(seed: localSeed)
+    let remoteGateway = InMemoryInventoryRemoteGateway(seed: remoteSeed)
+    let warmupStore = InMemoryInventoryWarmupRunStore()
+    let connectivity = TestConnectivityProvider(isOnline: online)
+    let useCase = DefaultWarmExpiringInventoryWindowUseCase(
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        warmupRunStore: warmupStore,
+        connectivity: connectivity
+    )
+
+    return WarmupFixture(
+        useCase: useCase,
+        remoteGateway: remoteGateway,
+        householdId: householdId,
+        timeZone: TimeZone(identifier: "Asia/Singapore") ?? TimeZone(secondsFromGMT: 0)!
     )
 }
 

@@ -17,5 +17,6 @@ public protocol InventoryModuleServicing: Sendable {
     func getExpiredItems(_ input: GetExpiredItemsInput) async throws -> [InventoryItem]
     func getExpiringItems(_ input: GetExpiringItemsInput) async throws -> [InventoryItem]
     func getInventorySummaryByProduct(_ input: GetInventorySummaryByProductInput) async throws -> InventoryProductSummary
+    func syncPendingInventory(_ input: SyncPendingInventoryInput) async throws -> SyncPendingInventoryOutput
+    func warmExpiringInventoryWindow(_ input: WarmExpiringInventoryWindowInput) async throws -> WarmExpiringInventoryWindowOutput
 }
-

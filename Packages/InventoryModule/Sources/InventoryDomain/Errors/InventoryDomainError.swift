@@ -11,6 +11,7 @@ import Foundation
 public enum InventoryDomainError: Error, Sendable, Equatable {
     case invalidQuantity
     case invalidHouseholdID
+    case invalidLaunchID
     case invalidProductID
     case invalidLocationID
     case incompatibleQuantityUnit
