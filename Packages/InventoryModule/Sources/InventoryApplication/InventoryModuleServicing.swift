@@ -12,6 +12,7 @@ import InventoryDomain
 public protocol InventoryModuleServicing: Sendable {
     func addInventoryItem(_ input: AddInventoryItemInput) async throws -> AddInventoryItemOutput
     func consumeInventory(_ input: ConsumeInventoryInput) async throws -> ConsumeInventoryOutput
+    func deleteInventoryItem(_ input: DeleteInventoryItemInput) async throws -> DeleteInventoryItemOutput
     func moveInventoryItemLocation(_ input: MoveInventoryItemLocationInput) async throws -> MoveInventoryItemLocationOutput
     func updateInventoryItemDates(_ input: UpdateInventoryItemDatesInput) async throws -> UpdateInventoryItemDatesOutput
     func getExpiredItems(_ input: GetExpiredItemsInput) async throws -> [InventoryItem]

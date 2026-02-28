@@ -11,6 +11,7 @@ import Foundation
 public enum InventoryOperation: String, Sendable, Equatable {
     case addInventoryItem
     case consumeInventory
+    case deleteInventoryItem
     case getExpiredItems
     case getExpiringItems
     case getInventorySummaryByProduct
@@ -19,4 +20,3 @@ public enum InventoryOperation: String, Sendable, Equatable {
 public enum InventoryModuleError: Error, Sendable, Equatable {
     case connectivityUnavailable(operation: InventoryOperation)
 }
-

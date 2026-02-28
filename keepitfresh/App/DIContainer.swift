@@ -220,6 +220,19 @@ extension Container {
             .singleton
     }
 
+    var inventoryModuleDeleteUseCase: Factory<any InventoryModuleTypes.DeleteInventoryItemUseCase> {
+        self {
+            DefaultDeleteInventoryItemUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
+
     var inventoryModuleMoveUseCase: Factory<any InventoryModuleTypes.MoveInventoryItemLocationUseCase> {
         self {
             DefaultMoveInventoryItemLocationUseCase(
@@ -308,6 +321,7 @@ extension Container {
             AppInventoryModuleService(
                 addUseCase: self.inventoryModuleAddUseCase(),
                 consumeUseCase: self.inventoryModuleConsumeUseCase(),
+                deleteUseCase: self.inventoryModuleDeleteUseCase(),
                 moveUseCase: self.inventoryModuleMoveUseCase(),
                 updateDatesUseCase: self.inventoryModuleUpdateDatesUseCase(),
                 getExpiredUseCase: self.inventoryModuleGetExpiredUseCase(),

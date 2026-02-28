@@ -464,6 +464,95 @@ struct InventoryMutationOfflineFirstTests {
 
         #expect(second.item.storageLocationId == "loc-b")
     }
+
+    @Test
+    func deleteItemOfflineMarksPendingAndArchivesLocalItem() async throws {
+        let item = makeItem(id: "del-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: false, seed: [item])
+
+        let output = try await fixture.deleteUseCase.execute(
+            DeleteInventoryItemInput(
+                householdId: fixture.householdId,
+                itemId: "del-1",
+                idempotencyRequestId: "del-offline"
+            )
+        )
+
+        let updated = try await fixture.inventoryRepository.findById("del-1", householdId: fixture.householdId)
+        let metadata = try await fixture.syncStore.metadata(for: "del-1", householdId: fixture.householdId, operation: .delete)
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncState == .pending)
+        #expect(updated?.status == .archived)
+        #expect(metadata?.state == .pending)
+        #expect(remoteCalls == 0)
+    }
+
+    @Test
+    func deleteItemOnlineMarksSynced() async throws {
+        let item = makeItem(id: "del-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: true, seed: [item])
+
+        let output = try await fixture.deleteUseCase.execute(
+            DeleteInventoryItemInput(
+                householdId: fixture.householdId,
+                itemId: "del-1",
+                idempotencyRequestId: "del-online"
+            )
+        )
+
+        let metadata = try await fixture.syncStore.metadata(for: "del-1", householdId: fixture.householdId, operation: .delete)
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncState == .synced)
+        #expect(metadata?.state == .synced)
+        #expect(remoteCalls == 1)
+    }
+
+    @Test
+    func deleteItemOnlineFailureMarksFailedAndSetsRetry() async throws {
+        let item = makeItem(id: "del-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: true, seed: [item])
+        await fixture.remoteGateway.setShouldFailUpsert(true)
+
+        let output = try await fixture.deleteUseCase.execute(
+            DeleteInventoryItemInput(
+                householdId: fixture.householdId,
+                itemId: "del-1",
+                idempotencyRequestId: "del-failed"
+            )
+        )
+
+        let metadata = try await fixture.syncStore.metadata(for: "del-1", householdId: fixture.householdId, operation: .delete)
+
+        #expect(output.syncState == .failed)
+        #expect(metadata?.state == .failed)
+        #expect(metadata?.retryCount == 1)
+    }
+
+    @Test
+    func deleteItemIdempotencyPreventsSecondMutation() async throws {
+        let item = makeItem(id: "del-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: false, seed: [item])
+        let requestId = "del-idempotent"
+
+        _ = try await fixture.deleteUseCase.execute(
+            DeleteInventoryItemInput(
+                householdId: fixture.householdId,
+                itemId: "del-1",
+                idempotencyRequestId: requestId
+            )
+        )
+        let second = try await fixture.deleteUseCase.execute(
+            DeleteInventoryItemInput(
+                householdId: fixture.householdId,
+                itemId: "del-1",
+                idempotencyRequestId: requestId
+            )
+        )
+
+        #expect(second.item.status == .archived)
+    }
 }
 
 struct InventorySummaryTests {
@@ -632,6 +721,7 @@ private struct ConsumeUseCaseFixture {
 private struct MutationUseCaseFixture {
     let moveUseCase: DefaultMoveInventoryItemLocationUseCase
     let dateUseCase: DefaultUpdateInventoryItemDatesUseCase
+    let deleteUseCase: DefaultDeleteInventoryItemUseCase
     let inventoryRepository: InMemoryInventoryRepository
     let remoteGateway: InMemoryInventoryRemoteGateway
     let syncStore: InMemoryInventorySyncStateStore
@@ -815,10 +905,18 @@ private func makeMutationFixture(
         connectivity: connectivity,
         clock: clock
     )
+    let deleteUseCase = DefaultDeleteInventoryItemUseCase(
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        syncStateStore: syncStore,
+        connectivity: connectivity,
+        clock: clock
+    )
 
     return MutationUseCaseFixture(
         moveUseCase: moveUseCase,
         dateUseCase: dateUseCase,
+        deleteUseCase: deleteUseCase,
         inventoryRepository: inventoryRepository,
         remoteGateway: remoteGateway,
         syncStore: syncStore,
