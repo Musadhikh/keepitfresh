@@ -93,4 +93,60 @@ public typealias InMemoryProductReadRepository = InventoryData.InMemoryProductRe
 public typealias InMemoryInventoryRemoteGateway = InventoryData.InMemoryInventoryRemoteGateway
 public typealias InMemoryInventoryRemoteGatewayError = InventoryData.InMemoryInventoryRemoteGatewayError
 public typealias InMemoryInventorySyncStateStore = InventoryData.InMemoryInventorySyncStateStore
+
+// MARK: - Namespaced Exports
+
+public enum InventoryModuleTypes {
+    public typealias InventoryModuleServicing = InventoryApplication.InventoryModuleServicing
+
+    public typealias AddInventoryItemUseCase = InventoryApplication.AddInventoryItemUseCase
+    public typealias AddInventoryItemInput = InventoryApplication.AddInventoryItemInput
+    public typealias AddInventoryItemOutput = InventoryApplication.AddInventoryItemOutput
+    public typealias ConsumeInventoryUseCase = InventoryApplication.ConsumeInventoryUseCase
+    public typealias ConsumeInventoryInput = InventoryApplication.ConsumeInventoryInput
+    public typealias ConsumeInventoryOutput = InventoryApplication.ConsumeInventoryOutput
+    public typealias MoveInventoryItemLocationUseCase = InventoryApplication.MoveInventoryItemLocationUseCase
+    public typealias MoveInventoryItemLocationInput = InventoryApplication.MoveInventoryItemLocationInput
+    public typealias MoveInventoryItemLocationOutput = InventoryApplication.MoveInventoryItemLocationOutput
+    public typealias UpdateInventoryItemDatesUseCase = InventoryApplication.UpdateInventoryItemDatesUseCase
+    public typealias UpdateInventoryItemDatesInput = InventoryApplication.UpdateInventoryItemDatesInput
+    public typealias UpdateInventoryItemDatesOutput = InventoryApplication.UpdateInventoryItemDatesOutput
+    public typealias GetExpiredItemsUseCase = InventoryApplication.GetExpiredItemsUseCase
+    public typealias GetExpiredItemsInput = InventoryApplication.GetExpiredItemsInput
+    public typealias GetExpiringItemsUseCase = InventoryApplication.GetExpiringItemsUseCase
+    public typealias GetExpiringItemsInput = InventoryApplication.GetExpiringItemsInput
+    public typealias GetInventorySummaryByProductUseCase = InventoryApplication.GetInventorySummaryByProductUseCase
+    public typealias GetInventorySummaryByProductInput = InventoryApplication.GetInventorySummaryByProductInput
+    public typealias SyncPendingInventoryUseCase = InventoryApplication.SyncPendingInventoryUseCase
+    public typealias SyncPendingInventoryInput = InventoryApplication.SyncPendingInventoryInput
+    public typealias SyncPendingInventoryOutput = InventoryApplication.SyncPendingInventoryOutput
+    public typealias WarmExpiringInventoryWindowUseCase = InventoryApplication.WarmExpiringInventoryWindowUseCase
+    public typealias WarmExpiringInventoryWindowInput = InventoryApplication.WarmExpiringInventoryWindowInput
+    public typealias WarmExpiringInventoryWindowOutput = InventoryApplication.WarmExpiringInventoryWindowOutput
+
+    public typealias InventoryItem = InventoryDomain.InventoryItem
+    public typealias StorageLocation = InventoryDomain.StorageLocation
+    public typealias InventorySyncMetadata = InventoryDomain.InventorySyncMetadata
+    public typealias InventorySyncOperation = InventoryDomain.InventorySyncOperation
+    public typealias InventorySyncState = InventoryDomain.InventorySyncState
+    public typealias InventoryProductSummary = InventoryDomain.InventoryProductSummary
+
+    public typealias InventoryRepository = InventoryDomain.InventoryRepository
+    public typealias LocationRepository = InventoryDomain.LocationRepository
+    public typealias InventoryRemoteGateway = InventoryDomain.InventoryRemoteGateway
+    public typealias InventorySyncStateStore = InventoryDomain.InventorySyncStateStore
+    public typealias InventoryWarmupRunStore = InventoryDomain.InventoryWarmupRunStore
+    public typealias ConnectivityProviding = InventoryDomain.ConnectivityProviding
+    public typealias SystemClock = InventoryDomain.SystemClock
+
+    public typealias DefaultAddInventoryItemUseCase = InventoryApplication.DefaultAddInventoryItemUseCase
+    public typealias DefaultConsumeInventoryUseCase = InventoryApplication.DefaultConsumeInventoryUseCase
+    public typealias DefaultMoveInventoryItemLocationUseCase = InventoryApplication.DefaultMoveInventoryItemLocationUseCase
+    public typealias DefaultUpdateInventoryItemDatesUseCase = InventoryApplication.DefaultUpdateInventoryItemDatesUseCase
+    public typealias DefaultGetExpiredItemsUseCase = InventoryApplication.DefaultGetExpiredItemsUseCase
+    public typealias DefaultGetExpiringItemsUseCase = InventoryApplication.DefaultGetExpiringItemsUseCase
+    public typealias DefaultGetInventorySummaryByProductUseCase = InventoryApplication.DefaultGetInventorySummaryByProductUseCase
+    public typealias DefaultSyncPendingInventoryUseCase = InventoryApplication.DefaultSyncPendingInventoryUseCase
+    public typealias DefaultWarmExpiringInventoryWindowUseCase = InventoryApplication.DefaultWarmExpiringInventoryWindowUseCase
+}
 public typealias InMemoryInventoryWarmupRunStore = InventoryData.InMemoryInventoryWarmupRunStore

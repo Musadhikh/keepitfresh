@@ -100,4 +100,6 @@ public enum ProductModuleTypes {
     public typealias ProductLookup = ProductDomain.ProductLookup
     public typealias ProductSyncState = ProductDomain.ProductSyncState
     public typealias ProductSyncMetadata = ProductDomain.ProductSyncMetadata
+    public typealias ConnectivityProviding = ProductDomain.ConnectivityProviding
+    public typealias SystemClock = ProductDomain.SystemClock
 }
