@@ -81,66 +81,74 @@ References:
   - local hit returns existing local snapshot
   - local hit + online refresh updates local cache
   - offline local miss avoids remote fetch and returns empty
+- Implemented offline-first consumption use case:
+  - `DefaultConsumeInventoryUseCase`
+  - FEFO batch selection (`expiry asc`, nil expiry last, `createdAt` tie-breaker)
+  - Supports partial consume across multiple active batches
+  - Transitions depleted batches to `consumed` with `consumedAt`
+  - Persists local first, then applies remote upsert when online, with sync state tracking (`pending`/`synced`/`failed`)
+- Expanded consume tests:
+  - FEFO consumes earliest expiry first
+  - nil-expiry batches ordered after dated batches
+  - full consume transitions batch status to `consumed`
+  - offline consume keeps pending sync without remote write
+  - online consume transitions sync metadata to synced
 - Verification completed:
   - `swift build --package-path keepitfresh/Packages/InventoryModule` (`BUILD SUCCEEDED`)
-  - `swift test --package-path keepitfresh/Packages/InventoryModule` (12 tests passed)
+  - `swift test --package-path keepitfresh/Packages/InventoryModule` (17 tests passed)
   - `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
 ## 2) Immediate Next Step (Do This First)
 
-Implement `ConsumeInventory` with FEFO and offline-first mutation sync.
+Implement the remaining mutation/query use cases with the same offline-first contract.
 
 Goal:
-- Implement FEFO consumption against active batches:
-  - Sort by earliest expiry first (`nil` expiry last, `createdAt` tie-breaker).
-  - Support partial consume across multiple batches.
-  - Transition zero-quantity batches to terminal status (`consumed`/`archived` per policy).
-- Reuse local-first + sync-state flow from add:
+- Implement:
+  - `MoveInventoryItemLocation`
+  - `UpdateInventoryItemDates`
+  - `GetInventorySummaryByProduct` default implementation
+  - `SyncPendingInventory` coordinator use case
+  - `WarmExpiringInventoryWindow` one-time-per-launch use case
+- Reuse the established local-first + sync-state flow:
   - persist local mutation first
-  - track sync metadata state (`pending/synced/failed`)
+  - track sync metadata (`pending/synced/failed`)
   - sync remote when online
 - Add focused tests:
-  - FEFO ordering across dated + nil-expiry batches
-  - partial consume across multiple batches
-  - zero-quantity status transition
-  - offline pending state and online synced state
+  - location/date mutation offline/online transitions
+  - summary correctness after merge + consume operations
+  - one-time warm-up guard behavior per launch
 
 Why this is next:
-- It enforces the highest-risk inventory business rule after merge logic.
-- It unlocks safe decrement flows for Home and inventory detail actions.
+- Add/retrieve/consume are now implemented; these close the remaining business workflows before app integration.
+- Sync coordinator + warm-up are required to satisfy the home-launch behavior contract.
 
 ## 3) Ordered Pending Steps
 
-1. Implement `ConsumeInventory` use-case behavior.
-   - FEFO selection (dated first, nil expiry last, createdAt tie-breaker).
-   - Partial consume and terminal status transitions (`consumed`/`archived` policy).
-   - Same local-first + sync-state strategy as add/update/delete.
-
-2. Implement remaining application-layer use-case behavior.
+1. Implement remaining application-layer use-case behavior.
    - `AddInventoryItem`, `ConsumeInventory`, `MoveInventoryItemLocation`, `UpdateInventoryItemDates`.
    - `DeleteInventoryItem`, `GetExpiredItems`, `GetExpiringItems`, `GetInventorySummaryByProduct`.
    - `SyncPendingInventory`, `WarmExpiringInventoryWindow`.
    - Ensure timezone-safe day boundary logic for expiry classification.
 
-3. Add data-layer storage-agnostic adapters and mappers.
+2. Add data-layer storage-agnostic adapters and mappers.
    - Generic local records/index strategy for expiry and household-scoped queries.
    - Repository implementations plus mapping boundaries to domain entities.
    - Keep concrete backend adapters (Realm/Firestore/etc.) in app infrastructure layer.
    - Add remote gateway + sync-state store adapters at app layer.
 
-4. Add tests in stages.
+3. Add tests in stages.
    - Domain: merge/FEFO/date classification rules.
    - Application: offline-first orchestration, transactional behavior, idempotency.
    - Data: query correctness and mapper round-trip.
    - Sync: pending->synced/failed transitions.
    - Home warm-up: one-time-per-launch next-14-days refresh behavior.
 
-5. Wire package into app composition root.
+4. Wire package into app composition root.
    - Register adapters/use cases in Factory at app composition root.
    - Keep UI integration outside package.
    - Trigger `WarmExpiringInventoryWindow` once on Home launch per app run.
 
-6. Follow-up sync hardening (future task).
+5. Follow-up sync hardening (future task).
    - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
 
 ## 4) Resume References (Another Machine)
@@ -157,6 +165,7 @@ Why this is next:
 - `Packages/InventoryModule/Sources/InventoryDomain/Ports/InventoryRepository.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/AddInventoryItemUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultAddInventoryItemUseCase.swift`
+- `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultConsumeInventoryUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetExpiredItemsUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetExpiringItemsUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/Policies/FEFOSelectionPolicy.swift`

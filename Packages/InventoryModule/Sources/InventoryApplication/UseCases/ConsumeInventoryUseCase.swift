@@ -10,7 +10,7 @@ import Foundation
 import InventoryDomain
 
 public enum ConsumeInventoryTarget: Sendable, Equatable {
-    case inventoryItemId(String)
+    case inventoryItemId(String, householdId: String)
     case productId(String, householdId: String)
 }
 
@@ -41,14 +41,15 @@ public struct ConsumeInventoryInput: Sendable, Equatable {
 public struct ConsumeInventoryOutput: Sendable, Equatable {
     public var consumed: [ConsumedBatchResult]
     public var remainingRequestedAmount: Quantity
+    public var syncState: InventorySyncState
 
-    public init(consumed: [ConsumedBatchResult], remainingRequestedAmount: Quantity) {
+    public init(consumed: [ConsumedBatchResult], remainingRequestedAmount: Quantity, syncState: InventorySyncState) {
         self.consumed = consumed
         self.remainingRequestedAmount = remainingRequestedAmount
+        self.syncState = syncState
     }
 }
 
 public protocol ConsumeInventoryUseCase: Sendable {
     func execute(_ input: ConsumeInventoryInput) async throws -> ConsumeInventoryOutput
 }
-
