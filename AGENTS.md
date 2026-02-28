@@ -115,6 +115,90 @@ Required:
 Avoid:
 - Introducing new UI style conventions that are not represented in Theme tokens or the Liquid Glass design-system document.
 
+## 11) Swift Package Module Architecture Standard
+For any future feature/module extracted as a Swift Package (for example `ProductModule`, `InventoryModule`), follow this pattern when relevant.
+
+### 11.1 Scope and boundaries
+Required:
+- Module packages are business-logic first and app-agnostic.
+- Keep package targets free of SwiftUI screens, app routes, and app navigation concerns unless explicitly requested.
+- Domain rules/invariants must live in module domain/application layers, not in app views/view models.
+- Keep one-way dependency direction between modules (for example, Inventory can reference Product identity; Product must not reference Inventory).
+
+Avoid:
+- Mutating another module’s canonical domain data through side effects.
+- Embedding app-specific UI orchestration into package targets.
+
+### 11.2 Standard package target shape
+Required:
+- Use Swift 6.2+ and modern concurrency.
+- Prefer this target layout:
+  - `<Module>Domain` (entities/value objects/ports/invariants)
+  - `<Module>Application` (use cases/service orchestration/policies)
+  - `<Module>` facade target (single import surface for consumers)
+- Export public API from the facade with explicit typealiases/wrappers (avoid underscored re-export mechanisms).
+- Make `Domain` independent, and let `Application` depend only on `Domain`.
+- Keep package contracts and type names technology-neutral:
+  - Do not use concrete backend names in package code (for example `Realm*`, `Firestore*`).
+  - Prefer backend-agnostic naming such as `Local*`, `Remote*`, `Record`, `Store`, `Gateway`.
+
+Optional (when justified in plan):
+- `<Module>Data` target for reusable mapping/persistence abstractions.
+
+Default location for concrete infrastructure:
+- Keep concrete Realm/Firestore/API adapters in the host app infrastructure layer unless there is explicit plan approval to package them.
+
+### 11.3 DI and runtime ownership
+Required:
+- Module packages must not depend on Factory (or app DI framework).
+- Inject dependencies through protocol-based ports.
+- Keep DI registration at app composition root (`Container` extensions).
+- Avoid global singletons in module feature logic.
+
+### 11.4 Concurrency model
+Required:
+- Use actor-backed services for transactional orchestration when mutable shared state is involved.
+- Public contracts crossing concurrency boundaries should be `Sendable` where applicable.
+- Prefer structured concurrency; avoid `Task.detached` unless explicitly justified.
+- Emit explicit typed errors for actionable caller behavior (for example connectivity-unavailable operation context).
+
+### 11.5 Offline-first and sync-ready behavior
+Required:
+- Define read/write/sync behavior contracts in module application layer.
+- Persist locally first where appropriate, then attempt remote sync according to strategy.
+- Keep sync metadata/state modeled explicitly (pending/synced/failed).
+- Support idempotency for command-style writes/consumption flows where retries are possible.
+
+### 11.6 Public API ergonomics
+Required:
+- App consumers should usually only need `import <Module>`.
+- Provide stable facade exports and avoid leaking internal target structure.
+- Keep naming explicit and collision-safe (add namespaced type aliases when needed).
+
+### 11.7 Documentation and handoff requirements
+Required before/alongside implementation:
+- `Documentation/<MODULE>_PACKAGE_PLAN.md` (objectives, boundaries, architecture, migration phases).
+- `Documentation/<MODULE>_PROGRESS_HANDOFF.md` with:
+  - status date
+  - branch at handoff
+  - base commit at handoff
+  - completed work
+  - immediate next step
+  - ordered pending steps
+  - resume references and commands
+- `Packages/<Module>/README.md` with architecture, invariants, integration responsibilities, and verification commands.
+- Update `JOURNAL.md` for architecture decisions and handoff updates.
+
+### 11.8 Testing and verification gates
+Required:
+- Add package unit tests for domain invariants and core orchestration behavior before broad app wiring.
+- Include edge-case tests relevant to module rules (for example identity invariants, merge policy, FEFO, timezone boundaries).
+- Verify package independently:
+  - `swift build --package-path Packages/<Module>`
+  - `swift test --package-path Packages/<Module>`
+- After app integration, verify app build:
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build`
+
 # Agent guide for Swift and SwiftUI
 
 This repository contains an Xcode project written with Swift and SwiftUI. Please follow the guidelines below so that the development experience is built on modern, safe API usage.

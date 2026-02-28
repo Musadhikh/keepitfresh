@@ -1,0 +1,82 @@
+//
+//  InventoryModuleExports.swift
+//  keepitfresh
+//
+//  Created by musadhikh on 28/2/26.
+//  Summary: Provides stable facade exports so consumers only import InventoryModule.
+//
+
+import Foundation
+import InventoryApplication
+import InventoryData
+import InventoryDomain
+
+// MARK: - Application Exports
+
+public typealias InventoryModuleServicing = InventoryApplication.InventoryModuleServicing
+public typealias InventoryModuleError = InventoryApplication.InventoryModuleError
+public typealias InventoryOperation = InventoryApplication.InventoryOperation
+public typealias AddInventoryItemUseCase = InventoryApplication.AddInventoryItemUseCase
+public typealias DefaultAddInventoryItemUseCase = InventoryApplication.DefaultAddInventoryItemUseCase
+public typealias AddInventoryItemInput = InventoryApplication.AddInventoryItemInput
+public typealias AddInventoryItemOutput = InventoryApplication.AddInventoryItemOutput
+public typealias ConsumeInventoryUseCase = InventoryApplication.ConsumeInventoryUseCase
+public typealias ConsumeInventoryInput = InventoryApplication.ConsumeInventoryInput
+public typealias ConsumeInventoryOutput = InventoryApplication.ConsumeInventoryOutput
+public typealias ConsumeInventoryTarget = InventoryApplication.ConsumeInventoryTarget
+public typealias ConsumedBatchResult = InventoryApplication.ConsumedBatchResult
+public typealias MoveInventoryItemLocationUseCase = InventoryApplication.MoveInventoryItemLocationUseCase
+public typealias MoveInventoryItemLocationInput = InventoryApplication.MoveInventoryItemLocationInput
+public typealias MoveInventoryItemLocationOutput = InventoryApplication.MoveInventoryItemLocationOutput
+public typealias UpdateInventoryItemDatesUseCase = InventoryApplication.UpdateInventoryItemDatesUseCase
+public typealias UpdateInventoryItemDatesInput = InventoryApplication.UpdateInventoryItemDatesInput
+public typealias UpdateInventoryItemDatesOutput = InventoryApplication.UpdateInventoryItemDatesOutput
+public typealias GetExpiredItemsUseCase = InventoryApplication.GetExpiredItemsUseCase
+public typealias GetExpiredItemsInput = InventoryApplication.GetExpiredItemsInput
+public typealias GetExpiringItemsUseCase = InventoryApplication.GetExpiringItemsUseCase
+public typealias GetExpiringItemsInput = InventoryApplication.GetExpiringItemsInput
+public typealias DefaultGetExpiredItemsUseCase = InventoryApplication.DefaultGetExpiredItemsUseCase
+public typealias DefaultGetExpiringItemsUseCase = InventoryApplication.DefaultGetExpiringItemsUseCase
+public typealias GetInventorySummaryByProductUseCase = InventoryApplication.GetInventorySummaryByProductUseCase
+public typealias GetInventorySummaryByProductInput = InventoryApplication.GetInventorySummaryByProductInput
+
+// MARK: - Domain Exports
+
+public typealias InventoryItem = InventoryDomain.InventoryItem
+public typealias StorageLocation = InventoryDomain.StorageLocation
+public typealias InventoryItemStatus = InventoryDomain.InventoryItemStatus
+public typealias Quantity = InventoryDomain.Quantity
+public typealias QuantityUnit = InventoryDomain.QuantityUnit
+public typealias InventoryDateInfo = InventoryDomain.InventoryDateInfo
+public typealias InventoryDateKind = InventoryDomain.InventoryDateKind
+public typealias ProductRef = InventoryDomain.ProductRef
+public typealias InventoryMergeKey = InventoryDomain.InventoryMergeKey
+public typealias InventoryAddAction = InventoryDomain.InventoryAddAction
+public typealias InventorySyncOperation = InventoryDomain.InventorySyncOperation
+public typealias InventorySyncState = InventoryDomain.InventorySyncState
+public typealias InventorySyncMetadata = InventoryDomain.InventorySyncMetadata
+public typealias InventoryDomainError = InventoryDomain.InventoryDomainError
+public typealias InventoryRepository = InventoryDomain.InventoryRepository
+public typealias LocationRepository = InventoryDomain.LocationRepository
+public typealias ProductReadRepository = InventoryDomain.ProductReadRepository
+public typealias InventoryRemoteGateway = InventoryDomain.InventoryRemoteGateway
+public typealias InventorySyncStateStore = InventoryDomain.InventorySyncStateStore
+public typealias ConnectivityProviding = InventoryDomain.ConnectivityProviding
+public typealias ClockProviding = InventoryDomain.ClockProviding
+public typealias SystemClock = InventoryDomain.SystemClock
+public typealias AssumeOnlineConnectivityProvider = InventoryDomain.AssumeOnlineConnectivityProvider
+public typealias ProductReadModel = InventoryDomain.ProductReadModel
+public typealias InventoryProductSummary = InventoryDomain.InventoryProductSummary
+
+// MARK: - Data Exports
+
+public typealias InventoryItemDTO = InventoryData.InventoryItemDTO
+public typealias StorageLocationDTO = InventoryData.StorageLocationDTO
+public typealias InventoryItemRecord = InventoryData.InventoryItemRecord
+public typealias StorageLocationRecord = InventoryData.StorageLocationRecord
+public typealias InMemoryInventoryRepository = InventoryData.InMemoryInventoryRepository
+public typealias InMemoryLocationRepository = InventoryData.InMemoryLocationRepository
+public typealias InMemoryProductReadRepository = InventoryData.InMemoryProductReadRepository
+public typealias InMemoryInventoryRemoteGateway = InventoryData.InMemoryInventoryRemoteGateway
+public typealias InMemoryInventoryRemoteGatewayError = InventoryData.InMemoryInventoryRemoteGatewayError
+public typealias InMemoryInventorySyncStateStore = InventoryData.InMemoryInventorySyncStateStore
