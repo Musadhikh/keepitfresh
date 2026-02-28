@@ -2,7 +2,7 @@
 
 Status date: 2026-02-28  
 Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `101d4f8`
+Base commit at handoff: `7ca0590`
 
 This document captures:
 - What is completed
@@ -123,50 +123,63 @@ References:
   - `swift test --package-path keepitfresh/Packages/InventoryModule` (26 tests passed)
   - `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### App integration milestone (completed)
+- Added app-layer adapters (outside package) for InventoryModule contracts:
+  - local repository adapter
+  - location repository adapter
+  - sync-state store adapter
+  - warm-up run store adapter
+  - temporary remote gateway adapter
+  - connectivity bridge conformance
+- Added app service adapter to expose InventoryModule use cases through one app-facing service.
+- Wired full InventoryModule dependency graph in `DIContainer` (repositories, stores, gateway, use cases, service).
+- Integrated one-time-per-launch warm-up trigger into Home inventory loading flow.
+- Added namespaced facade exports (`InventoryModuleTypes`) to avoid module/type symbol collisions in app target wiring.
+- Added ProductModule namespaced aliases for DI disambiguation where both packages expose similarly named runtime types.
+- Verification completed after integration:
+  - `swift test --package-path Packages/InventoryModule` (26 tests passed)
+  - `swift test --package-path Packages/ProductModule` (5 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Implement app-layer adapter wiring and integration hooks for the complete inventory package service set.
+Implement `DeleteInventoryItem` end-to-end with the same offline-first contract and sync-state semantics as other inventory mutations.
 
 Goal:
-- Create app-side adapters (outside package) for:
-  - local persistence
-  - remote gateway
-  - sync-state store
-  - warm-up run tracking
-- Wire all inventory use cases into app composition root (Factory registrations).
-- Add integration trigger:
-  - call `WarmExpiringInventoryWindow` once on Home launch per app run.
-- Add focused tests:
-  - adapter round-trip mapping sanity
-  - app-layer wiring smoke checks (resolve/invoke)
+- Add `DeleteInventoryItemUseCase` contract + default implementation in `InventoryApplication`.
+- Behavior contract:
+  - local-first mutation (`active -> archived` or soft-delete status path; no hard delete by default)
+  - sync metadata transition tracking (`pending` -> `synced`/`failed`)
+  - online remote upsert/delete operation depending on gateway contract
+  - idempotency request ID support
+- Export the use case via `InventoryModule` facade and wire it into app service/DI.
+- Add focused tests for delete flow:
+  - offline pending behavior
+  - online success transition
+  - remote failure transition to failed + retry metadata
+  - idempotency duplicate suppression
 
 Why this is next:
-- All core business use cases are now implemented and tested in package scope.
-- Remaining work is infrastructure wiring and runtime integration in the app.
+- It is the main remaining core mutation missing from the inventory business API.
+- Completing it keeps mutation semantics consistent across add/consume/move/update/delete.
 
 ## 3) Ordered Pending Steps
 
-1. Implement remaining application-layer use-case behavior.
-   - Ensure any still-missing operations (`DeleteInventoryItem`) follow the same local-first/sync-state contract.
-   - Keep timezone-safe day boundary logic for expiry classification.
+1. Implement `DeleteInventoryItem` use case + tests + facade export + app wiring.
+   - Match local-first + sync-state + idempotency pattern used by other mutations.
+   - Keep soft-delete/archival semantics explicit.
 
-2. Add data-layer storage-agnostic adapters and mappers.
-   - Generic local records/index strategy for expiry and household-scoped queries.
-   - Repository implementations plus mapping boundaries to domain entities.
-   - Keep concrete backend adapters (Realm/Firestore/etc.) in app infrastructure layer.
-   - Add remote gateway + sync-state store adapters at app layer.
+2. Replace temporary remote adapter with production-grade inventory remote gateway.
+   - Keep mapping boundary in app infrastructure.
+   - Preserve backend-agnostic module contracts.
 
-3. Add tests in stages.
-   - Domain: merge/FEFO/date classification rules.
-   - Application: offline-first orchestration, transactional behavior, idempotency.
-   - Data: query correctness and mapper round-trip.
-   - Sync: pending->synced/failed transitions.
-   - Home warm-up: one-time-per-launch next-14-days refresh behavior.
+3. Add adapter and composition smoke tests at app layer.
+   - Repository/store mapper round-trip sanity checks.
+   - DI resolution and service invocation smoke tests.
 
-4. Wire package into app composition root.
-   - Register adapters/use cases in Factory at app composition root.
-   - Keep UI integration outside package.
-   - Trigger `WarmExpiringInventoryWindow` once on Home launch per app run.
+4. Migrate Home inventory reads to InventoryModule service queries.
+   - Home should consume module query API directly for expired/expiring sections.
+   - Preserve local-first UX while warm-up sync refreshes cache in background.
 
 5. Follow-up sync hardening (future task).
    - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
@@ -202,6 +215,17 @@ Why this is next:
 - `Packages/InventoryModule/Tests/InventoryApplicationTests/InventoryApplicationScaffoldTests.swift`
 - `Packages/InventoryModule/Tests/InventoryDataTests/InventoryDataScaffoldTests.swift`
 
+### App-side InventoryModule integration (completed)
+- `keepitfresh/Data/InventoryModule/Adapters/AppInventoryModuleService.swift`
+- `keepitfresh/Data/InventoryModule/Local/RealmInventoryModuleRepository.swift`
+- `keepitfresh/Data/InventoryModule/Local/RealmInventoryModuleLocationRepository.swift`
+- `keepitfresh/Data/InventoryModule/Sync/RealmInventoryModuleSyncStateStore.swift`
+- `keepitfresh/Data/InventoryModule/Sync/RealmInventoryModuleWarmupRunStore.swift`
+- `keepitfresh/Data/InventoryModule/Remote/StubInventoryModuleRemoteGateway.swift`
+- `keepitfresh/Data/InventoryModule/Runtime/AppConnectivityProvider+InventoryModule.swift`
+- `keepitfresh/App/DIContainer.swift`
+- `keepitfresh/Presentation/Home/HomeInventoryViewModel.swift`
+
 ### Existing related app code (current inventory behavior)
 - `keepitfresh/Domain/Models/Inventory/InventoryItem.swift`
 - `keepitfresh/Domain/Models/Inventory/InventoryBatch.swift`
@@ -236,6 +260,7 @@ xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Deb
 - Inventory module scope is business logic only; no SwiftUI/Presentation in package targets.
 - Keep module independent of Factory and app runtime types; DI remains in app composition root.
 - Keep module concrete-backend agnostic: no Realm/Firestore-specific references in module contracts, models, or naming.
+- Concrete persistence/remote frameworks remain app-layer adapter concerns (outside package targets).
 - Maintain one-way dependency direction:
   - Inventory references Product identity/read models.
   - Product module remains inventory-agnostic.

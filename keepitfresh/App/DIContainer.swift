@@ -8,7 +8,10 @@
 
 import Factory
 import HouseModule
+import InventoryModule
 import ProductModule
+import RealmDatabaseModule
+
 
 extension Container {
     var appMetadataProvider: Factory<AppMetadataProviding> {
@@ -139,7 +142,7 @@ extension Container {
             .singleton
     }
 
-    var productModuleConnectivityProvider: Factory<any ConnectivityProviding> {
+    var productModuleConnectivityProvider: Factory<any ProductModuleTypes.ConnectivityProviding> {
         self { self.appConnectivityProvider() }
             .singleton
     }
@@ -151,8 +154,167 @@ extension Container {
                 remoteGateway: self.productModuleRemoteGateway(),
                 syncStateStore: self.productModuleSyncStateStore(),
                 connectivity: self.productModuleConnectivityProvider(),
-                clock: SystemClock(),
+                clock: ProductModuleTypes.SystemClock(),
                 strategy: .offlineFirstDefault
+            )
+        }
+            .singleton
+    }
+
+    // MARK: - InventoryModule (Business Logic Package)
+
+    var inventoryModuleInventoryRepository: Factory<any InventoryModuleTypes.InventoryRepository> {
+        self { RealmInventoryModuleRepository(configuration: .default) }
+            .singleton
+    }
+
+    var inventoryModuleLocationRepository: Factory<any InventoryModuleTypes.LocationRepository> {
+        self { RealmInventoryModuleLocationRepository(configuration: .default) }
+            .singleton
+    }
+
+    var inventoryModuleRemoteGateway: Factory<any InventoryModuleTypes.InventoryRemoteGateway> {
+        self { StubInventoryModuleRemoteGateway() }
+            .singleton
+    }
+
+    var inventoryModuleSyncStateStore: Factory<any InventoryModuleTypes.InventorySyncStateStore> {
+        self { RealmInventoryModuleSyncStateStore(configuration: .default) }
+            .singleton
+    }
+
+    var inventoryModuleWarmupRunStore: Factory<any InventoryModuleTypes.InventoryWarmupRunStore> {
+        self { RealmInventoryModuleWarmupRunStore(configuration: .default) }
+            .singleton
+    }
+
+    var inventoryModuleConnectivityProvider: Factory<any InventoryModuleTypes.ConnectivityProviding> {
+        self { self.appConnectivityProvider() }
+            .singleton
+    }
+
+    var inventoryModuleAddUseCase: Factory<any InventoryModuleTypes.AddInventoryItemUseCase> {
+        self {
+            DefaultAddInventoryItemUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                locationRepository: self.inventoryModuleLocationRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleConsumeUseCase: Factory<any InventoryModuleTypes.ConsumeInventoryUseCase> {
+        self {
+            DefaultConsumeInventoryUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleMoveUseCase: Factory<any InventoryModuleTypes.MoveInventoryItemLocationUseCase> {
+        self {
+            DefaultMoveInventoryItemLocationUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                locationRepository: self.inventoryModuleLocationRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleUpdateDatesUseCase: Factory<any InventoryModuleTypes.UpdateInventoryItemDatesUseCase> {
+        self {
+            DefaultUpdateInventoryItemDatesUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleGetExpiredUseCase: Factory<any InventoryModuleTypes.GetExpiredItemsUseCase> {
+        self {
+            DefaultGetExpiredItemsUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                connectivity: self.inventoryModuleConnectivityProvider()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleGetExpiringUseCase: Factory<any InventoryModuleTypes.GetExpiringItemsUseCase> {
+        self {
+            DefaultGetExpiringItemsUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                connectivity: self.inventoryModuleConnectivityProvider()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleSummaryUseCase: Factory<any InventoryModuleTypes.GetInventorySummaryByProductUseCase> {
+        self {
+            DefaultGetInventorySummaryByProductUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleSyncPendingUseCase: Factory<any InventoryModuleTypes.SyncPendingInventoryUseCase> {
+        self {
+            DefaultSyncPendingInventoryUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleWarmupUseCase: Factory<any InventoryModuleTypes.WarmExpiringInventoryWindowUseCase> {
+        self {
+            DefaultWarmExpiringInventoryWindowUseCase(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                warmupRunStore: self.inventoryModuleWarmupRunStore(),
+                connectivity: self.inventoryModuleConnectivityProvider()
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleService: Factory<any InventoryModuleTypes.InventoryModuleServicing> {
+        self {
+            AppInventoryModuleService(
+                addUseCase: self.inventoryModuleAddUseCase(),
+                consumeUseCase: self.inventoryModuleConsumeUseCase(),
+                moveUseCase: self.inventoryModuleMoveUseCase(),
+                updateDatesUseCase: self.inventoryModuleUpdateDatesUseCase(),
+                getExpiredUseCase: self.inventoryModuleGetExpiredUseCase(),
+                getExpiringUseCase: self.inventoryModuleGetExpiringUseCase(),
+                summaryUseCase: self.inventoryModuleSummaryUseCase(),
+                syncPendingUseCase: self.inventoryModuleSyncPendingUseCase(),
+                warmupUseCase: self.inventoryModuleWarmupUseCase()
             )
         }
             .singleton
