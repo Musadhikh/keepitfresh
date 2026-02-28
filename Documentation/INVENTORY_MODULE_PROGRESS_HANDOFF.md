@@ -2,7 +2,7 @@
 
 Status date: 2026-02-28  
 Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `96c27ca`
+Base commit at handoff: `ab62956`
 
 This document captures:
 - What is completed
@@ -158,37 +158,46 @@ References:
   - `swift test --package-path Packages/InventoryModule` (30 tests passed)
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### Firestore remote gateway milestone (completed)
+- Replaced temporary inventory remote gateway in app DI with a Firestore-backed adapter:
+  - `FirestoreInventoryModuleRemoteGateway`
+  - registered in composition root instead of `StubInventoryModuleRemoteGateway`
+- Remote storage path is now household-scoped:
+  - `Houses/{householdId}/Items/{inventoryItemId}`
+- Remote behaviors implemented:
+  - `upsert` writes batch/instance payloads to house-scoped inventory documents
+  - `fetchActiveItems` reads only active items for a house (`status == "active"`)
+  - write path respects `FirebaseWritePolicy.isMockWriteEnabled` in debug mode
+  - mapping uses shared Firestore codable helpers for stable date/value normalization
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule` (30 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Replace the temporary inventory remote adapter with a production-grade app-layer remote gateway.
+Add adapter/composition smoke tests for InventoryModule app-layer infrastructure.
 
 Goal:
-- Replace `StubInventoryModuleRemoteGateway` with a real gateway backed by current app remote infrastructure.
-- Keep module contracts unchanged (`InventoryRemoteGateway` remains backend-agnostic and upsert/fetch based).
-- Preserve offline-first behavior expectations:
-  - app mutations continue local-first and only remote-sync through gateway.
-  - read flows continue local-first with remote fallback/refresh.
-- Add adapter-level tests/smoke checks for gateway mapping and error semantics.
+- Add app-layer tests around:
+  - `FirestoreInventoryModuleRemoteGateway` encode/decode behavior and house-scoped path assumptions
+  - DI resolution smoke checks for `inventoryModuleService` and dependent use cases
+- Keep tests focused on adapter boundaries (module remains backend-agnostic).
 
 Why this is next:
-- Current app integration still uses a temporary in-memory remote adapter.
-- Production sync behavior depends on a real remote gateway path.
+- Core business logic and remote adapter wiring are now complete.
+- Next risk area is integration correctness and regression safety in app composition boundaries.
 
 ## 3) Ordered Pending Steps
 
-1. Replace temporary remote adapter with production-grade inventory remote gateway.
-   - Keep mapping boundary in app infrastructure.
-   - Preserve backend-agnostic module contracts.
-
-2. Add adapter and composition smoke tests at app layer.
+1. Add adapter and composition smoke tests at app layer.
    - Repository/store mapper round-trip sanity checks.
    - DI resolution and service invocation smoke tests.
 
-3. Migrate Home inventory reads to InventoryModule service queries.
+2. Migrate Home inventory reads to InventoryModule service queries.
    - Home should consume module query API directly for expired/expiring sections.
    - Preserve local-first UX while warm-up sync refreshes cache in background.
 
-4. Follow-up sync hardening (future task).
+3. Follow-up sync hardening (future task).
    - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
 
 ## 4) Resume References (Another Machine)
@@ -229,6 +238,7 @@ Why this is next:
 - `keepitfresh/Data/InventoryModule/Sync/RealmInventoryModuleSyncStateStore.swift`
 - `keepitfresh/Data/InventoryModule/Sync/RealmInventoryModuleWarmupRunStore.swift`
 - `keepitfresh/Data/InventoryModule/Remote/StubInventoryModuleRemoteGateway.swift`
+- `keepitfresh/Data/InventoryModule/Remote/FirestoreInventoryModuleRemoteGateway.swift`
 - `keepitfresh/Data/InventoryModule/Runtime/AppConnectivityProvider+InventoryModule.swift`
 - `keepitfresh/App/DIContainer.swift`
 - `keepitfresh/Presentation/Home/HomeInventoryViewModel.swift`

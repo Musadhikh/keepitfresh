@@ -174,7 +174,7 @@ extension Container {
     }
 
     var inventoryModuleRemoteGateway: Factory<any InventoryModuleTypes.InventoryRemoteGateway> {
-        self { StubInventoryModuleRemoteGateway() }
+        self { FirestoreInventoryModuleRemoteGateway() }
             .singleton
     }
 
