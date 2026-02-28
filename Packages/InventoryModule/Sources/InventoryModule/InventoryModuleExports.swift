@@ -21,6 +21,7 @@ public typealias DefaultAddInventoryItemUseCase = InventoryApplication.DefaultAd
 public typealias AddInventoryItemInput = InventoryApplication.AddInventoryItemInput
 public typealias AddInventoryItemOutput = InventoryApplication.AddInventoryItemOutput
 public typealias ConsumeInventoryUseCase = InventoryApplication.ConsumeInventoryUseCase
+public typealias DefaultConsumeInventoryUseCase = InventoryApplication.DefaultConsumeInventoryUseCase
 public typealias ConsumeInventoryInput = InventoryApplication.ConsumeInventoryInput
 public typealias ConsumeInventoryOutput = InventoryApplication.ConsumeInventoryOutput
 public typealias ConsumeInventoryTarget = InventoryApplication.ConsumeInventoryTarget

@@ -248,6 +248,105 @@ struct InventoryReadOfflineFirstTests {
     }
 }
 
+struct InventoryConsumeOfflineFirstTests {
+    @Test
+    func fefoConsumesEarliestExpiryFirst() async throws {
+        let oldest = makeItem(id: "batch-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 3)
+        let newer = makeItem(id: "batch-2", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 5, quantity: 5)
+        let fixture = await makeConsumeFixture(online: false, seed: [newer, oldest])
+
+        let output = try await fixture.useCase.execute(
+            ConsumeInventoryInput(
+                target: .productId("prod-1", householdId: fixture.householdId),
+                amount: Quantity(value: 4, unit: .piece)
+            )
+        )
+
+        #expect(output.consumed.count == 2)
+        #expect(output.consumed[0].inventoryItemId == "batch-1")
+        #expect(output.consumed[0].consumedQuantity.value == 3)
+        #expect(output.consumed[1].inventoryItemId == "batch-2")
+        #expect(output.consumed[1].consumedQuantity.value == 1)
+    }
+
+    @Test
+    func fefoPlacesNilExpiryAfterDatedBatches() async throws {
+        let noExpiry = makeItem(id: "batch-nil", householdId: "house-1", productId: "prod-1", expiryOffsetDays: nil, quantity: 5)
+        let dated = makeItem(id: "batch-date", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 1, quantity: 2)
+        let fixture = await makeConsumeFixture(online: false, seed: [noExpiry, dated])
+
+        let output = try await fixture.useCase.execute(
+            ConsumeInventoryInput(
+                target: .productId("prod-1", householdId: fixture.householdId),
+                amount: Quantity(value: 1, unit: .piece)
+            )
+        )
+
+        #expect(output.consumed.count == 1)
+        #expect(output.consumed[0].inventoryItemId == "batch-date")
+    }
+
+    @Test
+    func consumingFullBatchTransitionsStatusToConsumed() async throws {
+        let item = makeItem(id: "batch-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 2)
+        let fixture = await makeConsumeFixture(online: false, seed: [item])
+
+        _ = try await fixture.useCase.execute(
+            ConsumeInventoryInput(
+                target: .inventoryItemId("batch-1", householdId: fixture.householdId),
+                amount: Quantity(value: 2, unit: .piece)
+            )
+        )
+
+        let updated = try await fixture.inventoryRepository.findById("batch-1", householdId: fixture.householdId)
+        #expect(updated?.quantity.value == 0)
+        #expect(updated?.status == .consumed)
+        #expect(updated?.consumedAt != nil)
+    }
+
+    @Test
+    func offlineConsumePersistsPendingSyncWithoutRemoteCall() async throws {
+        let item = makeItem(id: "batch-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 2)
+        let fixture = await makeConsumeFixture(online: false, seed: [item])
+
+        let output = try await fixture.useCase.execute(
+            ConsumeInventoryInput(
+                target: .inventoryItemId("batch-1", householdId: fixture.householdId),
+                amount: Quantity(value: 1, unit: .piece),
+                idempotencyRequestId: "consume-offline"
+            )
+        )
+
+        let metadata = try await fixture.syncStore.metadata(for: "batch-1", householdId: fixture.householdId, operation: .consume)
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncState == .pending)
+        #expect(metadata?.state == .pending)
+        #expect(remoteCalls == 0)
+    }
+
+    @Test
+    func onlineConsumeTransitionsToSyncedState() async throws {
+        let item = makeItem(id: "batch-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 2)
+        let fixture = await makeConsumeFixture(online: true, seed: [item])
+
+        let output = try await fixture.useCase.execute(
+            ConsumeInventoryInput(
+                target: .inventoryItemId("batch-1", householdId: fixture.householdId),
+                amount: Quantity(value: 1, unit: .piece),
+                idempotencyRequestId: "consume-online"
+            )
+        )
+
+        let metadata = try await fixture.syncStore.metadata(for: "batch-1", householdId: fixture.householdId, operation: .consume)
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncState == .synced)
+        #expect(metadata?.state == .synced)
+        #expect(remoteCalls == 1)
+    }
+}
+
 private struct AddUseCaseFixture {
     let useCase: DefaultAddInventoryItemUseCase
     let inventoryRepository: InMemoryInventoryRepository
@@ -291,6 +390,14 @@ private struct ReadUseCaseFixture {
     let householdId: String
     let now: Date
     let timeZone: TimeZone
+}
+
+private struct ConsumeUseCaseFixture {
+    let useCase: DefaultConsumeInventoryUseCase
+    let inventoryRepository: InMemoryInventoryRepository
+    let remoteGateway: InMemoryInventoryRemoteGateway
+    let syncStore: InMemoryInventorySyncStateStore
+    let householdId: String
 }
 
 private func makeFixture(online: Bool) async throws -> AddUseCaseFixture {
@@ -375,15 +482,43 @@ private func makeReadFixture(
     )
 }
 
+private func makeConsumeFixture(
+    online: Bool,
+    seed: [InventoryItem]
+) async -> ConsumeUseCaseFixture {
+    let householdId = "house-1"
+    let inventoryRepository = InMemoryInventoryRepository(seed: seed)
+    let remoteGateway = InMemoryInventoryRemoteGateway()
+    let syncStore = InMemoryInventorySyncStateStore()
+    let connectivity = TestConnectivityProvider(isOnline: online)
+    let clock = FixedClock(now: Date(timeIntervalSince1970: 1_740_756_000))
+
+    let useCase = DefaultConsumeInventoryUseCase(
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        syncStateStore: syncStore,
+        connectivity: connectivity,
+        clock: clock
+    )
+
+    return ConsumeUseCaseFixture(
+        useCase: useCase,
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        syncStore: syncStore,
+        householdId: householdId
+    )
+}
+
 private func makeItem(
     id: String,
     householdId: String,
     productId: String,
-    expiryOffsetDays: Int,
+    expiryOffsetDays: Int?,
     quantity: Double
 ) -> InventoryItem {
     let now = Date(timeIntervalSince1970: 1_740_756_000)
-    let expiry = Calendar(identifier: .gregorian).date(byAdding: .day, value: expiryOffsetDays, to: now)
+    let expiry = expiryOffsetDays.flatMap { Calendar(identifier: .gregorian).date(byAdding: .day, value: $0, to: now) }
     return InventoryItem(
         id: id,
         householdId: householdId,
@@ -391,7 +526,7 @@ private func makeItem(
         quantity: Quantity(value: quantity, unit: .piece),
         status: .active,
         storageLocationId: "loc-a",
-        expiryInfo: InventoryDateInfo(kind: .expiry, rawText: "\(expiryOffsetDays)d", confidence: 1.0, isoDate: expiry),
+        expiryInfo: expiry.map { InventoryDateInfo(kind: .expiry, rawText: "\(expiryOffsetDays ?? 0)d", confidence: 1.0, isoDate: $0) },
         createdAt: now,
         updatedAt: now
     )
