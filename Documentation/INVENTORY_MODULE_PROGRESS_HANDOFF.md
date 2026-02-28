@@ -104,40 +104,51 @@ References:
   - move location idempotency duplicate suppression
   - update dates offline pending + date persistence
   - update dates confidence validation (`invalidDateConfidence`)
+- Implemented summary + sync coordination use cases:
+  - `DefaultGetInventorySummaryByProductUseCase`
+  - `DefaultSyncPendingInventoryUseCase`
+  - `DefaultWarmExpiringInventoryWindowUseCase`
+  - Added storage-agnostic contracts for coordinator/warm-up:
+    - `InventorySyncStateStore.fetchByState(...)`
+    - `InventoryWarmupRunStore`
+  - Added in-memory warm-up tracker:
+    - `InMemoryInventoryWarmupRunStore`
+- Expanded coordinator/warm-up tests:
+  - summary reflects active batch totals + earliest expiry
+  - sync coordinator `pending -> synced` success path
+  - sync coordinator remote failure -> `failed` with retry increment
+  - warm-up runs once per launch and skips second invocation
 - Verification completed:
   - `swift build --package-path keepitfresh/Packages/InventoryModule` (`BUILD SUCCEEDED`)
-  - `swift test --package-path keepitfresh/Packages/InventoryModule` (22 tests passed)
+  - `swift test --package-path keepitfresh/Packages/InventoryModule` (26 tests passed)
   - `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
 ## 2) Immediate Next Step (Do This First)
 
-Implement summary + sync coordination use cases to complete business flow orchestration.
+Implement app-layer adapter wiring and integration hooks for the complete inventory package service set.
 
 Goal:
-- Implement:
-  - `GetInventorySummaryByProduct` default implementation
-  - `SyncPendingInventory` coordinator use case
-  - `WarmExpiringInventoryWindow` one-time-per-launch use case
-- Reuse the established local-first + sync-state flow:
-  - persist local mutation first
-  - track sync metadata (`pending/synced/failed`)
-  - sync remote when online
+- Create app-side adapters (outside package) for:
+  - local persistence
+  - remote gateway
+  - sync-state store
+  - warm-up run tracking
+- Wire all inventory use cases into app composition root (Factory registrations).
+- Add integration trigger:
+  - call `WarmExpiringInventoryWindow` once on Home launch per app run.
 - Add focused tests:
-  - summary correctness after merge + consume operations
-  - pending->synced/failed transitions in sync coordinator
-  - one-time warm-up guard behavior per launch
+  - adapter round-trip mapping sanity
+  - app-layer wiring smoke checks (resolve/invoke)
 
 Why this is next:
-- Add/retrieve/consume/move/update are now implemented; these close core mutation workflows before app integration.
-- Sync coordinator + warm-up are required to satisfy the home-launch behavior contract.
+- All core business use cases are now implemented and tested in package scope.
+- Remaining work is infrastructure wiring and runtime integration in the app.
 
 ## 3) Ordered Pending Steps
 
 1. Implement remaining application-layer use-case behavior.
-   - `AddInventoryItem`, `ConsumeInventory`, `MoveInventoryItemLocation`, `UpdateInventoryItemDates`.
-   - `DeleteInventoryItem`, `GetExpiredItems`, `GetExpiringItems`, `GetInventorySummaryByProduct`.
-   - `SyncPendingInventory`, `WarmExpiringInventoryWindow`.
-   - Ensure timezone-safe day boundary logic for expiry classification.
+   - Ensure any still-missing operations (`DeleteInventoryItem`) follow the same local-first/sync-state contract.
+   - Keep timezone-safe day boundary logic for expiry classification.
 
 2. Add data-layer storage-agnostic adapters and mappers.
    - Generic local records/index strategy for expiry and household-scoped queries.
@@ -179,6 +190,9 @@ Why this is next:
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultUpdateInventoryItemDatesUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetExpiredItemsUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetExpiringItemsUseCase.swift`
+- `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetInventorySummaryByProductUseCase.swift`
+- `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultSyncPendingInventoryUseCase.swift`
+- `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultWarmExpiringInventoryWindowUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/Policies/FEFOSelectionPolicy.swift`
 - `Packages/InventoryModule/Sources/InventoryData/Repositories/InMemoryInventoryRepository.swift`
 - `Packages/InventoryModule/Sources/InventoryData/Repositories/InMemoryInventoryRemoteGateway.swift`
