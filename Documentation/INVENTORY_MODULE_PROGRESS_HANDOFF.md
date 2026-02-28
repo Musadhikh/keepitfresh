@@ -2,7 +2,7 @@
 
 Status date: 2026-02-28  
 Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `7ca0590`
+Base commit at handoff: `96c27ca`
 
 This document captures:
 - What is completed
@@ -141,47 +141,54 @@ References:
   - `swift test --package-path Packages/ProductModule` (5 tests passed)
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### Delete mutation milestone (completed)
+- Implemented inventory delete as soft-delete/archive with offline-first orchestration:
+  - new use-case contract: `DeleteInventoryItemUseCase`
+  - default implementation: `DefaultDeleteInventoryItemUseCase`
+  - local-first state transition (`status = .archived`) with sync metadata (`operation = .delete`)
+  - online remote upsert + metadata state transition (`pending` -> `synced` / `failed`)
+  - idempotency support by request ID
+- Wired delete use case across package facade exports, app service adapter, and DI container.
+- Expanded mutation tests to cover delete paths:
+  - offline pending + local archive persistence
+  - online synced transition
+  - online remote failure -> failed + retry increment
+  - idempotency duplicate suppression
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule` (30 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Implement `DeleteInventoryItem` end-to-end with the same offline-first contract and sync-state semantics as other inventory mutations.
+Replace the temporary inventory remote adapter with a production-grade app-layer remote gateway.
 
 Goal:
-- Add `DeleteInventoryItemUseCase` contract + default implementation in `InventoryApplication`.
-- Behavior contract:
-  - local-first mutation (`active -> archived` or soft-delete status path; no hard delete by default)
-  - sync metadata transition tracking (`pending` -> `synced`/`failed`)
-  - online remote upsert/delete operation depending on gateway contract
-  - idempotency request ID support
-- Export the use case via `InventoryModule` facade and wire it into app service/DI.
-- Add focused tests for delete flow:
-  - offline pending behavior
-  - online success transition
-  - remote failure transition to failed + retry metadata
-  - idempotency duplicate suppression
+- Replace `StubInventoryModuleRemoteGateway` with a real gateway backed by current app remote infrastructure.
+- Keep module contracts unchanged (`InventoryRemoteGateway` remains backend-agnostic and upsert/fetch based).
+- Preserve offline-first behavior expectations:
+  - app mutations continue local-first and only remote-sync through gateway.
+  - read flows continue local-first with remote fallback/refresh.
+- Add adapter-level tests/smoke checks for gateway mapping and error semantics.
 
 Why this is next:
-- It is the main remaining core mutation missing from the inventory business API.
-- Completing it keeps mutation semantics consistent across add/consume/move/update/delete.
+- Current app integration still uses a temporary in-memory remote adapter.
+- Production sync behavior depends on a real remote gateway path.
 
 ## 3) Ordered Pending Steps
 
-1. Implement `DeleteInventoryItem` use case + tests + facade export + app wiring.
-   - Match local-first + sync-state + idempotency pattern used by other mutations.
-   - Keep soft-delete/archival semantics explicit.
-
-2. Replace temporary remote adapter with production-grade inventory remote gateway.
+1. Replace temporary remote adapter with production-grade inventory remote gateway.
    - Keep mapping boundary in app infrastructure.
    - Preserve backend-agnostic module contracts.
 
-3. Add adapter and composition smoke tests at app layer.
+2. Add adapter and composition smoke tests at app layer.
    - Repository/store mapper round-trip sanity checks.
    - DI resolution and service invocation smoke tests.
 
-4. Migrate Home inventory reads to InventoryModule service queries.
+3. Migrate Home inventory reads to InventoryModule service queries.
    - Home should consume module query API directly for expired/expiring sections.
    - Preserve local-first UX while warm-up sync refreshes cache in background.
 
-5. Follow-up sync hardening (future task).
+4. Follow-up sync hardening (future task).
    - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
 
 ## 4) Resume References (Another Machine)

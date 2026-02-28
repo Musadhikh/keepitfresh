@@ -26,6 +26,10 @@ public typealias ConsumeInventoryInput = InventoryApplication.ConsumeInventoryIn
 public typealias ConsumeInventoryOutput = InventoryApplication.ConsumeInventoryOutput
 public typealias ConsumeInventoryTarget = InventoryApplication.ConsumeInventoryTarget
 public typealias ConsumedBatchResult = InventoryApplication.ConsumedBatchResult
+public typealias DeleteInventoryItemUseCase = InventoryApplication.DeleteInventoryItemUseCase
+public typealias DefaultDeleteInventoryItemUseCase = InventoryApplication.DefaultDeleteInventoryItemUseCase
+public typealias DeleteInventoryItemInput = InventoryApplication.DeleteInventoryItemInput
+public typealias DeleteInventoryItemOutput = InventoryApplication.DeleteInventoryItemOutput
 public typealias MoveInventoryItemLocationUseCase = InventoryApplication.MoveInventoryItemLocationUseCase
 public typealias DefaultMoveInventoryItemLocationUseCase = InventoryApplication.DefaultMoveInventoryItemLocationUseCase
 public typealias MoveInventoryItemLocationInput = InventoryApplication.MoveInventoryItemLocationInput
@@ -105,6 +109,9 @@ public enum InventoryModuleTypes {
     public typealias ConsumeInventoryUseCase = InventoryApplication.ConsumeInventoryUseCase
     public typealias ConsumeInventoryInput = InventoryApplication.ConsumeInventoryInput
     public typealias ConsumeInventoryOutput = InventoryApplication.ConsumeInventoryOutput
+    public typealias DeleteInventoryItemUseCase = InventoryApplication.DeleteInventoryItemUseCase
+    public typealias DeleteInventoryItemInput = InventoryApplication.DeleteInventoryItemInput
+    public typealias DeleteInventoryItemOutput = InventoryApplication.DeleteInventoryItemOutput
     public typealias MoveInventoryItemLocationUseCase = InventoryApplication.MoveInventoryItemLocationUseCase
     public typealias MoveInventoryItemLocationInput = InventoryApplication.MoveInventoryItemLocationInput
     public typealias MoveInventoryItemLocationOutput = InventoryApplication.MoveInventoryItemLocationOutput
@@ -141,6 +148,7 @@ public enum InventoryModuleTypes {
 
     public typealias DefaultAddInventoryItemUseCase = InventoryApplication.DefaultAddInventoryItemUseCase
     public typealias DefaultConsumeInventoryUseCase = InventoryApplication.DefaultConsumeInventoryUseCase
+    public typealias DefaultDeleteInventoryItemUseCase = InventoryApplication.DefaultDeleteInventoryItemUseCase
     public typealias DefaultMoveInventoryItemLocationUseCase = InventoryApplication.DefaultMoveInventoryItemLocationUseCase
     public typealias DefaultUpdateInventoryItemDatesUseCase = InventoryApplication.DefaultUpdateInventoryItemDatesUseCase
     public typealias DefaultGetExpiredItemsUseCase = InventoryApplication.DefaultGetExpiredItemsUseCase

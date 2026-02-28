@@ -13,6 +13,7 @@ import InventoryModule
 actor AppInventoryModuleService: InventoryModuleTypes.InventoryModuleServicing {
     private let addUseCase: any InventoryModuleTypes.AddInventoryItemUseCase
     private let consumeUseCase: any InventoryModuleTypes.ConsumeInventoryUseCase
+    private let deleteUseCase: any InventoryModuleTypes.DeleteInventoryItemUseCase
     private let moveUseCase: any InventoryModuleTypes.MoveInventoryItemLocationUseCase
     private let updateDatesUseCase: any InventoryModuleTypes.UpdateInventoryItemDatesUseCase
     private let getExpiredUseCase: any InventoryModuleTypes.GetExpiredItemsUseCase
@@ -24,6 +25,7 @@ actor AppInventoryModuleService: InventoryModuleTypes.InventoryModuleServicing {
     init(
         addUseCase: any InventoryModuleTypes.AddInventoryItemUseCase,
         consumeUseCase: any InventoryModuleTypes.ConsumeInventoryUseCase,
+        deleteUseCase: any InventoryModuleTypes.DeleteInventoryItemUseCase,
         moveUseCase: any InventoryModuleTypes.MoveInventoryItemLocationUseCase,
         updateDatesUseCase: any InventoryModuleTypes.UpdateInventoryItemDatesUseCase,
         getExpiredUseCase: any InventoryModuleTypes.GetExpiredItemsUseCase,
@@ -34,6 +36,7 @@ actor AppInventoryModuleService: InventoryModuleTypes.InventoryModuleServicing {
     ) {
         self.addUseCase = addUseCase
         self.consumeUseCase = consumeUseCase
+        self.deleteUseCase = deleteUseCase
         self.moveUseCase = moveUseCase
         self.updateDatesUseCase = updateDatesUseCase
         self.getExpiredUseCase = getExpiredUseCase
@@ -49,6 +52,10 @@ actor AppInventoryModuleService: InventoryModuleTypes.InventoryModuleServicing {
 
     func consumeInventory(_ input: InventoryModuleTypes.ConsumeInventoryInput) async throws -> InventoryModuleTypes.ConsumeInventoryOutput {
         try await consumeUseCase.execute(input)
+    }
+
+    func deleteInventoryItem(_ input: InventoryModuleTypes.DeleteInventoryItemInput) async throws -> InventoryModuleTypes.DeleteInventoryItemOutput {
+        try await deleteUseCase.execute(input)
     }
 
     func moveInventoryItemLocation(_ input: InventoryModuleTypes.MoveInventoryItemLocationInput) async throws -> InventoryModuleTypes.MoveInventoryItemLocationOutput {
