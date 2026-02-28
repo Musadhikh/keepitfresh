@@ -93,19 +93,28 @@ References:
   - full consume transitions batch status to `consumed`
   - offline consume keeps pending sync without remote write
   - online consume transitions sync metadata to synced
+- Implemented remaining offline-first mutation use cases:
+  - `DefaultMoveInventoryItemLocationUseCase`
+  - `DefaultUpdateInventoryItemDatesUseCase`
+  - Both follow local-first write then online remote sync with metadata state tracking (`pending`/`synced`/`failed`)
+  - Both support idempotency request IDs for duplicate submission resilience
+- Expanded mutation tests:
+  - move location offline pending + local persistence
+  - move location online synced transition
+  - move location idempotency duplicate suppression
+  - update dates offline pending + date persistence
+  - update dates confidence validation (`invalidDateConfidence`)
 - Verification completed:
   - `swift build --package-path keepitfresh/Packages/InventoryModule` (`BUILD SUCCEEDED`)
-  - `swift test --package-path keepitfresh/Packages/InventoryModule` (17 tests passed)
+  - `swift test --package-path keepitfresh/Packages/InventoryModule` (22 tests passed)
   - `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
 ## 2) Immediate Next Step (Do This First)
 
-Implement the remaining mutation/query use cases with the same offline-first contract.
+Implement summary + sync coordination use cases to complete business flow orchestration.
 
 Goal:
 - Implement:
-  - `MoveInventoryItemLocation`
-  - `UpdateInventoryItemDates`
   - `GetInventorySummaryByProduct` default implementation
   - `SyncPendingInventory` coordinator use case
   - `WarmExpiringInventoryWindow` one-time-per-launch use case
@@ -114,12 +123,12 @@ Goal:
   - track sync metadata (`pending/synced/failed`)
   - sync remote when online
 - Add focused tests:
-  - location/date mutation offline/online transitions
   - summary correctness after merge + consume operations
+  - pending->synced/failed transitions in sync coordinator
   - one-time warm-up guard behavior per launch
 
 Why this is next:
-- Add/retrieve/consume are now implemented; these close the remaining business workflows before app integration.
+- Add/retrieve/consume/move/update are now implemented; these close core mutation workflows before app integration.
 - Sync coordinator + warm-up are required to satisfy the home-launch behavior contract.
 
 ## 3) Ordered Pending Steps
@@ -166,6 +175,8 @@ Why this is next:
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/AddInventoryItemUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultAddInventoryItemUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultConsumeInventoryUseCase.swift`
+- `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultMoveInventoryItemLocationUseCase.swift`
+- `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultUpdateInventoryItemDatesUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetExpiredItemsUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/UseCases/DefaultGetExpiringItemsUseCase.swift`
 - `Packages/InventoryModule/Sources/InventoryApplication/Policies/FEFOSelectionPolicy.swift`
