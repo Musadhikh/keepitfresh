@@ -50,11 +50,14 @@ Packages/*
 !Packages/ImageDataModule/**
 !Packages/ProductModule/
 !Packages/ProductModule/**
+!Packages/InventoryModule/
+!Packages/InventoryModule/**
 Packages/CameraModule/.swiftpm/
 Packages/BarcodeScannerModule/.swiftpm/
 Packages/RealmDatabaseModule/.swiftpm/
 Packages/ImageDataModule/.swiftpm/
 Packages/ProductModule/.swiftpm/
+Packages/InventoryModule/.swiftpm/
 Package.pins
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 .build/
