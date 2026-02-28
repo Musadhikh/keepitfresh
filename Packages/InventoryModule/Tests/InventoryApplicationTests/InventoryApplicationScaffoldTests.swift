@@ -347,6 +347,125 @@ struct InventoryConsumeOfflineFirstTests {
     }
 }
 
+struct InventoryMutationOfflineFirstTests {
+    @Test
+    func moveLocationOfflineMarksPendingAndUpdatesLocal() async throws {
+        let item = makeItem(id: "move-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: false, seed: [item])
+
+        let output = try await fixture.moveUseCase.execute(
+            MoveInventoryItemLocationInput(
+                householdId: fixture.householdId,
+                itemId: "move-1",
+                targetLocationId: "loc-b",
+                idempotencyRequestId: "move-offline"
+            )
+        )
+
+        let updated = try await fixture.inventoryRepository.findById("move-1", householdId: fixture.householdId)
+        let metadata = try await fixture.syncStore.metadata(for: "move-1", householdId: fixture.householdId, operation: .update)
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncState == .pending)
+        #expect(updated?.storageLocationId == "loc-b")
+        #expect(metadata?.state == .pending)
+        #expect(remoteCalls == 0)
+    }
+
+    @Test
+    func moveLocationOnlineMarksSynced() async throws {
+        let item = makeItem(id: "move-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: true, seed: [item])
+
+        let output = try await fixture.moveUseCase.execute(
+            MoveInventoryItemLocationInput(
+                householdId: fixture.householdId,
+                itemId: "move-1",
+                targetLocationId: "loc-b",
+                idempotencyRequestId: "move-online"
+            )
+        )
+
+        let metadata = try await fixture.syncStore.metadata(for: "move-1", householdId: fixture.householdId, operation: .update)
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncState == .synced)
+        #expect(metadata?.state == .synced)
+        #expect(remoteCalls == 1)
+    }
+
+    @Test
+    func updateDatesOfflineMarksPendingAndPersistsDates() async throws {
+        let item = makeItem(id: "date-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: nil, quantity: 1)
+        let fixture = await makeMutationFixture(online: false, seed: [item])
+
+        let expiry = InventoryDateInfo(kind: .expiry, rawText: "2026-03-20", confidence: 0.9, isoDate: Date(timeIntervalSince1970: 1_742_428_800))
+        let opened = InventoryDateInfo(kind: .opened, rawText: "2026-03-01", confidence: 0.8, isoDate: Date(timeIntervalSince1970: 1_740_787_200))
+
+        let output = try await fixture.dateUseCase.execute(
+            UpdateInventoryItemDatesInput(
+                householdId: fixture.householdId,
+                itemId: "date-1",
+                expiryInfo: expiry,
+                openedInfo: opened,
+                idempotencyRequestId: "date-offline"
+            )
+        )
+
+        let updated = try await fixture.inventoryRepository.findById("date-1", householdId: fixture.householdId)
+        let metadata = try await fixture.syncStore.metadata(for: "date-1", householdId: fixture.householdId, operation: .update)
+
+        #expect(output.syncState == .pending)
+        #expect(updated?.expiryInfo == expiry)
+        #expect(updated?.openedInfo == opened)
+        #expect(metadata?.state == .pending)
+    }
+
+    @Test
+    func updateDatesRejectsInvalidConfidence() async throws {
+        let item = makeItem(id: "date-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: nil, quantity: 1)
+        let fixture = await makeMutationFixture(online: false, seed: [item])
+        let invalid = InventoryDateInfo(kind: .expiry, rawText: "raw", confidence: 1.2, isoDate: nil)
+
+        await #expect(throws: InventoryDomainError.invalidDateConfidence) {
+            try await fixture.dateUseCase.execute(
+                UpdateInventoryItemDatesInput(
+                    householdId: fixture.householdId,
+                    itemId: "date-1",
+                    expiryInfo: invalid,
+                    openedInfo: nil
+                )
+            )
+        }
+    }
+
+    @Test
+    func moveLocationIdempotencyPreventsSecondMutation() async throws {
+        let item = makeItem(id: "move-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeMutationFixture(online: false, seed: [item])
+        let requestId = "move-idempotent"
+
+        _ = try await fixture.moveUseCase.execute(
+            MoveInventoryItemLocationInput(
+                householdId: fixture.householdId,
+                itemId: "move-1",
+                targetLocationId: "loc-b",
+                idempotencyRequestId: requestId
+            )
+        )
+        let second = try await fixture.moveUseCase.execute(
+            MoveInventoryItemLocationInput(
+                householdId: fixture.householdId,
+                itemId: "move-1",
+                targetLocationId: "loc-a",
+                idempotencyRequestId: requestId
+            )
+        )
+
+        #expect(second.item.storageLocationId == "loc-b")
+    }
+}
+
 private struct AddUseCaseFixture {
     let useCase: DefaultAddInventoryItemUseCase
     let inventoryRepository: InMemoryInventoryRepository
@@ -394,6 +513,15 @@ private struct ReadUseCaseFixture {
 
 private struct ConsumeUseCaseFixture {
     let useCase: DefaultConsumeInventoryUseCase
+    let inventoryRepository: InMemoryInventoryRepository
+    let remoteGateway: InMemoryInventoryRemoteGateway
+    let syncStore: InMemoryInventorySyncStateStore
+    let householdId: String
+}
+
+private struct MutationUseCaseFixture {
+    let moveUseCase: DefaultMoveInventoryItemLocationUseCase
+    let dateUseCase: DefaultUpdateInventoryItemDatesUseCase
     let inventoryRepository: InMemoryInventoryRepository
     let remoteGateway: InMemoryInventoryRemoteGateway
     let syncStore: InMemoryInventorySyncStateStore
@@ -503,6 +631,64 @@ private func makeConsumeFixture(
 
     return ConsumeUseCaseFixture(
         useCase: useCase,
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        syncStore: syncStore,
+        householdId: householdId
+    )
+}
+
+private func makeMutationFixture(
+    online: Bool,
+    seed: [InventoryItem]
+) async -> MutationUseCaseFixture {
+    let householdId = "house-1"
+    let now = Date(timeIntervalSince1970: 1_740_756_000)
+    let inventoryRepository = InMemoryInventoryRepository(seed: seed)
+    let locationRepository = InMemoryLocationRepository(
+        seed: [
+            StorageLocation(
+                id: "loc-a",
+                householdId: householdId,
+                name: "Fridge",
+                isColdStorage: true,
+                createdAt: now,
+                updatedAt: now
+            ),
+            StorageLocation(
+                id: "loc-b",
+                householdId: householdId,
+                name: "Pantry",
+                isColdStorage: false,
+                createdAt: now,
+                updatedAt: now
+            )
+        ]
+    )
+    let remoteGateway = InMemoryInventoryRemoteGateway()
+    let syncStore = InMemoryInventorySyncStateStore()
+    let connectivity = TestConnectivityProvider(isOnline: online)
+    let clock = FixedClock(now: now)
+
+    let moveUseCase = DefaultMoveInventoryItemLocationUseCase(
+        inventoryRepository: inventoryRepository,
+        locationRepository: locationRepository,
+        remoteGateway: remoteGateway,
+        syncStateStore: syncStore,
+        connectivity: connectivity,
+        clock: clock
+    )
+    let dateUseCase = DefaultUpdateInventoryItemDatesUseCase(
+        inventoryRepository: inventoryRepository,
+        remoteGateway: remoteGateway,
+        syncStateStore: syncStore,
+        connectivity: connectivity,
+        clock: clock
+    )
+
+    return MutationUseCaseFixture(
+        moveUseCase: moveUseCase,
+        dateUseCase: dateUseCase,
         inventoryRepository: inventoryRepository,
         remoteGateway: remoteGateway,
         syncStore: syncStore,
