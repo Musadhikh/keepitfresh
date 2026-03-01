@@ -45,25 +45,40 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
 
         guard await connectivity.isOnline() else {
             await observability.record(.skippedOffline(householdId: input.householdId))
-            return SyncPendingInventoryOutput(syncedCount: 0, failedCount: 0, skippedCount: 0)
+            return SyncPendingInventoryOutput(
+                syncedCount: 0,
+                failedCount: 0,
+                skippedCount: 0,
+                failedItemIDs: []
+            )
         }
 
         var candidates = try await syncStateStore.fetchByState(
             householdId: input.householdId,
             state: .pending,
-            limit: input.limit
+            limit: nil
         )
         let failed = try await syncStateStore.fetchByState(
             householdId: input.householdId,
             state: .failed,
-            limit: input.limit
+            limit: nil
         )
         candidates.append(contentsOf: failed)
+        if let operations = input.operations, operations.isEmpty == false {
+            candidates = candidates.filter { operations.contains($0.operation) }
+        }
+        candidates.sort { lhs, rhs in
+            (lhs.lastAttemptAt ?? .distantPast) < (rhs.lastAttemptAt ?? .distantPast)
+        }
+        if let limit = input.limit, limit > 0 {
+            candidates = Array(candidates.prefix(limit))
+        }
 
         var syncedCount = 0
         var failedCount = 0
         var skippedCount = 0
         var attemptedCount = 0
+        var failedItemIDs: [String] = []
         let now = clock.now()
 
         for metadata in candidates {
@@ -112,6 +127,7 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
                 updated.lastAttemptAt = clock.now()
                 try await syncStateStore.upsertMetadata([updated])
                 failedCount += 1
+                failedItemIDs.append(metadata.itemId)
                 await observability.record(
                     .itemFailed(
                         itemId: metadata.itemId,
@@ -135,7 +151,8 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
         return SyncPendingInventoryOutput(
             syncedCount: syncedCount,
             failedCount: failedCount,
-            skippedCount: skippedCount
+            skippedCount: skippedCount,
+            failedItemIDs: failedItemIDs
         )
     }
 }
