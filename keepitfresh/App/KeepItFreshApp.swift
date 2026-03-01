@@ -52,6 +52,7 @@ struct KeepItFreshApp: App {
             }
             .environment(appState)
             .networkConnectivityProvider(connectivityProvider)
+            .preferredColorScheme(appState.preferredColorScheme)
             .tint(Theme.Colors.accent)
             
             .onOpenURL { url in

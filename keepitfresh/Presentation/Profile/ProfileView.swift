@@ -34,6 +34,13 @@ struct ProfileView: View {
         .refreshable {
             await viewModel.fetchProfile()
         }
+        .onChange(of: viewModel.selectedAppearancePreference) { oldValue, newValue in
+            appState.applyAppearancePreference(newValue)
+            guard viewModel.profile?.appearancePreference != newValue else { return }
+            Task {
+                await viewModel.updateAppearancePreference(from: oldValue, to: newValue)
+            }
+        }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -72,6 +79,8 @@ struct ProfileView: View {
             
             // User Info Section
             userInfoSection(profile)
+
+            appearanceSection
             
             Divider()
                 .padding(.vertical, 8)
@@ -167,6 +176,31 @@ struct ProfileView: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
         }
     }
+
+    @ViewBuilder
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s12) {
+            Text("Appearance")
+                .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .headline))
+                .foregroundStyle(Theme.Colors.textPrimary)
+
+            Picker("App Appearance", selection: $viewModel.selectedAppearancePreference) {
+                ForEach(ProfileAppearancePreference.allCases, id: \.self) { preference in
+                    Text(preference.title).tag(preference)
+                }
+            }
+            .pickerStyle(.segmented)
+            .disabled(viewModel.isUpdatingAppearance)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Theme.Colors.surface)
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.Radius.r12)
+                .stroke(Theme.Colors.border, lineWidth: 1)
+        }
+        .clipShape(.rect(cornerRadius: Theme.Radius.r12))
+    }
     
     @ViewBuilder
     private var actionButtons: some View {
@@ -258,6 +292,19 @@ struct ProfileView: View {
             }
         }
         .padding(.top, 40)
+    }
+}
+
+private extension ProfileAppearancePreference {
+    var title: String {
+        switch self {
+        case .system:
+            return "System"
+        case .light:
+            return "Light"
+        case .dark:
+            return "Dark"
+        }
     }
 }
 

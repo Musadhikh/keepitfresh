@@ -20,6 +20,7 @@ extension Profile {
             householdIds: householdIds,
             lastSelectedHouseholdId: nil,
             isActive: isActive,
+            appearancePreference: appearancePreference,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
@@ -36,9 +37,26 @@ extension Profile {
             householdIds: householdIds,
             lastSelectedHouseholdId: householdId,
             isActive: isActive,
+            appearancePreference: appearancePreference,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
     }
-}
 
+    /// Returns a copy with a different appearance preference.
+    func withAppearancePreference(_ preference: ProfileAppearancePreference) -> Profile {
+        Profile(
+            id: id,
+            userId: userId,
+            name: name,
+            email: email,
+            avatarURL: avatarURL,
+            householdIds: householdIds,
+            lastSelectedHouseholdId: lastSelectedHouseholdId,
+            isActive: isActive,
+            appearancePreference: preference,
+            createdAt: createdAt,
+            updatedAt: Date()
+        )
+    }
+}

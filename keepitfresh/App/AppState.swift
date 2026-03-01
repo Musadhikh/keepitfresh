@@ -27,6 +27,7 @@ final class AppState {
     private(set) var currentState: State = .splash
     var selectedTab: AppTab = .home
     var homeExpiredBadgeCount = 0
+    private(set) var appearancePreference: ProfileAppearancePreference = .system
     var homeNavigationPath = NavigationPath()
     var profileNavigationPath = NavigationPath()
     private(set) var selectedHouse: House?
@@ -54,6 +55,27 @@ final class AppState {
 
     @ObservationIgnored
     private var profileObservationTask: Task<Void, Never>?
+
+    @ObservationIgnored
+    private let appearancePreferenceDefaultsKey = "app.appearancePreference"
+
+    init() {
+        if let rawValue = UserDefaults.standard.string(forKey: appearancePreferenceDefaultsKey),
+           let storedPreference = ProfileAppearancePreference(rawValue: rawValue) {
+            appearancePreference = storedPreference
+        }
+    }
+
+    var preferredColorScheme: ColorScheme? {
+        switch appearancePreference {
+        case .system:
+            return nil
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        }
+    }
     
     /// Transition to maintenance screen
     func enterMaintenance() {
@@ -84,6 +106,10 @@ final class AppState {
     /// Apply launch/auth next-step routing in one place so splash and login share behavior.
     func applyLaunchDecision(_ decision: AppLaunchDecision) {
         globalProfileErrorMessage = nil
+
+        if let profile = decision.profile {
+            applyAppearancePreference(profile.appearancePreference)
+        }
 
         switch decision.state {
         case .maintenance:
@@ -242,6 +268,7 @@ final class AppState {
     private func handleProfileRecordUpdate(_ record: ProfileSyncRecord?, userId: String) async {
         guard let record else { return }
         let profile = record.profile
+        applyAppearancePreference(profile.appearancePreference)
 
         if let selectedHouse, profile.householdIds.contains(selectedHouse.id) == false {
             let removedHouseName = selectedHouse.name
@@ -271,5 +298,10 @@ final class AppState {
         } else {
             _ = try? await profileSyncRepository.setLocalSelectedHousehold(for: userId, houseId: nil)
         }
+    }
+
+    func applyAppearancePreference(_ preference: ProfileAppearancePreference) {
+        appearancePreference = preference
+        UserDefaults.standard.set(preference.rawValue, forKey: appearancePreferenceDefaultsKey)
     }
 }
