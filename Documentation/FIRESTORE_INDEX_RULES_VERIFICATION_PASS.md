@@ -69,10 +69,23 @@ Optional rule unit tests (if added later):
 firebase emulators:exec --only firestore "npm test"
 ```
 
+### Added harness
+
+- `firebase-tests/package.json`
+- `firebase-tests/firestore.rules.test.mjs`
+- `firebase-tests/README.md`
+
+Run:
+
+```bash
+cd firebase-tests
+npm install
+npm run test:emulator
+```
+
 ## 6) Follow-up Checklist
 
 1. Run this config in Firebase Emulator Suite and validate allow/deny matrix with auth contexts.
 2. Perform staging smoke tests for Product query filter/sort variants and collect missing-index errors.
 3. Promote any missing index links from staging logs into `firestore.indexes.json`.
 4. Revisit `ProductCatalog` write policy once server-authoritative product sync is in place.
-
