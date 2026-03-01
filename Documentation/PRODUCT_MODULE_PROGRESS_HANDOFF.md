@@ -2,7 +2,7 @@
 
 Status date: 2026-03-01  
 Branch at handoff: `task/homepage`  
-Base commit at handoff: `e15a5c9`
+Base commit at handoff: `d0131ea`
 
 This document captures:
 - What is completed
@@ -95,15 +95,6 @@ References:
 
 References:
 - `keepitfresh/App/KeepItFreshApp.swift`
-
-References:
-- `keepitfresh/Data/AddProduct/Local/RealmInventoryRepository.swift`
-- `keepitfresh/Data/AddProduct/Local/RealmCatalogRepository.swift`
-- `keepitfresh/Domain/AddProduct/UseCases/AddProductFlowUseCase.swift`
-- `keepitfresh/Presentation/Home/HomeView.swift`
-- `keepitfresh/Presentation/Home/HomeInventoryViewModel.swift`
-- `keepitfresh/Presentation/Home/ProductsListScreen.swift`
-- `keepitfresh/Presentation/Home/ProductsListViewModel.swift`
 
 ## 2) Immediate Next Step (Do This First)
 
