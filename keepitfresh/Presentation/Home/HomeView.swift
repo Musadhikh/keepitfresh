@@ -9,6 +9,7 @@
 import SwiftUI
 import CameraModule
 import BarcodeScannerModule
+import InventoryModule
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
@@ -66,20 +67,46 @@ struct HomeView: View {
                     }
                 }
 
-                Section("Inventory (Realm)") {
-                    if inventoryViewModel.isLoading && inventoryViewModel.inventoryItems.isEmpty {
+                Section("Inventory Alerts") {
+                    if inventoryViewModel.isLoading &&
+                        inventoryViewModel.expiredItems.isEmpty &&
+                        inventoryViewModel.expiringItems.isEmpty {
                         ProgressView("Loading inventory...")
                             .tint(Theme.Colors.accent)
                     } else if let loadErrorMessage = inventoryViewModel.loadErrorMessage {
                         Text(loadErrorMessage)
                             .font(Theme.Fonts.bodyRegular)
                             .foregroundStyle(Theme.Colors.danger)
-                    } else if inventoryViewModel.inventoryItems.isEmpty {
-                        Text("No local inventory saved yet.")
+                    } else if inventoryViewModel.expiredItems.isEmpty &&
+                        inventoryViewModel.expiringItems.isEmpty {
+                        Text("No expired or expiring items.")
                             .font(Theme.Fonts.bodyRegular)
                             .foregroundStyle(Theme.Colors.textSecondary)
                     } else {
-                        ForEach(inventoryViewModel.inventoryItems, id: \.id) { item in
+                        if inventoryViewModel.expiredItems.isEmpty == false {
+                            Text("Expired (\(inventoryViewModel.expiredItems.count))")
+                                .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .subheadline))
+                                .foregroundStyle(Theme.Colors.danger)
+                            ForEach(inventoryViewModel.expiredItems, id: \.id) { item in
+                                HomeInventoryAlertRow(item: item)
+                            }
+                        }
+
+                        if inventoryViewModel.expiringItems.isEmpty == false {
+                            Text("Expiring in 14 days (\(inventoryViewModel.expiringItems.count))")
+                                .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .subheadline))
+                                .foregroundStyle(Theme.Colors.warning)
+                            ForEach(inventoryViewModel.expiringItems, id: \.id) { item in
+                                HomeInventoryAlertRow(item: item)
+                            }
+                        }
+                    }
+                }
+
+                if inventoryViewModel.expiredItems.isEmpty == false || inventoryViewModel.expiringItems.isEmpty == false {
+                    Section("By Batch") {
+                        let combinedItems = inventoryViewModel.expiredItems + inventoryViewModel.expiringItems
+                        ForEach(combinedItems, id: \.id) { item in
                             HomeInventoryRow(item: item)
                         }
                     }
@@ -191,27 +218,23 @@ struct HomeView: View {
     }
 }
 
-private struct HomeInventoryRow: View {
-    let item: InventoryItem
+private struct HomeInventoryAlertRow: View {
+    let item: InventoryModuleTypes.InventoryItem
 
     var body: some View {
-        let quantity = item.batches.reduce(0) { partialResult, batch in
-            partialResult + batch.quantity
-        }
-
         VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
-            Text(item.id)
+            Text(item.productRef.snapshot?.title ?? item.productRef.productId)
                 .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .headline))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .lineLimit(1)
 
-            Label(item.barcode?.value ?? "No barcode", systemImage: Theme.Icon.productBarcode.systemName)
+            Label(item.productRef.productId, systemImage: Theme.Icon.productBarcode.systemName)
                 .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
                 .foregroundStyle(Theme.Colors.textSecondary)
 
             HStack(spacing: Theme.Spacing.s12) {
-                Label("Qty \(quantity)", systemImage: Theme.Icon.productDetails.systemName)
-                Label("Batches \(item.batches.count)", systemImage: Theme.Icon.productCategory.systemName)
+                Label("Qty \(item.quantity.value.formatted()) \(item.quantity.unit.rawValue)", systemImage: Theme.Icon.productDetails.systemName)
+                Label(item.storageLocationId, systemImage: Theme.Icon.productCategory.systemName)
             }
             .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .caption))
             .foregroundStyle(Theme.Colors.textSecondary)
@@ -220,11 +243,33 @@ private struct HomeInventoryRow: View {
                 .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .caption))
                 .foregroundStyle(Theme.Colors.textSecondary)
 
-            if let updatedAt = item.updatedAt {
-                Text("Updated: \(updatedAt, format: .dateTime.year().month().day().hour().minute())")
+            if let expiry = item.expiryInfo?.isoDate {
+                Text("Expiry: \(expiry, format: .dateTime.year().month().day())")
                     .font(Theme.Fonts.body(13, weight: .regular, relativeTo: .caption))
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
+        }
+        .padding(.vertical, Theme.Spacing.s4)
+    }
+}
+
+private struct HomeInventoryRow: View {
+    let item: InventoryModuleTypes.InventoryItem
+
+    var body: some View {
+        HStack(spacing: Theme.Spacing.s12) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.s4) {
+                Text(item.id)
+                    .font(Theme.Fonts.body(13, weight: .semibold, relativeTo: .caption))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text(item.productRef.productId)
+                    .font(Theme.Fonts.body(12, weight: .regular, relativeTo: .caption2))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            Spacer()
+            Text(item.status.rawValue.capitalized)
+                .font(Theme.Fonts.body(12, weight: .medium, relativeTo: .caption2))
+                .foregroundStyle(Theme.Colors.textSecondary)
         }
         .padding(.vertical, Theme.Spacing.s4)
     }
