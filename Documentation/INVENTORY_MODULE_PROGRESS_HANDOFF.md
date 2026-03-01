@@ -1,8 +1,8 @@
 # Inventory Module Progress Handoff
 
 Status date: 2026-03-01  
-Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `3f8a67b`
+Branch at handoff: `task/homepage`  
+Base commit at handoff: `c975eae`
 
 This document captures:
 - What is completed
@@ -208,22 +208,46 @@ References:
   - `swift test --package-path Packages/InventoryModule` (30 tests passed)
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### Sync hardening milestone (completed)
+- Hardened `DefaultSyncPendingInventoryUseCase` with retry/backoff and observability hooks:
+  - Added pluggable retry policy contracts:
+    - `InventorySyncRetryPolicy`
+    - `DefaultInventorySyncRetryPolicy` (exponential backoff + deterministic jitter + retry cap)
+  - Added pluggable observability contracts:
+    - `InventorySyncObservability`
+    - `InventorySyncEvent`
+    - `InventorySyncFailureCategory`
+    - `NoOpInventorySyncObservability`
+  - Expanded coordinator behavior:
+    - now retries eligible `.failed` sync metadata entries when backoff window is elapsed
+    - skips non-eligible entries and records skip reasons for metrics
+    - emits started/offline/skipped/synced/failed/completed events for instrumentation
+- Expanded sync coordinator tests:
+  - backoff skip behavior for failed entries
+  - observability event emission across failure + retry-success paths
+- Updated facade exports so app infrastructure can inject custom retry/observability implementations when needed.
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule` (32 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Follow-up sync hardening (future task).
+Sync hardening app integration (future task).
 
 Goal:
-- Improve mutation/query sync resilience with retry/backoff tuning and observability hooks.
-- Add conflict-resolution visibility and sync health metrics for operational debugging.
+- Connect observability hooks to app telemetry/logging sinks.
+- Tune retry policy thresholds in composition root based on production behavior.
 
 Why this is next:
-- Core module behaviors and Home integration are complete.
-- Remaining risk is long-tail sync reliability under flaky network and conflict scenarios.
+- Core module hardening contracts now exist and are test-covered.
+- Remaining work is operational wiring and tuning in app infrastructure.
 
 ## 3) Ordered Pending Steps
 
-1. Follow-up sync hardening (future task).
-   - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
+1. Sync hardening app integration (future task).
+   - Wire `InventorySyncObservability` into app logging/metrics pipeline.
+   - Configure `DefaultInventorySyncRetryPolicy` parameters from composition root policy.
+   - Add conflict/sync-health dashboards or counters using emitted events.
 
 ## 4) Resume References (Another Machine)
 

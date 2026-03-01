@@ -15,19 +15,25 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
     private let syncStateStore: any InventorySyncStateStore
     private let connectivity: any ConnectivityProviding
     private let clock: any ClockProviding
+    private let retryPolicy: any InventorySyncRetryPolicy
+    private let observability: any InventorySyncObservability
 
     public init(
         inventoryRepository: any InventoryRepository,
         remoteGateway: any InventoryRemoteGateway,
         syncStateStore: any InventorySyncStateStore,
         connectivity: any ConnectivityProviding,
-        clock: any ClockProviding = SystemClock()
+        clock: any ClockProviding = SystemClock(),
+        retryPolicy: any InventorySyncRetryPolicy = DefaultInventorySyncRetryPolicy(),
+        observability: any InventorySyncObservability = NoOpInventorySyncObservability()
     ) {
         self.inventoryRepository = inventoryRepository
         self.remoteGateway = remoteGateway
         self.syncStateStore = syncStateStore
         self.connectivity = connectivity
         self.clock = clock
+        self.retryPolicy = retryPolicy
+        self.observability = observability
     }
 
     public func execute(_ input: SyncPendingInventoryInput) async throws -> SyncPendingInventoryOutput {
@@ -35,26 +41,57 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
             throw InventoryDomainError.invalidHouseholdID
         }
 
+        await observability.record(.started(householdId: input.householdId))
+
         guard await connectivity.isOnline() else {
+            await observability.record(.skippedOffline(householdId: input.householdId))
             return SyncPendingInventoryOutput(syncedCount: 0, failedCount: 0, skippedCount: 0)
         }
 
-        let pending = try await syncStateStore.fetchByState(
+        var candidates = try await syncStateStore.fetchByState(
             householdId: input.householdId,
             state: .pending,
             limit: input.limit
         )
+        let failed = try await syncStateStore.fetchByState(
+            householdId: input.householdId,
+            state: .failed,
+            limit: input.limit
+        )
+        candidates.append(contentsOf: failed)
 
         var syncedCount = 0
         var failedCount = 0
         var skippedCount = 0
+        var attemptedCount = 0
+        let now = clock.now()
 
-        for metadata in pending {
-            guard let item = try await inventoryRepository.findById(metadata.itemId, householdId: metadata.householdId) else {
+        for metadata in candidates {
+            guard retryPolicy.shouldAttempt(metadata, now: now) else {
                 skippedCount += 1
+                await observability.record(
+                    .itemSkipped(
+                        itemId: metadata.itemId,
+                        operation: metadata.operation,
+                        reason: "retry_backoff_or_limit"
+                    )
+                )
                 continue
             }
 
+            guard let item = try await inventoryRepository.findById(metadata.itemId, householdId: metadata.householdId) else {
+                skippedCount += 1
+                await observability.record(
+                    .itemSkipped(
+                        itemId: metadata.itemId,
+                        operation: metadata.operation,
+                        reason: "missing_local_item"
+                    )
+                )
+                continue
+            }
+
+            attemptedCount += 1
             do {
                 try await remoteGateway.upsert([item])
                 var updated = metadata
@@ -66,6 +103,7 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
                 updated.lastSyncedAt = syncedAt
                 try await syncStateStore.upsertMetadata([updated])
                 syncedCount += 1
+                await observability.record(.itemSynced(itemId: metadata.itemId, operation: metadata.operation))
             } catch {
                 var updated = metadata
                 updated.state = .failed
@@ -74,8 +112,25 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
                 updated.lastAttemptAt = clock.now()
                 try await syncStateStore.upsertMetadata([updated])
                 failedCount += 1
+                await observability.record(
+                    .itemFailed(
+                        itemId: metadata.itemId,
+                        operation: metadata.operation,
+                        category: classifyFailure(error)
+                    )
+                )
             }
         }
+
+        await observability.record(
+            .completed(
+                householdId: input.householdId,
+                attempted: attemptedCount,
+                synced: syncedCount,
+                failed: failedCount,
+                skipped: skippedCount
+            )
+        )
 
         return SyncPendingInventoryOutput(
             syncedCount: syncedCount,
@@ -85,3 +140,25 @@ public actor DefaultSyncPendingInventoryUseCase: SyncPendingInventoryUseCase {
     }
 }
 
+private extension DefaultSyncPendingInventoryUseCase {
+    func classifyFailure(_ error: Error) -> InventorySyncFailureCategory {
+        let message = error.localizedDescription.lowercased()
+        if message.contains("conflict") || message.contains("version") || message.contains("409") {
+            return .conflict
+        }
+        if message.contains("network")
+            || message.contains("timeout")
+            || message.contains("unavailable")
+            || message.contains("temporary")
+        {
+            return .transient
+        }
+        if message.contains("invalid")
+            || message.contains("validation")
+            || message.contains("permission")
+        {
+            return .validation
+        }
+        return .unknown
+    }
+}
