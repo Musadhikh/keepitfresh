@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "mainCategoryRules": [
+    {
+      "matchAny": [
+        "beverages",
+        "drinks",
+        "tea",
+        "coffee",
+        "juice",
+        "soda",
+        "water"
+      ],
+      "main": "beverage"
+    },
+    {
+      "matchAny": [
+        "foods",
+        "snacks",
+        "meals",
+        "bread",
+        "dairy",
+        "meat",
+        "fruits",
+        "vegetables"
+      ],
+      "main": "food"
+    },
+    {
+      "matchAny": [
+        "cleaning",
+        "detergent",
+        "laundry",
+        "home-care"
+      ],
+      "main": "household"
+    },
+    {
+      "matchAny": [
+        "cosmetics",
+        "skin-care",
+        "shampoo",
+        "toothpaste"
+      ],
+      "main": "personalCare"
+    },
+    {
+      "matchAny": [
+        "pet",
+        "cat",
+        "dog"
+      ],
+      "main": "pet"
+    },
+    {
+      "matchAny": [
+        "supplement",
+        "vitamin",
+        "medicine"
+      ],
+      "main": "medicine"
+    },
+    {
+      "matchAny": [
+        "battery",
+        "charger"
+      ],
+      "main": "electronics"
+    }
+  ],
+  "subCategoryOverrides": [],
+  "synonyms": [],
+  "fallback": {
+    "main": "other",
+    "sub": null
+  }
+}

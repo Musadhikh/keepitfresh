@@ -1,31 +1,43 @@
 # OpenFoodFacts Importer Docs
 
-## What this folder contains
-- `product_storage_contract_v1.md`: Human-readable canonical Product storage contract.
-- `product_storage_contract_v1.json`: Machine-readable contract snapshot for tooling/validation.
-- `README_HANDOFF.md`: Operational handoff skeleton.
+## Contract files
+- `product_storage_contract_v1.md`: human-readable canonical Product storage contract.
+- `product_storage_contract_v1.json`: machine-readable snapshot for validators/tooling.
 
-## Contract purpose
-The Product storage contract is platform-agnostic and is the single source of truth for:
-- Importer payload shaping
-- Firestore JSON persistence shape
-- Client parsing expectations (iOS/Android/Web)
+## Category curation files
+- `category_taxonomy_v1.md`: curation-first taxonomy policy.
+- `category_mapping_rules_v1.json`: editable mapping rules and overrides.
 
-Canonical model source in app code:
-- `iOS/Packages/ProductModule/Sources/ProductDomain/Models/*`
+## Who uses this
+- Importers: shape payloads, normalize safely, apply validation/reject codes, and enforce idempotency.
+- Clients (iOS/Android/Web): parse a stable cross-platform schema and enum values.
 
-## Change management
-Any Product contract change must include all of:
-1. Update `product_storage_contract_v1.md`
-2. Update `product_storage_contract_v1.json`
-3. Record the change in this README under Changelog
-4. Add migration notes for importer/client compatibility
+## Usage expectations
+- Importers must follow contract field names and enum strings exactly.
+- Clients must be forward-compatible for newly added optional fields.
+- Breaking schema changes require a new contract version (`v2`).
 
-Breaking changes must create a new contract version (`product_storage_contract_v2.*`).
+## Change process (v2 proposal)
+1. Propose change with rationale + compatibility analysis.
+2. Add new files (`product_storage_contract_v2.md` + `.json`).
+3. Keep v1 intact for migration period.
+4. Update importer/client rollout plan and deprecation timeline.
 
-## Changelog
-- 2026-03-01: Added `product_storage_contract_v1.md` and `product_storage_contract_v1.json` (Phase 1).
+Rule: never break existing clients with in-place incompatible changes.
 
-## Phase notes
-- Phase 0: importer scaffold + safety guardrails (no uploads)
-- Phase 1: canonical Product storage contract docs (no uploads)
+## Commands
+```bash
+cd openfoodfacts/importer
+npm run sample -- --file ../../../openfoodfacts-products.jsonl --count 100 --max-lines 5000
+npm run schema:probe
+npm run compare:contract
+npm run phase2 -- --file ../../../openfoodfacts-products.jsonl --count 3000 --max-lines 300000
+
+npm run categories:signals -- --file ../../../openfoodfacts-products.jsonl --max-lines 300000 --min-count 10
+npm run categories:build -- --min-count 50 --out output/categories_preview.json
+npm run phase3 -- --file ../../../openfoodfacts-products.jsonl --max-lines 300000 --min-count 10
+
+npm run transform:sample -- --in output/off_sample_100.json --out output/product_sample_100.json
+npm run validate:products -- --in output/product_sample_100.json --out output/validation_report.md
+npm run phase4 -- --in output/off_sample_100.json --out output/product_sample_100.json
+```

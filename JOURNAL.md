@@ -348,3 +348,87 @@ Why this matters:
 - Prevents model drift between iOS ProductModule and importer payloads.
 - Gives one place to reason about enum serialization, tagged union encoding (`productDetails`), provenance (`open_food_facts`), and idempotency behavior.
 - Sets explicit curation-first category policy before uploads begin.
+
+## 2026-03-01 - OpenFoodFacts Phase 2 Schema Probe and Contract Comparison
+
+Implemented the "learn first, upload never" phase for Open Food Facts.
+
+What changed:
+- Enhanced sampler with richer stats and safety cap (`--max-lines`).
+- Added schema probing command (`schema:probe`) that recursively summarizes observed keys/types/examples.
+- Added contract comparison command (`compare:contract`) that generates:
+  - `model_diff.md`
+  - `off_to_product_mapping.md`
+- Added `phase2` orchestrator command to run sample -> probe -> compare in one shot.
+
+A key design call:
+- Mapping docs use observed schema paths from probe output as the source of truth, reducing speculative mapping assumptions.
+
+Operational note:
+- This environment still has a broken npm on Node 14, so execution validation requires Node 20+.
+
+## 2026-03-01 - OpenFoodFacts Phase 3 Category Curation Pipeline
+
+Built Phase 3 to curate categories before any remote writes.
+
+What landed:
+- Category field discovery from schema probe (`src/categories/discovery.ts`) using heuristic + presence-aware ranking.
+- Streaming category signal extraction (`categories:signals`) with deterministic normalization and counters:
+  - tag frequency
+  - path-like signal frequency
+  - co-occurrence pairs
+- Curation preview generator (`categories:curate`) that produces:
+  - `output/categories_preview.json`
+  - `output/categories_preview.md`
+  - `docs/category_taxonomy_v1.md`
+  - `docs/category_mapping_rules_v1.json`
+- Added `phase3` command for end-to-end run.
+
+Key principle reinforced:
+- Curation-first means we classify from explicit editable rules, not from one-off hardcoded guesses in import flow.
+
+## 2026-03-01 - Phase 3 Prompt Alignment Refresh
+
+Adjusted Phase 3 implementation to match the revised prompt contract exactly.
+
+Changes made:
+- Replaced placeholder category builder with a real `categories:build` pipeline step.
+- Aligned CLI and npm scripts to `categories:signals` + `categories:build` + `phase3`.
+- Generated mapping rules in prompt-required shape:
+  - `version` as integer
+  - `mainCategoryRules`
+  - `subCategoryOverrides`
+  - `synonyms`
+  - `fallback`
+- Updated category preview generation to include deterministic category docs:
+  - stable slug id
+  - canonical `main/sub`
+  - source hints
+  - version + timestamps
+- Improved `category_signals.md` with messy signal diagnostics and next-step recommendations.
+
+Lesson:
+- Prompt contracts evolve; command names and output schema must be kept in sync with docs to avoid operational drift.
+
+## 2026-03-01 - Phase 4 OFF -> Product Transformer + Validation
+
+Implemented the first deterministic OFF-to-canonical transformation stage with local-only validation.
+
+What shipped:
+- `off_paths` discovery module deriving mapping paths from schema summary (presence-ordered).
+- Pure extractor/parsing helpers for strings, arrays, packaging, ingredients, allergens, and nutrition.
+- Category matcher that uses Phase 3 mapping rules + category preview lookup and emits `category_unmapped` warnings.
+- Main transformer that outputs canonical Product JSON in contract shape.
+- Phase 4 CLI commands:
+  - `transform:sample`
+  - `validate:products`
+  - `phase4`
+- Generated reports:
+  - `mapping_warnings.md`
+  - `validation_report.md`
+  - `invalid_products.json`
+  - `product_transform_stats.json`
+
+Important stabilization fix:
+- Category signal extraction was previously unbounded and hit `Map maximum size exceeded` on large scans.
+- Added deterministic caps + pair limits + drop counters to keep runs stable on large input windows.

@@ -23,3 +23,11 @@ export async function ensureOutputDir(): Promise<void> {
 export function checkpointFilePath(): string {
   return path.resolve(outputRoot, CHECKPOINT_FILE_NAME);
 }
+
+export function runReportsRootPath(): string {
+  return path.resolve(outputRoot, "run_reports");
+}
+
+export function runReportDayPath(dayISO: string): string {
+  return path.resolve(runReportsRootPath(), dayISO);
+}

@@ -1,14 +1,107 @@
-/**
- * Phase 0 stub. No remote batching/commits are allowed yet.
- * TODO(Phase 5): implement Firestore batched writes and retry strategy.
- */
+import type { ImporterConfig } from "../core/types.js";
+import type { FirestoreLike } from "./types.js";
 
 export interface PendingWrite {
   collectionPath: string;
   documentId: string;
-  payload: Record<string, unknown>;
+  payload: unknown;
+  merge?: boolean;
 }
 
-export function createWriteBatches(_writes: PendingWrite[]): never {
-  throw new Error("Batching is locked in Phase 0.");
+export interface BatchCommitResult {
+  plannedWrites: number;
+  executedWrites: number;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableFirestoreError(error: unknown): boolean {
+  const message = String((error as Error)?.message ?? "").toUpperCase();
+  return (
+    message.includes("RESOURCE_EXHAUSTED") ||
+    message.includes("DEADLINE_EXCEEDED") ||
+    message.includes("UNAVAILABLE") ||
+    message.includes("429") ||
+    message.includes("503")
+  );
+}
+
+async function commitWithRetry(
+  commit: () => Promise<unknown>,
+  maxAttempts = 8
+): Promise<void> {
+  let attempt = 0;
+  let backoffMs = 300;
+
+  while (attempt < maxAttempts) {
+    attempt += 1;
+    try {
+      await commit();
+      return;
+    } catch (error) {
+      if (!isRetryableFirestoreError(error) || attempt >= maxAttempts) {
+        throw error;
+      }
+
+      const jitter = Math.floor(Math.random() * 200);
+      await sleep(backoffMs + jitter);
+      backoffMs = Math.min(8000, backoffMs * 2);
+    }
+  }
+}
+
+export class BatchWriter {
+  private buffer: PendingWrite[] = [];
+  private plannedWrites = 0;
+  private executedWrites = 0;
+
+  constructor(
+    private readonly firestore: FirestoreLike | null,
+    private readonly config: ImporterConfig
+  ) {}
+
+  async add(write: PendingWrite): Promise<void> {
+    this.buffer.push(write);
+    this.plannedWrites += 1;
+
+    if (this.buffer.length >= this.config.batchSize) {
+      await this.flush();
+    }
+  }
+
+  async flush(): Promise<void> {
+    if (this.buffer.length === 0) return;
+
+    if (this.config.dryRun) {
+      this.executedWrites += this.buffer.length;
+      this.buffer = [];
+      return;
+    }
+
+    if (!this.firestore) {
+      throw new Error("Firestore instance is required for execute mode.");
+    }
+
+    const toCommit = this.buffer;
+    this.buffer = [];
+
+    const batch = this.firestore.batch();
+    for (const write of toCommit) {
+      const docRef = this.firestore.collection(write.collectionPath).doc(write.documentId);
+      batch.set(docRef, write.payload, { merge: write.merge ?? true });
+    }
+
+    await commitWithRetry(() => batch.commit());
+    this.executedWrites += toCommit.length;
+  }
+
+  async close(): Promise<BatchCommitResult> {
+    await this.flush();
+    return {
+      plannedWrites: this.plannedWrites,
+      executedWrites: this.executedWrites
+    };
+  }
 }

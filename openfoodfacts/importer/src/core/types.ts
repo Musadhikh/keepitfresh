@@ -7,13 +7,30 @@ export interface ImporterConfig {
   dryRun: boolean;
   uploadsEnabled: boolean;
   maxWritesPerRun: number;
+  batchSize: number;
   importFilePath: string;
+  maxLinesPerRun?: number;
+  checkpointMode: "file" | "firestore";
+  checkpointDocId: string;
+  runReportsEnabled: boolean;
+  firebaseProjectId?: string;
+  firebaseServiceAccountJson?: string;
+  firebaseServiceAccountPath?: string;
 }
 
-export interface CheckpointState {
+export interface ImportCheckpoint {
+  filePath: string;
   lineNumber: number;
-  updatedAtISO: string;
-  meta?: Record<string, unknown>;
+  updatedAt: string;
+  mode: "products" | "categories";
+  bytesOffset?: number;
+  lastProductId?: string;
+  totals: {
+    scanned: number;
+    written: number;
+    skipped: number;
+    rejected: number;
+  };
 }
 
 export interface JsonlParseError {

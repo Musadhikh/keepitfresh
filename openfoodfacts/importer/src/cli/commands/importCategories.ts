@@ -1,34 +1,179 @@
-import { loadImporterConfig, assertUploadsEnabled } from "../../core/config.js";
+import { readFile } from "node:fs/promises";
+import { assertExecuteCredentials, assertUploadsEnabled, loadImporterConfig } from "../../core/config.js";
 import { logger } from "../../core/logger.js";
-import { ConfigError } from "../../core/errors.js";
-import { checkBudgetOrThrow, createWriteBudget, planWrites } from "../../firestore/budget.js";
-import { loadCheckpoint } from "../../firestore/checkpoints.js";
+import { writeRunReport } from "../../core/runReports.js";
+import type { CommandRuntimeOptions, ImporterConfig } from "../../core/types.js";
+import { nowISO } from "../../utils/time.js";
+import { BatchWriter } from "../../firestore/batching.js";
+import { WriteBudget } from "../../firestore/budget.js";
+import { getFirestore } from "../../firestore/client.js";
+import { loadCheckpoint, saveCheckpoint } from "../../firestore/checkpoints.js";
+import { resolveFromImporterRoot } from "../../core/paths.js";
 
-export interface ImportCategoriesArgs {
-  dryRun?: boolean;
-  execute?: boolean;
+interface CategoryDoc {
+  id: string;
+  main: string;
+  sub: string;
+  tags: string[];
+  synonyms: string[];
+  hierarchyPath: string[];
+  sourceHints: {
+    openFoodFacts: {
+      tags: string[];
+      paths: string[];
+    };
+  };
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CategoriesPreview {
+  categories: CategoryDoc[];
+}
+
+interface ContractField {
+  name: string;
+}
+
+interface Contract {
+  collections?: {
+    ProductCategories?: {
+      fields?: ContractField[];
+    };
+  };
+}
+
+export interface ImportCategoriesArgs extends CommandRuntimeOptions {
+  in?: string;
+  maxWrites?: number;
+}
+
+function validateCategoryShape(doc: CategoryDoc, requiredFields: string[]): string[] {
+  const errors: string[] = [];
+  for (const field of requiredFields) {
+    if ((doc as unknown as Record<string, unknown>)[field] === undefined) {
+      errors.push(`missing_${field}`);
+    }
+  }
+  if (!doc.id || !doc.main || !doc.sub) {
+    errors.push("invalid_identity");
+  }
+  return errors;
 }
 
 export async function runImportCategoriesCommand(args: ImportCategoriesArgs): Promise<void> {
   const config = loadImporterConfig(args);
-  const budget = createWriteBudget(config.maxWritesPerRun);
-  planWrites(budget, 0);
-  checkBudgetOrThrow(budget);
-  const checkpoint = await loadCheckpoint();
+  const startedAt = nowISO();
+
+  if (!config.dryRun) {
+    assertUploadsEnabled(config);
+    assertExecuteCredentials(config);
+  }
+
+  const inPath = resolveFromImporterRoot(args.in ?? "output/categories_preview.json");
+  const contractPath = resolveFromImporterRoot("docs/product_storage_contract_v1.json");
+
+  const preview = JSON.parse(await readFile(inPath, "utf8")) as CategoriesPreview;
+  const contract = JSON.parse(await readFile(contractPath, "utf8")) as Contract;
+
+  const requiredFields =
+    contract.collections?.ProductCategories?.fields
+      ?.map((field) => field.name)
+      .filter((name) => ["id", "main", "sub", "version", "createdAt", "updatedAt"].includes(name)) ??
+    ["id", "main", "sub", "version", "createdAt", "updatedAt"];
+
+  const maxWrites = args.maxWrites ?? config.maxWritesPerRun;
+  const budget = new WriteBudget(maxWrites);
+
+  const firestore = config.dryRun ? null : await getFirestore(config);
+  const writer = new BatchWriter(firestore, config);
+
+  const warnings: Array<{ categoryId?: string; reason: string }> = [];
+  let scanned = 0;
+  let written = 0;
+  let skipped = 0;
+  let rejected = 0;
+
+  for (const category of preview.categories ?? []) {
+    scanned += 1;
+
+    const errors = validateCategoryShape(category, requiredFields);
+    if (errors.length > 0) {
+      rejected += 1;
+      warnings.push({ categoryId: category.id, reason: errors.join(",") });
+      continue;
+    }
+
+    try {
+      budget.reserve(1);
+    } catch {
+      skipped += 1;
+      warnings.push({ categoryId: category.id, reason: "budget_reached" });
+      break;
+    }
+
+    await writer.add({
+      collectionPath: "ProductCategories",
+      documentId: category.id,
+      payload: category,
+      merge: true
+    });
+    written += 1;
+  }
+
+  const commit = await writer.close();
+  budget.markExecuted(commit.executedWrites);
+
+  const checkpoint = {
+    filePath: inPath,
+    updatedAt: nowISO(),
+    mode: "categories" as const,
+    lineNumber: scanned,
+    totals: {
+      scanned,
+      written,
+      skipped,
+      rejected
+    }
+  };
+
+  await saveCheckpoint(config, checkpoint);
+  const loaded = await loadCheckpoint(config);
+
+  const finishedAt = nowISO();
+
+  if (config.runReportsEnabled) {
+    await writeRunReport({
+      mode: "categories",
+      dryRun: config.dryRun,
+      startedAt,
+      finishedAt,
+      stopReason: skipped > 0 ? "budget_reached" : "completed",
+      metrics: {
+        scanned,
+        written,
+        skipped,
+        rejected,
+        plannedWrites: budget.plannedWrites,
+        executedWrites: budget.executedWrites,
+        warnings
+      },
+      checkpoint: loaded ?? checkpoint
+    });
+  }
 
   logger.info(
     {
       dryRun: config.dryRun,
-      uploadsEnabled: config.uploadsEnabled,
-      checkpoint
+      inPath,
+      scanned,
+      written,
+      skipped,
+      rejected,
+      plannedWrites: budget.plannedWrites,
+      executedWrites: budget.executedWrites
     },
-    "Phase 0 importCategories invoked"
+    "Import categories completed"
   );
-
-  if (!config.dryRun) {
-    assertUploadsEnabled(config);
-    throw new ConfigError("Uploads are disabled. This command is locked in Phase 0.");
-  }
-
-  logger.warn("Uploads are disabled. This command is locked in Phase 0.");
 }

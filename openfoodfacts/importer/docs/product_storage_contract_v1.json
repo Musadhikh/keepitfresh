@@ -1,149 +1,279 @@
 {
-  "contractVersion": "v1",
-  "sourceOfTruth": "iOS/Packages/ProductModule/Sources/ProductDomain/Models",
+  "contractVersion": "1",
+  "updatedAt": "2026-03-01T00:00:00.000Z",
+  "productDetailsEncoding": "kind_value",
   "collections": {
-    "productCatalog": "ProductCatalog",
-    "productCategories": "ProductCategories"
+    "ProductCatalog": {
+      "docIdRule": "docId == productId",
+      "fields": [
+        { "name": "productId", "type": "string", "optional": false, "constraints": ["trim_non_empty", "stable"] },
+        {
+          "name": "barcode",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            { "name": "value", "type": "string", "optional": false, "constraints": ["trim_uppercase_alphanumeric"] },
+            { "name": "symbology", "type": "enum:barcodeSymbology", "optional": false }
+          ]
+        },
+        { "name": "title", "type": "string", "optional": true, "constraints": ["trim", "collapse_whitespace"] },
+        { "name": "brand", "type": "string", "optional": true, "constraints": ["trim", "collapse_whitespace"] },
+        { "name": "shortDescription", "type": "string", "optional": true },
+        { "name": "storageInstructions", "type": "string", "optional": true },
+        {
+          "name": "category",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            { "name": "main", "type": "enum:mainCategory", "optional": false },
+            { "name": "sub", "type": "string", "optional": true }
+          ]
+        },
+        {
+          "name": "productDetails",
+          "type": "tagged_union",
+          "optional": true,
+          "shape": {
+            "kind": "enum:productDetailsKind",
+            "value": "object_or_null"
+          }
+        },
+        {
+          "name": "packaging",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            { "name": "quantity", "type": "number", "optional": true, "constraints": [">=0"] },
+            { "name": "unit", "type": "enum:packagingUnit", "optional": false, "default": "unknown" },
+            { "name": "count", "type": "integer", "optional": true, "constraints": [">=0"] },
+            { "name": "displayText", "type": "string", "optional": true }
+          ]
+        },
+        { "name": "size", "type": "string", "optional": true },
+        {
+          "name": "images",
+          "type": "array<object>",
+          "optional": false,
+          "default": [],
+          "itemFields": [
+            { "name": "id", "type": "string", "optional": false },
+            { "name": "urlString", "type": "string", "optional": true },
+            { "name": "localAssetId", "type": "string", "optional": true },
+            { "name": "kind", "type": "enum:imageKind", "optional": false },
+            { "name": "width", "type": "integer", "optional": true },
+            { "name": "height", "type": "integer", "optional": true }
+          ]
+        },
+        {
+          "name": "attributes",
+          "type": "map<string,string>",
+          "optional": false,
+          "default": {},
+          "reservedNamespaces": ["off_*", "import_*", "x_*"]
+        },
+        {
+          "name": "extractionMetadata",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            { "name": "extractedAt", "type": "datetime", "optional": true },
+            { "name": "extractorVersion", "type": "string", "optional": true },
+            { "name": "fieldConfidence", "type": "map<string,number>", "optional": true, "constraints": ["0<=value<=1"] },
+            { "name": "rawSnippets", "type": "array<string>", "optional": true }
+          ]
+        },
+        {
+          "name": "qualitySignals",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            { "name": "completenessScore", "type": "number", "optional": true, "constraints": ["0<=value<=1"] },
+            { "name": "needsManualReview", "type": "boolean", "optional": false, "default": false },
+            { "name": "hasFrontImage", "type": "boolean", "optional": false, "default": false },
+            { "name": "hasIngredientImage", "type": "boolean", "optional": false, "default": false },
+            { "name": "hasNutritionImage", "type": "boolean", "optional": false, "default": false }
+          ]
+        },
+        {
+          "name": "compliance",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            { "name": "marketCountries", "type": "array<string>", "optional": true },
+            { "name": "restrictedFlags", "type": "array<string>", "optional": true },
+            { "name": "certifications", "type": "array<string>", "optional": true }
+          ]
+        },
+        { "name": "source", "type": "enum:productSource", "optional": false, "default": "importedFeed" },
+        { "name": "status", "type": "enum:productStatus", "optional": false, "default": "draft" },
+        { "name": "createdAt", "type": "datetime", "optional": false },
+        { "name": "updatedAt", "type": "datetime", "optional": false, "constraints": ["createdAt<=updatedAt"] },
+        { "name": "version", "type": "integer", "optional": false, "default": 1, "constraints": [">=1", "monotonic"] }
+      ]
+    },
+    "ProductCategories": {
+      "fields": [
+        { "name": "id", "type": "string", "optional": false, "constraints": ["slug"] },
+        { "name": "main", "type": "enum:mainCategory", "optional": false },
+        { "name": "sub", "type": "string", "optional": true },
+        { "name": "tags", "type": "array<string>", "optional": true },
+        { "name": "synonyms", "type": "array<string>", "optional": true },
+        { "name": "hierarchyPath", "type": "string", "optional": true },
+        {
+          "name": "sourceHints",
+          "type": "object",
+          "optional": true,
+          "fields": [
+            {
+              "name": "openFoodFacts",
+              "type": "object",
+              "optional": true,
+              "fields": [
+                { "name": "tags", "type": "array<string>", "optional": true },
+                { "name": "paths", "type": "array<string>", "optional": true }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   },
   "enums": {
-    "productSource": [
-      "manual",
-      "barcodeLookup",
-      "aiExtraction",
-      "importedFeed",
-      "merged"
-    ],
-    "productStatus": [
-      "active",
-      "draft",
-      "archived",
-      "blocked"
-    ],
-    "barcodeSymbology": [
-      "ean13",
-      "ean8",
-      "upc_a",
-      "upc_e",
-      "qr",
-      "code128",
-      "unknown"
-    ],
-    "mainCategory": [
-      "food",
-      "beverage",
-      "household",
-      "personalCare",
-      "medicine",
-      "electronics",
-      "pet",
-      "other"
-    ],
-    "packagingUnit": [
-      "g",
-      "kg",
-      "ml",
-      "l",
-      "oz",
-      "lb",
-      "count",
-      "unknown"
-    ],
-    "imageKind": [
-      "front",
-      "back",
-      "label",
-      "nutrition",
-      "ingredients",
-      "other"
-    ],
-    "productDetailsKind": [
-      "food",
-      "beverage",
-      "household",
-      "personalCare",
-      "other"
-    ]
+    "productSource": ["manual", "barcodeLookup", "aiExtraction", "importedFeed", "merged"],
+    "productStatus": ["active", "draft", "archived", "blocked"],
+    "barcodeSymbology": ["ean13", "ean8", "upc_a", "upc_e", "qr", "code128", "unknown"],
+    "mainCategory": ["food", "beverage", "household", "personalCare", "medicine", "electronics", "pet", "other"],
+    "packagingUnit": ["g", "kg", "ml", "l", "oz", "lb", "count", "unknown"],
+    "imageKind": ["front", "back", "label", "nutrition", "ingredients", "other"],
+    "productDetailsKind": ["food", "beverage", "household", "personalCare", "other"]
   },
-  "fieldDefaults": {
-    "images": [],
-    "attributes": {},
-    "source": "manual",
-    "status": "active",
-    "version": 1,
-    "packaging.unit": "unknown"
-  },
-  "requiredFields": [
-    "productId",
-    "images",
-    "attributes",
-    "source",
-    "status",
-    "createdAt",
-    "updatedAt",
-    "version"
-  ],
-  "productDetailsEncoding": {
-    "type": "tagged_union",
-    "shape": {
-      "kind": "string",
-      "value": "object_or_null"
+  "constraints": {
+    "identity": {
+      "productIdPriority": ["normalized_barcode", "off:off_code"],
+      "rejectIfMissing": true
     },
-    "kindToPayload": {
-      "food": "FoodDetails",
-      "beverage": "FoodDetails",
-      "household": "HouseholdDetails",
-      "personalCare": "PersonalCareDetails",
-      "other": "UnknownDetails"
+    "idempotency": {
+      "dedupKey": ["productId"],
+      "changedOnlyHashField": "attributes.import_contentHash",
+      "sameHash": "no_op",
+      "differentHash": "merge_and_increment_version"
+    },
+    "provenance": {
+      "forImportedFeed": {
+        "source": "importedFeed",
+        "requiredAttributes": ["importSource", "importerVersion", "importedAt"],
+        "recommendedAttributes": ["off_code"]
+      }
+    },
+    "validation": {
+      "activeCriteria": ["valid_identity", "valid_enums", "has_title_or_barcode"],
+      "draftCriteria": ["valid_structure_but_incomplete"],
+      "rejectReasons": [
+        "missing_identity",
+        "invalid_barcode",
+        "missing_title_and_brand",
+        "invalid_enum_value",
+        "invalid_nutrition",
+        "invalid_payload_shape"
+      ]
     }
   },
-  "normalization": {
-    "productId": "trim_non_empty",
-    "barcode.value": "trim_uppercase_alphanumeric",
-    "textFields": "trim",
-    "createdAtUpdatedAt": "createdAt <= updatedAt",
-    "version": "monotonic_increase"
-  },
-  "provenance": {
-    "recommended": true,
-    "fields": [
-      "provider",
-      "providerProductId",
-      "importBatchId",
-      "importedAt",
-      "payloadHash"
-    ],
-    "openFoodFacts": {
-      "provider": "open_food_facts",
-      "source": "importedFeed"
+  "examples": {
+    "minimalValidProduct": {
+      "productId": "7622210449283",
+      "barcode": { "value": "7622210449283", "symbology": "ean13" },
+      "title": "Chocolate Bar",
+      "images": [],
+      "attributes": {
+        "importSource": "open_food_facts",
+        "importerVersion": "1.0.0",
+        "importedAt": "2026-03-01T10:00:00.000Z",
+        "off_code": "7622210449283",
+        "import_contentHash": "sha256:abc123"
+      },
+      "source": "importedFeed",
+      "status": "active",
+      "createdAt": "2026-03-01T10:00:00.000Z",
+      "updatedAt": "2026-03-01T10:00:00.000Z",
+      "version": 1
+    },
+    "fullFoodProduct": {
+      "productId": "off:3017620422003",
+      "barcode": { "value": "3017620422003", "symbology": "ean13" },
+      "title": "Hazelnut Spread",
+      "brand": "Ferrero",
+      "shortDescription": "Cocoa and hazelnut spread",
+      "category": { "main": "food", "sub": "spread" },
+      "productDetails": {
+        "kind": "food",
+        "value": {
+          "ingredients": ["sugar", "palm oil", "hazelnuts", "cocoa"],
+          "allergens": ["nuts"],
+          "servingSize": "15 g",
+          "nutritionPer100gOrMl": {
+            "energyKcal": 539,
+            "proteinG": 6.3,
+            "fatG": 30.9,
+            "saturatedFatG": 10.6,
+            "carbsG": 57.5,
+            "sugarsG": 56.3,
+            "sodiumMg": 42
+          },
+          "quantityText": "350g",
+          "numberOfItemsText": null
+        }
+      },
+      "packaging": { "quantity": 350, "unit": "g", "count": 1, "displayText": "350 g jar" },
+      "images": [
+        { "id": "front_1", "urlString": "https://example.com/front.jpg", "kind": "front", "width": 800, "height": 1200 },
+        { "id": "nutrition_1", "urlString": "https://example.com/nutrition.jpg", "kind": "nutrition", "width": 800, "height": 1200 }
+      ],
+      "attributes": {
+        "importSource": "open_food_facts",
+        "importerVersion": "1.0.0",
+        "importedAt": "2026-03-01T10:05:00.000Z",
+        "off_code": "3017620422003",
+        "off_categories_tags": "en:spreads,en:hazelnut-spreads",
+        "import_contentHash": "sha256:def456"
+      },
+      "qualitySignals": {
+        "completenessScore": 0.92,
+        "needsManualReview": false,
+        "hasFrontImage": true,
+        "hasIngredientImage": false,
+        "hasNutritionImage": true
+      },
+      "source": "importedFeed",
+      "status": "active",
+      "createdAt": "2026-03-01T10:05:00.000Z",
+      "updatedAt": "2026-03-01T10:05:00.000Z",
+      "version": 1
+    },
+    "draftNeedsReview": {
+      "productId": "off:missing-barcode-abc",
+      "title": null,
+      "brand": null,
+      "images": [],
+      "attributes": {
+        "importSource": "open_food_facts",
+        "importerVersion": "1.0.0",
+        "importedAt": "2026-03-01T10:10:00.000Z",
+        "off_code": "missing-barcode-abc",
+        "import_rejectHint": "missing_title_and_brand",
+        "import_contentHash": "sha256:ghi789"
+      },
+      "qualitySignals": {
+        "completenessScore": 0.2,
+        "needsManualReview": true,
+        "hasFrontImage": false,
+        "hasIngredientImage": false,
+        "hasNutritionImage": false
+      },
+      "source": "importedFeed",
+      "status": "draft",
+      "createdAt": "2026-03-01T10:10:00.000Z",
+      "updatedAt": "2026-03-01T10:10:00.000Z",
+      "version": 1
     }
-  },
-  "categoryPolicy": {
-    "mode": "curation_first",
-    "taxonomyCollection": "ProductCategories",
-    "fallbackMain": "other"
-  },
-  "pipelineValidation": {
-    "active": [
-      "valid_product_id",
-      "valid_enum_values",
-      "has_title_or_barcode"
-    ],
-    "draft": [
-      "valid_structure",
-      "missing_business_content"
-    ],
-    "skip": [
-      "invalid_product_id",
-      "unrecoverable_schema_error",
-      "policy_block"
-    ]
-  },
-  "idempotency": {
-    "key": [
-      "productId",
-      "provenance.payloadHash"
-    ],
-    "sameHashBehavior": "no_op",
-    "changedHashBehavior": "merge_and_increment_version"
   }
 }

@@ -5,6 +5,7 @@ node_modules/
 # Output artifacts (keep folder)
 output/*.json
 !output/.gitkeep
+output/run_reports/
 
 # Credentials / keys
 *service-account*.json

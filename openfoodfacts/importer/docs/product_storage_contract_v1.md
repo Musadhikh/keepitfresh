@@ -1,22 +1,30 @@
 # Product Storage Contract v1
 
-## 1. Purpose and scope
-This document defines the single source of truth for Product storage representation used by KeepItFresh importers and clients (iOS/Android/Web).
+## 1.1 Purpose + scope
+This document is the single source of truth for Firestore/JSON representation of Product records in KeepItFresh.
 
-- Canonical model source: `iOS/Packages/ProductModule/Sources/ProductDomain/Models/*`
-- Storage target (logical): Firestore JSON documents
-- Scope: product document shape, normalization/invariants, enum encoding, validation states, and version/idempotency rules
-- Non-scope (Phase 1): upload implementation
+- Platform-agnostic: shared by importers and clients (iOS/Android/Web).
+- Based on canonical Swift source:
+  - `iOS/Packages/ProductModule/Sources/ProductDomain/Models/Product.swift`
+  - `ProductDetails.swift`, `ProductSupportingTypes.swift`, `Barcode.swift`, `ProductCategory.swift`
+- Scope:
+  - canonical JSON shape
+  - normalization + invariants
+  - provenance/source policy for imported feeds
+  - category curation policy
+  - validation and reject reasons
+  - versioning and idempotency
 
-## 2. Canonical Firestore document layout
+## 1.2 Canonical Firestore document layout
 
-### 2.1 Collections
-- `ProductCatalog`
-  - Product documents keyed by canonical `productId`
-- `ProductCategories`
-  - Curated taxonomy records used for importer mapping and UI filtering
+Collections:
+- `ProductCatalog`: product documents
+- `ProductCategories`: curated taxonomy and mapping hints
 
-### 2.2 Canonical ProductCatalog document shape
+Recommended ProductCatalog document id rule:
+- `docId == productId`
+
+### Canonical ProductCatalog JSON shape
 ```json
 {
   "productId": "string",
@@ -54,7 +62,13 @@ This document defines the single source of truth for Product storage representat
     }
   ],
   "attributes": {
-    "k": "v"
+    "importSource": "open_food_facts",
+    "importerVersion": "string",
+    "importedAt": "ISO-8601 datetime",
+    "off_code": "string",
+    "off_*": "string",
+    "import_*": "string",
+    "x_*": "string"
   },
   "extractionMetadata": {
     "extractedAt": "ISO-8601 datetime",
@@ -80,65 +94,54 @@ This document defines the single source of truth for Product storage representat
   "status": "active|draft|archived|blocked",
   "createdAt": "ISO-8601 datetime",
   "updatedAt": "ISO-8601 datetime",
-  "version": 1,
-  "provenance": {
-    "provider": "open_food_facts|manual|other",
-    "providerProductId": "string",
-    "importBatchId": "string",
-    "importedAt": "ISO-8601 datetime",
-    "payloadHash": "sha256-hex"
-  }
+  "version": 1
 }
 ```
 
-## 3. Canonical JSON field list
+### Canonical JSON Field List
 
-| Field | Type | Required | Constraints | Default behavior |
+| Field | Type | Required | Constraints | Default if missing |
 |---|---|---:|---|---|
-| `productId` | string | Yes | non-empty, trimmed, stable immutable identifier | reject if missing |
-| `barcode.value` | string | No | uppercase + alphanumeric normalized | omit when absent |
-| `barcode.symbology` | string enum | No | must be allowed value | `unknown` if value present but invalid |
-| `title` | string | No | trimmed; recommended for `active` | omit |
+| `productId` | string | Yes | non-empty, trimmed, stable | reject (`missing_identity`) |
+| `barcode` | object | No | if present: `value` + `symbology` | omit |
+| `barcode.value` | string | No | uppercase alphanumeric | omit |
+| `barcode.symbology` | enum string | No | allowed enum values only | `unknown` if `barcode` exists but value invalid |
+| `title` | string | No | trimmed | omit |
 | `brand` | string | No | trimmed | omit |
 | `shortDescription` | string | No | trimmed | omit |
 | `storageInstructions` | string | No | trimmed | omit |
-| `category.main` | string enum | No | must be allowed main category | omit |
-| `category.sub` | string | No | trimmed | omit |
-| `productDetails` | union object | No | must follow union encoding in section 5 | omit |
-| `packaging.quantity` | number | No | >= 0 when present | omit |
-| `packaging.unit` | string enum | No | must be allowed unit | `unknown` when `packaging` exists and unit missing |
-| `packaging.count` | int | No | >= 0 | omit |
-| `packaging.displayText` | string | No | trimmed | omit |
+| `category` | object | No | `main` enum, optional `sub` | omit |
+| `productDetails` | object | No | tagged union (`kind`,`value`) | omit |
+| `packaging` | object | No | numeric bounds and unit enum | omit |
 | `size` | string | No | trimmed | omit |
-| `images` | array<object> | Yes | array of canonical image object | `[]` |
-| `attributes` | map<string,string> | Yes | string keys/values | `{}` |
-| `extractionMetadata` | object | No | `fieldConfidence` values in [0,1] | omit |
-| `qualitySignals` | object | No | booleans default false when object present | omit |
+| `images` | array | Yes | canonical image objects; no nulls | `[]` |
+| `attributes` | map<string,string> | Yes | reserved namespaces policy | `{}` |
+| `extractionMetadata` | object | No | confidence values in [0,1] | omit |
+| `qualitySignals` | object | No | deterministic computation policy | omit |
 | `compliance` | object | No | arrays of strings | omit |
-| `source` | string enum | Yes | allowed source values only | `manual` |
-| `status` | string enum | Yes | allowed status values only | `active` |
-| `createdAt` | ISO datetime | Yes | set once on create | now (ingest time) |
-| `updatedAt` | ISO datetime | Yes | update on each write | now (write time) |
-| `version` | int | Yes | >= 1 | `1` on first write |
-| `provenance` | object | Recommended | provider + traceability metadata | omit for manual-only records |
+| `source` | enum string | Yes | allowed source values | importer default `importedFeed` for OFF |
+| `status` | enum string | Yes | allowed status values | `draft` during uncertain imports |
+| `createdAt` | ISO datetime | Yes | immutable create time | import time |
+| `updatedAt` | ISO datetime | Yes | monotonic update time | import/write time |
+| `version` | integer | Yes | >=1; monotonic | 1 |
 
-## 4. Enum serialization rules
-Store all enums as strings using exact values below.
+## 1.3 Enum serialization rules
+All enums are serialized as strings.
 
-### 4.1 ProductSource
+### ProductSource
 - `manual`
 - `barcodeLookup`
 - `aiExtraction`
 - `importedFeed`
 - `merged`
 
-### 4.2 ProductStatus
+### ProductStatus
 - `active`
 - `draft`
 - `archived`
 - `blocked`
 
-### 4.3 Barcode.Symbology
+### Barcode.Symbology
 - `ean13`
 - `ean8`
 - `upc_a`
@@ -147,7 +150,7 @@ Store all enums as strings using exact values below.
 - `code128`
 - `unknown`
 
-### 4.4 ProductCategory.MainCategory
+### ProductCategory.MainCategory
 - `food`
 - `beverage`
 - `household`
@@ -157,7 +160,7 @@ Store all enums as strings using exact values below.
 - `pet`
 - `other`
 
-### 4.5 ProductPackaging.Unit
+### ProductPackaging.Unit
 - `g`
 - `kg`
 - `ml`
@@ -167,7 +170,7 @@ Store all enums as strings using exact values below.
 - `count`
 - `unknown`
 
-### 4.6 ProductImage.Kind
+### ProductImage.Kind
 - `front`
 - `back`
 - `label`
@@ -175,81 +178,264 @@ Store all enums as strings using exact values below.
 - `ingredients`
 - `other`
 
-## 5. ProductDetails union encoding
-Use one cross-platform encoding:
+## 1.4 Union encoding for ProductDetails
+Chosen representation: **kind/value** (Option A)
 
 ```json
-"productDetails": {
-  "kind": "food|beverage|household|personalCare|other",
-  "value": { "...": "kind-specific payload" }
+"productDetails": { "kind": "food", "value": { "ingredients": ["water"] } }
+```
+
+- `kind` is required when `productDetails` is present.
+- `value` can be `null` (maps to optional associated value in Swift enum case).
+- `kind` to payload:
+  - `food` / `beverage` -> `FoodDetails`
+  - `household` -> `HouseholdDetails`
+  - `personalCare` -> `PersonalCareDetails`
+  - `other` -> `UnknownDetails`
+
+## 1.5 Identity + idempotency
+
+### productId rules
+Priority:
+1. normalized barcode value (preferred)
+2. stable source-prefixed fallback: `off:<off_code>`
+3. if neither exists -> reject
+
+### dedup across sources
+- Deduplicate by `productId`.
+- Keep latest canonical fields by merge policy.
+- Preserve source-specific payloads under `attributes` namespaces.
+
+### changed-only writes strategy
+- Compute stable content hash from canonical payload.
+- Store hash in `attributes.import_contentHash`.
+- If incoming hash equals stored hash, skip write.
+
+## 1.6 Provenance / source policy
+For Open Food Facts imports:
+- `source = "importedFeed"`
+- `attributes.importSource = "open_food_facts"`
+
+Reserved attributes namespaces:
+- `off_*`: Open Food Facts raw/carried metadata
+- `import_*`: importer metadata and control fields
+- `x_*`: experimental/non-contract keys
+
+Required provenance keys for imported products:
+- `attributes.importSource`
+- `attributes.importerVersion`
+- `attributes.importedAt`
+- `attributes.off_code` (if OFF code present upstream)
+
+## 1.7 Validation rules + status assignment
+
+### status = active
+Minimum:
+- valid identity (`productId`)
+- valid enums
+- at least one of:
+  - `title`, or
+  - `barcode`
+
+### status = draft + qualitySignals.needsManualReview = true
+Use when record is structurally valid but confidence/completeness is low:
+- missing both `title` and `brand`
+- sparse key fields
+- uncertain category mapping
+
+### skip/reject (not persisted)
+Reject reasons (deterministic codes):
+- `missing_identity`
+- `invalid_barcode`
+- `missing_title_and_brand`
+- `invalid_enum_value`
+- `invalid_nutrition`
+- `invalid_payload_shape`
+
+## 1.8 Normalization rules
+Deterministic and safe only:
+- Strings: trim, collapse internal repeated whitespace.
+- `title`/`brand`: preserve original casing; do not title-case aggressively.
+- Packaging:
+  - parse obvious number+unit patterns only
+  - map units to canonical enum (`g`,`kg`,`ml`,`l`,`oz`,`lb`,`count`)
+  - unknown/ambiguous -> `unit=unknown`
+- Ingredients splitting:
+  - split only on safe delimiters (`;`, `,`) when unambiguous
+  - otherwise keep as single string in details/attributes
+- Nutrition normalization:
+  - normalize known units where explicit and safe
+  - never infer unsupported unit conversions
+
+## 1.9 Categories policy (curation-first)
+Do not trust raw OFF category strings directly.
+
+### ProductCategories document structure
+```json
+{
+  "id": "slug-string",
+  "main": "food|beverage|household|personalCare|medicine|electronics|pet|other",
+  "sub": "string",
+  "tags": ["string"],
+  "synonyms": ["string"],
+  "hierarchyPath": "string",
+  "sourceHints": {
+    "openFoodFacts": {
+      "tags": ["string"],
+      "paths": ["string"]
+    }
+  }
 }
 ```
 
-- `kind` is required when `productDetails` exists.
-- `value` may be `null` to represent empty payload (`FoodDetails?`, etc).
-- `kind` must align with payload type.
+Mapping behavior:
+1. match curated `ProductCategories` entries
+2. set `category.main/sub` from curated match
+3. fallback: `main=other`, `sub=nil`
+4. retain raw OFF category signals in `attributes.off_*`
 
-Kind payloads:
-- `food` / `beverage`: `FoodDetails`
-- `household`: `HouseholdDetails`
-- `personalCare`: `PersonalCareDetails`
-- `other`: `UnknownDetails`
+## 1.10 Quality signals policy
+Deterministic rules:
+- `hasFrontImage`: true if any image `kind=front` or mapped front image candidate exists.
+- `hasIngredientImage`: true if image kind or field mapping indicates ingredient image.
+- `hasNutritionImage`: true if image kind or field mapping indicates nutrition image.
+- `completenessScore`: simple weighted score in [0,1] using presence of key fields:
+  - identity, title/brand, category, details, images
+- `needsManualReview=true` triggers:
+  - status draft
+  - ambiguous category
+  - conflicting identity fields
 
-## 6. Normalization and invariants
-- `productId`: trim whitespace, never empty.
-- `barcode.value`: trim, uppercase, keep alphanumeric characters only.
-- all user-facing text fields: trim leading/trailing whitespace.
-- arrays: no `null` members.
-- `images[].id` must be stable per image.
-- `createdAt <= updatedAt` invariant.
-- `version` monotonic increment on accepted mutation.
+## 1.11 Versioning policy
+- `contractVersion` (schema version) is separate from record `version`.
+- Record `version` increments on accepted product mutations.
+- Backward-compatible contract changes:
+  - add optional fields
+  - widen non-breaking parsing rules
+- Breaking changes require `v2` contract files.
 
-## 7. Provenance rules
-Every imported record should carry `provenance`.
+## 1.12 Examples
 
-For Open Food Facts imports:
-- `provenance.provider = "open_food_facts"`
-- `source = "importedFeed"` (or `merged` when combining sources)
-- store upstream identity in `provenance.providerProductId`
-- store deterministic content hash in `provenance.payloadHash`
-- store ingest batch and timestamp
+### Example 1: minimal valid product
+```json
+{
+  "productId": "7622210449283",
+  "barcode": { "value": "7622210449283", "symbology": "ean13" },
+  "title": "Chocolate Bar",
+  "images": [],
+  "attributes": {
+    "importSource": "open_food_facts",
+    "importerVersion": "1.0.0",
+    "importedAt": "2026-03-01T10:00:00.000Z",
+    "off_code": "7622210449283",
+    "import_contentHash": "sha256:abc123"
+  },
+  "source": "importedFeed",
+  "status": "active",
+  "createdAt": "2026-03-01T10:00:00.000Z",
+  "updatedAt": "2026-03-01T10:00:00.000Z",
+  "version": 1
+}
+```
 
-## 8. Category policy (curation-first)
-- Importers must not blindly trust upstream category strings.
-- `ProductCategories` is curated source for mapping raw categories -> canonical `main/sub`.
-- If no mapping exists:
-  - set `category.main = "other"`
-  - optionally keep raw hints in `attributes` or `provenance` metadata
-- Category mapping changes are additive and versioned in taxonomy workflow, not ad-hoc per importer run.
+### Example 2: full food product
+```json
+{
+  "productId": "off:3017620422003",
+  "barcode": { "value": "3017620422003", "symbology": "ean13" },
+  "title": "Hazelnut Spread",
+  "brand": "Ferrero",
+  "shortDescription": "Cocoa and hazelnut spread",
+  "storageInstructions": "Store in a cool dry place",
+  "category": { "main": "food", "sub": "spread" },
+  "productDetails": {
+    "kind": "food",
+    "value": {
+      "ingredients": ["sugar", "palm oil", "hazelnuts", "cocoa"],
+      "allergens": ["nuts"],
+      "servingSize": "15 g",
+      "nutritionPer100gOrMl": {
+        "energyKcal": 539,
+        "proteinG": 6.3,
+        "fatG": 30.9,
+        "saturatedFatG": 10.6,
+        "carbsG": 57.5,
+        "sugarsG": 56.3,
+        "sodiumMg": 42
+      },
+      "quantityText": "350g",
+      "numberOfItemsText": null
+    }
+  },
+  "packaging": { "quantity": 350, "unit": "g", "count": 1, "displayText": "350 g jar" },
+  "size": "350 g",
+  "images": [
+    {
+      "id": "front_1",
+      "urlString": "https://example.com/front.jpg",
+      "localAssetId": null,
+      "kind": "front",
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "nutrition_1",
+      "urlString": "https://example.com/nutrition.jpg",
+      "localAssetId": null,
+      "kind": "nutrition",
+      "width": 800,
+      "height": 1200
+    }
+  ],
+  "attributes": {
+    "importSource": "open_food_facts",
+    "importerVersion": "1.0.0",
+    "importedAt": "2026-03-01T10:05:00.000Z",
+    "off_code": "3017620422003",
+    "off_categories_tags": "en:spreads,en:hazelnut-spreads",
+    "import_contentHash": "sha256:def456"
+  },
+  "qualitySignals": {
+    "completenessScore": 0.92,
+    "needsManualReview": false,
+    "hasFrontImage": true,
+    "hasIngredientImage": false,
+    "hasNutritionImage": true
+  },
+  "source": "importedFeed",
+  "status": "active",
+  "createdAt": "2026-03-01T10:05:00.000Z",
+  "updatedAt": "2026-03-01T10:05:00.000Z",
+  "version": 1
+}
+```
 
-## 9. Validation states (active/draft/skip)
-Importer decision model:
-- `active`
-  - minimum: valid `productId`, valid enum fields, and at least one useful identifier (`title` or `barcode`)
-- `draft`
-  - structurally valid but incomplete business content (for review)
-- `skip` (not persisted)
-  - invalid `productId`, unrecoverable schema/type errors, or explicit policy block
-
-Notes:
-- `skip` is pipeline-only state, not a `ProductStatus` enum value.
-- persisted records use `status` from ProductStatus only.
-
-## 10. Versioning and idempotency guidance
-- Contract version: `v1`.
-- Maintain `version` in each product document (application-level record version).
-- Importer idempotency key:
-  - `(productId, provenance.payloadHash)`
-- If incoming hash == stored hash: no-op update.
-- If hash differs: apply merge policy, update `updatedAt`, increment `version`.
-- Backward-compatible changes:
-  - add optional fields only
-- Breaking changes:
-  - require new contract version file (`product_storage_contract_v2.*`)
-
-## 11. Change management
-Any change to this contract must:
-1. update `product_storage_contract_v1.md`
-2. update `product_storage_contract_v1.json`
-3. update `docs/README.md` changelog section
-4. include migration note for client/parser impact
+### Example 3: draft product requiring review
+```json
+{
+  "productId": "off:missing-barcode-abc",
+  "title": null,
+  "brand": null,
+  "images": [],
+  "attributes": {
+    "importSource": "open_food_facts",
+    "importerVersion": "1.0.0",
+    "importedAt": "2026-03-01T10:10:00.000Z",
+    "off_code": "missing-barcode-abc",
+    "import_rejectHint": "missing_title_and_brand",
+    "import_contentHash": "sha256:ghi789"
+  },
+  "qualitySignals": {
+    "completenessScore": 0.2,
+    "needsManualReview": true,
+    "hasFrontImage": false,
+    "hasIngredientImage": false,
+    "hasNutritionImage": false
+  },
+  "source": "importedFeed",
+  "status": "draft",
+  "createdAt": "2026-03-01T10:10:00.000Z",
+  "updatedAt": "2026-03-01T10:10:00.000Z",
+  "version": 1
+}
+```

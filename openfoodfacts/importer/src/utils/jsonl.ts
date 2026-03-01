@@ -4,7 +4,9 @@ import type { JsonlParseError } from "../core/types.js";
 
 export interface JsonlReaderOptions {
   includeRawLineInErrors?: boolean;
+  onLine?: (line: { lineNumber: number; lineBytes: number; isEmpty: boolean }) => void;
   onParseError?: (error: JsonlParseError) => void;
+  shouldStop?: (line: { lineNumber: number; lineBytes: number; isEmpty: boolean }) => boolean;
 }
 
 export async function* createJsonlReader<T = Record<string, unknown>>(
@@ -20,8 +22,16 @@ export async function* createJsonlReader<T = Record<string, unknown>>(
     for await (const line of rl) {
       lineNumber += 1;
       const lineBytes = Buffer.byteLength(line, "utf8");
+      const isEmpty = line.trim() === "";
+      const lineInfo = { lineNumber, lineBytes, isEmpty };
 
-      if (line.trim() === "") {
+      options.onLine?.(lineInfo);
+
+      if (options.shouldStop?.(lineInfo) === true) {
+        break;
+      }
+
+      if (isEmpty) {
         continue;
       }
 
