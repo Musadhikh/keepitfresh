@@ -631,6 +631,7 @@ struct InventorySyncCoordinatorTests {
 
         #expect(output.syncedCount == 0)
         #expect(output.failedCount == 1)
+        #expect(output.failedItemIDs == ["sync-1"])
         #expect(metadata?.state == .failed)
         #expect(metadata?.retryCount == 1)
     }
@@ -665,7 +666,56 @@ struct InventorySyncCoordinatorTests {
         #expect(output.syncedCount == 0)
         #expect(output.failedCount == 0)
         #expect(output.skippedCount == 1)
+        #expect(output.failedItemIDs.isEmpty)
         #expect(remoteCalls == 0)
+    }
+
+    @Test
+    func syncPendingFiltersByOperationWhenProvided() async throws {
+        let updateItem = makeItem(id: "sync-update", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let deleteItem = makeItem(id: "sync-delete", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let fixture = await makeSyncFixture(online: true, seed: [updateItem, deleteItem])
+
+        try await fixture.syncStore.upsertMetadata([
+            InventorySyncMetadata(
+                itemId: "sync-update",
+                householdId: fixture.householdId,
+                operation: .update,
+                state: .pending,
+                retryCount: 0,
+                lastError: nil,
+                lastAttemptAt: fixture.now,
+                lastSyncedAt: nil,
+                idempotencyRequestId: "req-update",
+                addAction: nil
+            ),
+            InventorySyncMetadata(
+                itemId: "sync-delete",
+                householdId: fixture.householdId,
+                operation: .delete,
+                state: .pending,
+                retryCount: 0,
+                lastError: nil,
+                lastAttemptAt: fixture.now,
+                lastSyncedAt: nil,
+                idempotencyRequestId: "req-delete",
+                addAction: nil
+            )
+        ])
+
+        let output = try await fixture.useCase.execute(
+            SyncPendingInventoryInput(
+                householdId: fixture.householdId,
+                operations: [.delete]
+            )
+        )
+        let updateMetadata = try await fixture.syncStore.metadata(for: "sync-update", householdId: fixture.householdId, operation: .update)
+        let deleteMetadata = try await fixture.syncStore.metadata(for: "sync-delete", householdId: fixture.householdId, operation: .delete)
+
+        #expect(output.syncedCount == 1)
+        #expect(output.failedCount == 0)
+        #expect(updateMetadata?.state == .pending)
+        #expect(deleteMetadata?.state == .synced)
     }
 
     @Test
