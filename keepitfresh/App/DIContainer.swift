@@ -351,4 +351,17 @@ extension Container {
         }
             .singleton
     }
+
+    var inventoryUndoService: Factory<any InventoryUndoServicing> {
+        self {
+            AppInventoryUndoService(
+                inventoryRepository: self.inventoryModuleInventoryRepository(),
+                remoteGateway: self.inventoryModuleRemoteGateway(),
+                syncStateStore: self.inventoryModuleSyncStateStore(),
+                connectivity: self.inventoryModuleConnectivityProvider(),
+                clock: InventoryModuleTypes.SystemClock()
+            )
+        }
+            .singleton
+    }
 }

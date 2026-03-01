@@ -1,5 +1,5 @@
 //
-//  ReviewProductScreen.swift
+//  ReviewProductView.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct ReviewProductScreen: View {
+struct ReviewProductView: View {
     @Binding var draft: ProductDraft
     let onSave: () -> Void
     let onSaveAndAddAnother: () -> Void

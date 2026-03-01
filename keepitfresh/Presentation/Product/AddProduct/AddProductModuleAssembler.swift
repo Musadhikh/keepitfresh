@@ -44,8 +44,8 @@ struct AddProductModuleAssembler {
     }
 
     @MainActor
-    func makeViewModel(initialBarcode: Barcode? = nil) -> AddProductViewModel {
-        AddProductViewModel(useCase: makeUseCase(), initialBarcode: initialBarcode)
+    func makeViewModel(initialBarcode: Barcode? = nil) -> AddProductFlowRootViewModel {
+        AddProductFlowRootViewModel(useCase: makeUseCase(), initialBarcode: initialBarcode)
     }
 
     @MainActor

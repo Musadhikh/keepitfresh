@@ -1,5 +1,5 @@
 //
-//  HouseSelectionScreen.swift
+//  HouseSelectionView.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 15/2/26.
@@ -8,14 +8,14 @@
 
 import SwiftUI
 
-enum HouseSelectionScreenMode: Sendable {
+enum HouseSelectionViewMode: Sendable {
     case required
     case manage
 }
 
-struct HouseSelectionScreen: View {
+struct HouseSelectionView: View {
     @Environment(AppState.self) private var appState
-    let mode: HouseSelectionScreenMode
+    let mode: HouseSelectionViewMode
     
     @State private var viewModel = HouseSelectionViewModel()
     @State private var showCreateHouseSheet = false
@@ -128,7 +128,7 @@ struct HouseSelectionScreen: View {
 }
 
 private struct HouseSelectionHeader: View {
-    let mode: HouseSelectionScreenMode
+    let mode: HouseSelectionViewMode
     
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s8) {
@@ -221,14 +221,14 @@ private struct EmptyHouseState: View {
 #if DEBUG
 #Preview("House Selection - Required") {
     NavigationStack {
-        HouseSelectionScreen(mode: .required)
+        HouseSelectionView(mode: .required)
             .environment(AppState())
     }
 }
 
 #Preview("House Selection - Manage") {
     NavigationStack {
-        HouseSelectionScreen(mode: .manage)
+        HouseSelectionView(mode: .manage)
             .environment(AppState())
     }
 }
