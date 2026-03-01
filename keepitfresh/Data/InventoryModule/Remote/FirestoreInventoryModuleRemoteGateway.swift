@@ -6,9 +6,7 @@
 //  Summary: Firestore-backed InventoryModule remote gateway scoped under each house document.
 //
 
-#if canImport(FirebaseFirestore)
 import FirebaseFirestore
-#endif
 import Foundation
 import InventoryModule
 
@@ -26,18 +24,13 @@ enum FirestoreInventoryModuleRemoteGatewayError: LocalizedError {
 }
 
 actor FirestoreInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemoteGateway {
-#if canImport(FirebaseFirestore)
     private let db: Firestore
 
     init(db: Firestore = Firestore.firestore()) {
         self.db = db
     }
-#else
-    init() {}
-#endif
 
     func upsert(_ items: [IMRemoteItem]) async throws {
-#if canImport(FirebaseFirestore)
         guard items.isEmpty == false else { return }
 
         if FirebaseWritePolicy.isMockWriteEnabled {
@@ -56,14 +49,9 @@ actor FirestoreInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemot
             }
             try await batch.commit()
         }
-#else
-        _ = items
-        throw FirestoreInventoryModuleRemoteGatewayError.firestoreUnavailable
-#endif
     }
 
     func fetchActiveItems(householdId: String) async throws -> [IMRemoteItem] {
-#if canImport(FirebaseFirestore)
         guard householdId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
             return []
         }
@@ -79,27 +67,22 @@ actor FirestoreInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemot
                 injectingDocumentIdTo: "id"
             )
         }
-#else
-        _ = householdId
-        throw FirestoreInventoryModuleRemoteGatewayError.firestoreUnavailable
-#endif
     }
 }
 
 extension FirestoreInventoryModuleRemoteGateway {
     static func houseItemsCollectionPath(householdId: String) -> String {
-        "\(FirebaseConstants.Collections.houses)/\(householdId)/\(FirebaseConstants.Collections.items)"
+        "\(FirebaseConstants.Collections.houses)/\(householdId)/\(FirebaseConstants.Collections.purchases)"
     }
 }
 
-#if canImport(FirebaseFirestore)
 private extension FirestoreInventoryModuleRemoteGateway {
     func housesCollection() -> CollectionReference {
         db.collection(FirebaseConstants.Collections.houses)
     }
 
     func itemsCollection(householdId: String) -> CollectionReference {
-        housesCollection().document(householdId).collection(FirebaseConstants.Collections.items)
+        housesCollection().document(householdId).collection(FirebaseConstants.Collections.purchases)
     }
 
     func itemDocument(householdId: String, itemId: String) -> DocumentReference {
@@ -124,4 +107,3 @@ private extension Array {
         return chunks
     }
 }
-#endif

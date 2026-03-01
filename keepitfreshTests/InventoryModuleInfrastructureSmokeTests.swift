@@ -18,7 +18,7 @@ struct InventoryModuleInfrastructureSmokeTests {
     @Test("Firestore gateway uses household-scoped collection path")
     func firestoreGatewayPathUsesHouseScope() {
         let path = FirestoreInventoryModuleRemoteGateway.houseItemsCollectionPath(householdId: "house-123")
-        #expect(path == "Houses/house-123/Items")
+        #expect(path == "Houses/house-123/Purchases")
     }
 
     @Test("Firestore gateway returns empty for blank household id")
