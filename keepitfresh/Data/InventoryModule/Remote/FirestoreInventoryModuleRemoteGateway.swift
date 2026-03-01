@@ -86,6 +86,12 @@ actor FirestoreInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemot
     }
 }
 
+extension FirestoreInventoryModuleRemoteGateway {
+    static func houseItemsCollectionPath(householdId: String) -> String {
+        "\(FirebaseConstants.Collections.houses)/\(householdId)/\(FirebaseConstants.Collections.items)"
+    }
+}
+
 #if canImport(FirebaseFirestore)
 private extension FirestoreInventoryModuleRemoteGateway {
     func housesCollection() -> CollectionReference {
@@ -93,9 +99,7 @@ private extension FirestoreInventoryModuleRemoteGateway {
     }
 
     func itemsCollection(householdId: String) -> CollectionReference {
-        housesCollection()
-            .document(householdId)
-            .collection(FirebaseConstants.Collections.items)
+        housesCollection().document(householdId).collection(FirebaseConstants.Collections.items)
     }
 
     func itemDocument(householdId: String, itemId: String) -> DocumentReference {

@@ -221,3 +221,9 @@
 - Hooked one-time Home-launch warm-up (`WarmExpiringInventoryWindow`) into `HomeInventoryViewModel` so expiring-next-14-days cache refresh runs once per app launch before local list load.
 - War-story fix: hit module/type symbol collisions (`InventoryModule` and `ProductModule` names shadowed by facade structs) during DI wiring; resolved by introducing and consuming namespaced exports (`InventoryModuleTypes`, `ProductModuleTypes`) for unambiguous registrations.
 - Verification: `swift test --package-path Packages/InventoryModule` (26 tests passed), `swift test --package-path Packages/ProductModule` (5 tests passed), and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+
+## 2026-03-01
+- Added app-layer InventoryModule infrastructure smoke tests in `keepitfreshTests/InventoryModuleInfrastructureSmokeTests.swift` to lock down the integration seam after switching to Firestore-backed remote gateway.
+- Covered the practical "don’t break wiring" risks: Firestore house-scoped collection path contract (`Houses/{householdId}/Items`), blank-household fetch guard behavior, empty upsert no-op behavior, DI resolution for gateway/service concrete adapters, and a real service invocation path that validates invalid household rejection.
+- Added a tiny explicit test seam to `FirestoreInventoryModuleRemoteGateway` (`houseItemsCollectionPath(householdId:)`) so path assertions stay deterministic and do not require coupling tests to Firestore query internals.
+- Updated `Documentation/INVENTORY_MODULE_PROGRESS_HANDOFF.md` to mark adapter/composition smoke testing as completed and move the immediate next step to Home read-path migration onto InventoryModule queries.
