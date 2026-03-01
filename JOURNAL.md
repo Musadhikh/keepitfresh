@@ -315,3 +315,36 @@
   - updated app adapters (`FirestoreInventoryModuleRemoteGateway`, `StubInventoryModuleRemoteGateway`) and in-memory module gateway to return full household snapshots (all statuses) for refresh paths.
 - Added a regression test (`localHitOnlineRefreshReconcilesRemoteArchivedStatus`) proving that a locally active item is updated to `.archived` after remote refresh and drops out of expiring results.
 - Verification: `swift test --package-path Packages/InventoryModule` (34 tests passed) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+
+## 2026-03-01 - OpenFoodFacts Importer Phase 0 Scaffold
+
+Built a safe-by-default importer skeleton under `openfoodfacts/importer` with a strict "no uploads" posture.
+
+What landed:
+- TypeScript CLI scaffold (`yargs` + `tsx`), docs, scripts, env template, and output/test placeholders.
+- Streaming JSONL reader via async generator (`src/utils/jsonl.ts`) for huge-file safety.
+- Guardrails in config:
+  - dry-run default true
+  - `--execute` overrides dry-run
+  - global env gate `IMPORTER_UPLOADS_ENABLED=true` required before any execute path
+- Firestore layer intentionally stubbed (`client.ts`, `batching.ts`) to prevent accidental integration in Phase 0.
+- Local checkpoint placeholder + per-run write-budget guardrails.
+- Locked import commands (`importCategories`, `importProducts`) that refuse real execution in Phase 0.
+
+Gotcha found:
+- Local `npm` is bound to a broken Node 14 install and crashes with `Cannot find module 'node:path'`.
+- This blocks `npm install` / typecheck validation until the machine uses Node 20+.
+
+## 2026-03-01 - OpenFoodFacts Phase 1 Product Contract
+
+Locked down a platform-agnostic Product storage contract for importer + clients.
+
+What changed:
+- Added human-readable contract: `openfoodfacts/importer/docs/product_storage_contract_v1.md`
+- Added machine-readable snapshot: `openfoodfacts/importer/docs/product_storage_contract_v1.json`
+- Updated importer docs README with contract governance and changelog.
+
+Why this matters:
+- Prevents model drift between iOS ProductModule and importer payloads.
+- Gives one place to reason about enum serialization, tagged union encoding (`productDetails`), provenance (`open_food_facts`), and idempotency behavior.
+- Sets explicit curation-first category policy before uploads begin.

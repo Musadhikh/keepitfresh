@@ -1,0 +1,27 @@
+{
+  "name": "@keepitfresh/openfoodfacts-importer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenFoodFacts importer scaffold for KeepItFresh (Phase 0)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "sample": "tsx src/cli/index.ts sample",
+    "build:categories": "tsx src/cli/index.ts buildCategories",
+    "import:categories": "tsx src/cli/index.ts importCategories",
+    "import:products": "tsx src/cli/index.ts importProducts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pino": "^9.4.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/yargs": "^17.0.33",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}

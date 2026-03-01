@@ -1,0 +1,149 @@
+{
+  "contractVersion": "v1",
+  "sourceOfTruth": "iOS/Packages/ProductModule/Sources/ProductDomain/Models",
+  "collections": {
+    "productCatalog": "ProductCatalog",
+    "productCategories": "ProductCategories"
+  },
+  "enums": {
+    "productSource": [
+      "manual",
+      "barcodeLookup",
+      "aiExtraction",
+      "importedFeed",
+      "merged"
+    ],
+    "productStatus": [
+      "active",
+      "draft",
+      "archived",
+      "blocked"
+    ],
+    "barcodeSymbology": [
+      "ean13",
+      "ean8",
+      "upc_a",
+      "upc_e",
+      "qr",
+      "code128",
+      "unknown"
+    ],
+    "mainCategory": [
+      "food",
+      "beverage",
+      "household",
+      "personalCare",
+      "medicine",
+      "electronics",
+      "pet",
+      "other"
+    ],
+    "packagingUnit": [
+      "g",
+      "kg",
+      "ml",
+      "l",
+      "oz",
+      "lb",
+      "count",
+      "unknown"
+    ],
+    "imageKind": [
+      "front",
+      "back",
+      "label",
+      "nutrition",
+      "ingredients",
+      "other"
+    ],
+    "productDetailsKind": [
+      "food",
+      "beverage",
+      "household",
+      "personalCare",
+      "other"
+    ]
+  },
+  "fieldDefaults": {
+    "images": [],
+    "attributes": {},
+    "source": "manual",
+    "status": "active",
+    "version": 1,
+    "packaging.unit": "unknown"
+  },
+  "requiredFields": [
+    "productId",
+    "images",
+    "attributes",
+    "source",
+    "status",
+    "createdAt",
+    "updatedAt",
+    "version"
+  ],
+  "productDetailsEncoding": {
+    "type": "tagged_union",
+    "shape": {
+      "kind": "string",
+      "value": "object_or_null"
+    },
+    "kindToPayload": {
+      "food": "FoodDetails",
+      "beverage": "FoodDetails",
+      "household": "HouseholdDetails",
+      "personalCare": "PersonalCareDetails",
+      "other": "UnknownDetails"
+    }
+  },
+  "normalization": {
+    "productId": "trim_non_empty",
+    "barcode.value": "trim_uppercase_alphanumeric",
+    "textFields": "trim",
+    "createdAtUpdatedAt": "createdAt <= updatedAt",
+    "version": "monotonic_increase"
+  },
+  "provenance": {
+    "recommended": true,
+    "fields": [
+      "provider",
+      "providerProductId",
+      "importBatchId",
+      "importedAt",
+      "payloadHash"
+    ],
+    "openFoodFacts": {
+      "provider": "open_food_facts",
+      "source": "importedFeed"
+    }
+  },
+  "categoryPolicy": {
+    "mode": "curation_first",
+    "taxonomyCollection": "ProductCategories",
+    "fallbackMain": "other"
+  },
+  "pipelineValidation": {
+    "active": [
+      "valid_product_id",
+      "valid_enum_values",
+      "has_title_or_barcode"
+    ],
+    "draft": [
+      "valid_structure",
+      "missing_business_content"
+    ],
+    "skip": [
+      "invalid_product_id",
+      "unrecoverable_schema_error",
+      "policy_block"
+    ]
+  },
+  "idempotency": {
+    "key": [
+      "productId",
+      "provenance.payloadHash"
+    ],
+    "sameHashBehavior": "no_op",
+    "changedHashBehavior": "merge_and_increment_version"
+  }
+}
