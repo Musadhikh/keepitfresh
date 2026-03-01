@@ -282,6 +282,45 @@ struct InventoryReadOfflineFirstTests {
     }
 
     @Test
+    func localHitOnlineRefreshDoesNotHardDeleteWhenItemMissingFromRemoteSnapshot() async throws {
+        let local = makeItem(id: "item-local-only", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let fixture = await makeReadFixture(
+            online: true,
+            localSeed: [local],
+            remoteSeed: []
+        )
+
+        let initialOutput = try await fixture.useCase.execute(
+            GetExpiringItemsInput(
+                householdId: fixture.householdId,
+                today: fixture.now,
+                windowDays: 14,
+                timeZone: fixture.timeZone
+            )
+        )
+        #expect(initialOutput.contains(where: { $0.id == "item-local-only" }))
+
+        try await waitUntil {
+            let fetchCalls = await fixture.remoteGateway.fetchCallsCount()
+            return fetchCalls == 1
+        }
+
+        let localAfterRefresh = try await fixture.inventoryRepository.findById(
+            "item-local-only",
+            householdId: fixture.householdId
+        )
+        let expiringAfterRefresh = try await fixture.inventoryRepository.fetchExpiring(
+            fixture.householdId,
+            asOf: fixture.now,
+            windowDays: 14,
+            timeZone: fixture.timeZone
+        )
+
+        #expect(localAfterRefresh?.status == .active)
+        #expect(expiringAfterRefresh.contains(where: { $0.id == "item-local-only" }))
+    }
+
+    @Test
     func offlineLocalMissReturnsEmptyWithoutRemoteFetch() async throws {
         let fixture = await makeReadFixture(
             online: false,

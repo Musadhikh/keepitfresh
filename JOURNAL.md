@@ -293,6 +293,11 @@
   - `AddProductModuleAssembler` now composes mandatory InventoryModule dependencies and no longer injects legacy inventory repository.
   - removed unused `addProductInventoryRepository` DI registration from `DIContainer`.
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Locked the reconciliation delete policy to avoid accidental data loss across devices:
+  - Inventory remote snapshot contract now explicitly states that missing IDs are **not** tombstones and must not trigger hard-delete locally.
+  - Added regression test `localHitOnlineRefreshDoesNotHardDeleteWhenItemMissingFromRemoteSnapshot` to ensure local items survive when absent from remote snapshot.
+  - Codified archive-first semantics in backend integration docs: deletions are represented as status transitions (`archived`) unless/until an explicit tombstone feed exists.
+- Verification: `swift test --package-path Packages/InventoryModule` and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - Closed the inventory reconciliation gap for cross-device archive convergence in read refresh flows:
   - extended `InventoryRemoteGateway` with `fetchItemsSnapshot(householdId:)` and switched read/warm-up refresh use cases (`GetExpired`, `GetExpiring`, `WarmExpiringInventoryWindow`) to consume snapshot data rather than active-only remote reads.
   - updated app adapters (`FirestoreInventoryModuleRemoteGateway`, `StubInventoryModuleRemoteGateway`) and in-memory module gateway to return full household snapshots (all statuses) for refresh paths.
