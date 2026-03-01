@@ -280,13 +280,13 @@ Idempotency:
 - Input: `householdId`, `productId`.
 - Output: `totalQuantity`, `batchCount`, `earliestExpiry`, `activeBatchCount`.
 
-### 4.8 DeleteInventoryItem (offline-first)
-- Input: `householdId`, `itemId`, optional `hardDelete` flag (default false).
-- Output: updated/deleted item id + sync state.
+### 4.8 DeleteInventoryItem (offline-first, archive-only)
+- Input: `householdId`, `itemId`.
+- Output: archived item + sync state.
 - Behavior:
-  - default soft-delete semantics (mark discarded/archived locally).
-  - queue remote delete mutation in sync state.
-  - on sync success, mark as synced tombstone (or hard-delete by retention policy).
+  - archive-only semantics: mark inventory item status as `archived` locally (no hard delete path).
+  - queue archive mutation in sync state (`operation = .delete`) for remote convergence.
+  - on sync success, mark metadata as `synced`; on failure keep retryable failed state.
 
 ### 4.9 SyncPendingInventory
 - Input: optional `limit`, optional operation filters (`add`, `update`, `delete`, `consume`).
@@ -325,7 +325,6 @@ public protocol InventoryRepository: Sendable {
     func findMergeCandidate(_ key: InventoryMergeKey, householdId: String) async throws -> InventoryItem?
     func updateMany(_ items: [InventoryItem]) async throws
     func summarizeByProduct(productId: String, householdId: String) async throws -> InventoryProductSummary
-    func delete(itemId: String, householdId: String, hardDelete: Bool) async throws
 }
 
 public protocol LocationRepository: Sendable {
@@ -340,10 +339,8 @@ public protocol ProductReadRepository: Sendable {
 }
 
 public protocol InventoryRemoteGateway: Sendable {
-    func fetchInventory(householdId: String) async throws -> [InventoryItem]
-    func fetchExpiring(householdId: String, asOf: Date, windowDays: Int, timeZone: TimeZone) async throws -> [InventoryItem]
     func upsert(_ items: [InventoryItem]) async throws
-    func delete(itemIDs: [String], householdId: String) async throws
+    func fetchActiveItems(householdId: String) async throws -> [InventoryItem]
 }
 
 public enum InventorySyncOperation: String, Sendable, Codable, Equatable, Hashable {

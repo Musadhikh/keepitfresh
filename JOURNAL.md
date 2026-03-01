@@ -240,3 +240,5 @@
 - Added contract-first extension points (`InventorySyncRetryPolicy`, `InventorySyncObservability`) with no-op defaults, which keeps app behavior stable today but unlocks production metrics wiring without module API churn later.
 - Expanded InventoryModule tests to cover backoff skip gating and observability emission across fail-then-retry-success flow.
 - Verification: `swift test --package-path Packages/InventoryModule` (32 tests passed) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Finalized Inventory delete semantics as archive-only and aligned docs/contracts around that decision; removed lingering `hardDelete` expectations from implementation planning notes to match the shipped module behavior.
+- Completed sync contract parity on `SyncPendingInventory`: operation filtering and failed-item reporting are now explicit in the API, so app diagnostics/retry UX does not need to infer failures indirectly.
