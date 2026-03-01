@@ -193,6 +193,22 @@ extension Container {
             .singleton
     }
 
+    var inventoryModuleSyncRetryPolicy: Factory<any InventoryModuleTypes.InventorySyncRetryPolicy> {
+        self {
+            InventoryModuleTypes.DefaultInventorySyncRetryPolicy(
+                baseDelay: 2,
+                maxDelay: 60,
+                maxRetryCount: 8
+            )
+        }
+            .singleton
+    }
+
+    var inventoryModuleSyncObservability: Factory<any InventoryModuleTypes.InventorySyncObservability> {
+        self { AppInventorySyncObservability() }
+            .singleton
+    }
+
     var inventoryModuleAddUseCase: Factory<any InventoryModuleTypes.AddInventoryItemUseCase> {
         self {
             DefaultAddInventoryItemUseCase(
@@ -298,7 +314,9 @@ extension Container {
                 remoteGateway: self.inventoryModuleRemoteGateway(),
                 syncStateStore: self.inventoryModuleSyncStateStore(),
                 connectivity: self.inventoryModuleConnectivityProvider(),
-                clock: InventoryModuleTypes.SystemClock()
+                clock: InventoryModuleTypes.SystemClock(),
+                retryPolicy: self.inventoryModuleSyncRetryPolicy(),
+                observability: self.inventoryModuleSyncObservability()
             )
         }
             .singleton

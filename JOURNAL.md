@@ -242,3 +242,6 @@
 - Verification: `swift test --package-path Packages/InventoryModule` (32 tests passed) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - Finalized Inventory delete semantics as archive-only and aligned docs/contracts around that decision; removed lingering `hardDelete` expectations from implementation planning notes to match the shipped module behavior.
 - Completed sync contract parity on `SyncPendingInventory`: operation filtering and failed-item reporting are now explicit in the API, so app diagnostics/retry UX does not need to infer failures indirectly.
+- Wired sync hardening into app DI: `DefaultSyncPendingInventoryUseCase` now receives a concrete retry policy and observability sink from composition root instead of relying on defaults only.
+- Added `AppInventorySyncObservability` as the app-side event sink (`os.Logger` + recent-event buffer) and smoke-tested that real sync runs emit events into it.
+- Extended infrastructure smoke tests to validate DI resolves sync hardening dependencies (`DefaultInventorySyncRetryPolicy`, `AppInventorySyncObservability`) and that event capture works on a realistic in-memory sync path.
