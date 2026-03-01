@@ -2,7 +2,7 @@
 
 Status date: 2026-03-01  
 Branch at handoff: `task/homepage`  
-Base commit at handoff: `cbfa08e`
+Base commit at handoff: `d0131ea`
 
 This document captures:
 - What is completed
