@@ -88,11 +88,6 @@ extension Container {
         self { SelectHouseUseCase() }
     }
 
-    var addProductInventoryRepository: Factory<any InventoryRepository> {
-        self { RealmInventoryRepository() }
-            .singleton
-    }
-
     var addProductCatalogRepository: Factory<any CatalogRepository> {
         self { RealmCatalogRepository() }
             .singleton

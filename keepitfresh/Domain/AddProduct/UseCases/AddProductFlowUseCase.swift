@@ -10,10 +10,9 @@ import Foundation
 import InventoryModule
 
 actor AddProductFlowUseCase {
-    private let inventoryRepository: any InventoryRepository
-    private let inventoryModuleService: (any InventoryModuleTypes.InventoryModuleServicing)?
-    private let inventoryModuleLocationRepository: (any InventoryModuleTypes.LocationRepository)?
-    private let inventoryModuleRepository: (any InventoryModuleTypes.InventoryRepository)?
+    private let inventoryModuleService: any InventoryModuleTypes.InventoryModuleServicing
+    private let inventoryModuleLocationRepository: any InventoryModuleTypes.LocationRepository
+    private let inventoryModuleRepository: any InventoryModuleTypes.InventoryRepository
     private let catalogService: any AddProductCatalogServicing
     private let householdProvider: any HouseholdContextProviding
 
@@ -25,14 +24,12 @@ actor AddProductFlowUseCase {
     private var currentNotFoundContext: AddProductNotFoundContext?
 
     init(
-        inventoryRepository: any InventoryRepository,
-        inventoryModuleService: (any InventoryModuleTypes.InventoryModuleServicing)? = nil,
-        inventoryModuleLocationRepository: (any InventoryModuleTypes.LocationRepository)? = nil,
-        inventoryModuleRepository: (any InventoryModuleTypes.InventoryRepository)? = nil,
+        inventoryModuleService: any InventoryModuleTypes.InventoryModuleServicing,
+        inventoryModuleLocationRepository: any InventoryModuleTypes.LocationRepository,
+        inventoryModuleRepository: any InventoryModuleTypes.InventoryRepository,
         catalogService: any AddProductCatalogServicing,
         householdProvider: any HouseholdContextProviding
     ) {
-        self.inventoryRepository = inventoryRepository
         self.inventoryModuleService = inventoryModuleService
         self.inventoryModuleLocationRepository = inventoryModuleLocationRepository
         self.inventoryModuleRepository = inventoryModuleRepository
@@ -72,7 +69,10 @@ actor AddProductFlowUseCase {
         do {
             let householdId = try await householdProvider.currentHouseholdId()
 
-            if let moduleInventory = try await findInventoryFromModule(householdId: householdId, barcode: barcode) {
+            if let moduleInventory = try await findInventoryFromModule(
+                householdId: householdId,
+                barcode: barcode
+            ) {
                 currentInventoryHit = (moduleInventory, .inventoryLocal)
                 currentCatalogHit = nil
                 currentNotFoundContext = nil
@@ -87,42 +87,11 @@ actor AddProductFlowUseCase {
                 return
             }
 
-            if let localInventory = try await inventoryRepository.findLocal(householdId: householdId, barcode: barcode) {
-                currentInventoryHit = (localInventory, .inventoryLocal)
-                currentCatalogHit = nil
-                currentNotFoundContext = nil
-                let localCatalog = await loadCatalogForInventory(localInventory)
-                let draft = makeInventoryDraft(
-                    item: localInventory,
-                    catalog: localCatalog,
-                    source: .inventoryLocal,
-                    isEditable: false
-                )
-                transition(to: .reviewing(draft: draft, isEditable: false))
-                return
-            }
-
             if let localCatalog = try await catalogService.retrieveLocalCatalog(byBarcode: barcode) {
                 currentCatalogHit = (localCatalog, .catalogLocal)
                 currentInventoryHit = nil
                 currentNotFoundContext = nil
                 let draft = makeCatalogDraft(item: localCatalog, source: .catalogLocal, isEditable: false)
-                transition(to: .reviewing(draft: draft, isEditable: false))
-                return
-            }
-
-            if let remoteInventory = try? await inventoryRepository.findRemote(householdId: householdId, barcode: barcode) {
-                try? await inventoryRepository.upsertLocal(remoteInventory)
-                currentInventoryHit = (remoteInventory, .inventoryRemote)
-                currentCatalogHit = nil
-                currentNotFoundContext = nil
-                let localCatalog = await loadCatalogForInventory(remoteInventory)
-                let draft = makeInventoryDraft(
-                    item: remoteInventory,
-                    catalog: localCatalog,
-                    source: .inventoryRemote,
-                    isEditable: false
-                )
                 transition(to: .reviewing(draft: draft, isEditable: false))
                 return
             }
@@ -187,7 +156,7 @@ actor AddProductFlowUseCase {
             }
 
             let inventory = makeInventoryItem(from: draft, householdId: householdId, barcode: barcode)
-            let didSave = await saveInventoryWithFallback(inventory)
+            let didSave = await saveInventory(inventory)
             guard didSave else { return }
             transition(to: .success(savedItemId: inventory.id))
         } catch {
@@ -227,7 +196,7 @@ actor AddProductFlowUseCase {
         }
         updated.updatedAt = Date()
 
-        let didSave = await saveInventoryWithFallback(updated)
+        let didSave = await saveInventory(updated)
         guard didSave else { return }
         self.currentInventoryHit = (updated, currentInventoryHit.source)
         transition(to: .success(savedItemId: updated.id))
@@ -244,7 +213,7 @@ actor AddProductFlowUseCase {
         updated.batches.append(InventoryBatch(quantity: 1, unit: defaultUnit))
         updated.updatedAt = Date()
 
-        let didSave = await saveInventoryWithFallback(updated)
+        let didSave = await saveInventory(updated)
         guard didSave else { return }
         self.currentInventoryHit = (updated, currentInventoryHit.source)
         transition(to: .success(savedItemId: updated.id))
@@ -314,29 +283,14 @@ private extension AddProductFlowUseCase {
         "\(householdId)_\(barcode.value)"
     }
 
-    func saveInventoryWithFallback(_ item: InventoryItem) async -> Bool {
-        if let inventoryModuleService {
-            do {
-                let locationID = try await ensureDefaultStorageLocation(for: item.householdId)
-                let input = try makeInventoryModuleAddInput(
-                    from: item,
-                    storageLocationId: locationID
-                )
-                _ = try await inventoryModuleService.addInventoryItem(input)
-                return true
-            } catch {
-                transition(to: .failure(message: "Unable to persist inventory item locally."))
-                return false
-            }
-        }
-
+    func saveInventory(_ item: InventoryItem) async -> Bool {
         do {
-            try await inventoryRepository.upsertLocal(item)
-            do {
-                try await inventoryRepository.upsertRemote(item)
-            } catch {
-                await inventoryRepository.enqueueSync(.upsertInventory(item))
-            }
+            let locationID = try await ensureDefaultStorageLocation(for: item.householdId)
+            let input = try makeInventoryModuleAddInput(
+                from: item,
+                storageLocationId: locationID
+            )
+            _ = try await inventoryModuleService.addInventoryItem(input)
             return true
         } catch {
             transition(to: .failure(message: "Unable to persist inventory item locally."))
@@ -345,8 +299,6 @@ private extension AddProductFlowUseCase {
     }
 
     func findInventoryFromModule(householdId: String, barcode: Barcode) async throws -> InventoryItem? {
-        guard let inventoryModuleRepository else { return nil }
-
         let normalizedProductID = barcode.value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard normalizedProductID.isNotEmpty else { return nil }
 
@@ -375,10 +327,6 @@ private extension AddProductFlowUseCase {
     }
 
     func ensureDefaultStorageLocation(for householdId: String) async throws -> String {
-        guard let inventoryModuleLocationRepository else {
-            throw InventoryRepositoryError.remoteUnavailable
-        }
-
         let defaultLocationID = "default-pantry-\(householdId)"
         if let existing = try await inventoryModuleLocationRepository.findById(
             defaultLocationID,

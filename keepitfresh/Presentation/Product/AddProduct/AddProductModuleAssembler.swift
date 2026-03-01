@@ -14,15 +14,13 @@ import Factory
 #endif
 
 struct AddProductModuleAssembler {
-    let inventoryRepository: any InventoryRepository
-    let inventoryModuleService: (any InventoryModuleTypes.InventoryModuleServicing)?
-    let inventoryModuleLocationRepository: (any InventoryModuleTypes.LocationRepository)?
-    let inventoryModuleRepository: (any InventoryModuleTypes.InventoryRepository)?
+    let inventoryModuleService: any InventoryModuleTypes.InventoryModuleServicing
+    let inventoryModuleLocationRepository: any InventoryModuleTypes.LocationRepository
+    let inventoryModuleRepository: any InventoryModuleTypes.InventoryRepository
     let catalogService: any AddProductCatalogServicing
     let householdContextProvider: any HouseholdContextProviding
 
     init(
-        inventoryRepository: (any InventoryRepository)? = nil,
         inventoryModuleService: (any InventoryModuleTypes.InventoryModuleServicing)? = nil,
         inventoryModuleLocationRepository: (any InventoryModuleTypes.LocationRepository)? = nil,
         inventoryModuleRepository: (any InventoryModuleTypes.InventoryRepository)? = nil,
@@ -30,12 +28,16 @@ struct AddProductModuleAssembler {
         householdContextProvider: (any HouseholdContextProviding)? = nil,
         defaultHouseholdId: String = "default-household"
     ) {
-        self.inventoryRepository = inventoryRepository ?? RealmInventoryRepository()
         #if canImport(Factory)
         self.inventoryModuleService = inventoryModuleService ?? Container.shared.inventoryModuleService()
         self.inventoryModuleLocationRepository = inventoryModuleLocationRepository ?? Container.shared.inventoryModuleLocationRepository()
         self.inventoryModuleRepository = inventoryModuleRepository ?? Container.shared.inventoryModuleInventoryRepository()
         #else
+        guard let inventoryModuleService,
+              let inventoryModuleLocationRepository,
+              let inventoryModuleRepository else {
+            preconditionFailure("InventoryModule dependencies are required when Factory is unavailable.")
+        }
         self.inventoryModuleService = inventoryModuleService
         self.inventoryModuleLocationRepository = inventoryModuleLocationRepository
         self.inventoryModuleRepository = inventoryModuleRepository
@@ -53,7 +55,6 @@ struct AddProductModuleAssembler {
 
     func makeUseCase() -> AddProductFlowUseCase {
         AddProductFlowUseCase(
-            inventoryRepository: inventoryRepository,
             inventoryModuleService: inventoryModuleService,
             inventoryModuleLocationRepository: inventoryModuleLocationRepository,
             inventoryModuleRepository: inventoryModuleRepository,
@@ -78,7 +79,6 @@ extension Container {
     var addProductModuleAssembler: Factory<AddProductModuleAssembler> {
         self {
             AddProductModuleAssembler(
-                inventoryRepository: self.addProductInventoryRepository(),
                 catalogService: self.addProductCatalogService()
             )
         }
