@@ -279,3 +279,11 @@
 - Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - Added `Documentation/BACKEND_INTEGRATION_PROGRESS_HANDOFF.md` capturing current backend integration status, completed work, remaining P0 gaps, and resume pointers/commands for continuation on another machine.
 - Verification: not run (documentation-only update).
+- Implemented Product remote query path wiring so ProductModule remote list calls no longer hard-return empty:
+  - added Firestore-backed `queryRemote(_:)` in `FirestoreCatalogRepository` with server-side filter/sort support and cursor-based paging fallback.
+  - updated `CatalogProductRemoteGateway.query(_:)` to delegate to Firestore catalog adapter when available.
+- Started P0 Add Product migration toward InventoryModule orchestration:
+  - `AddProductFlowUseCase` now accepts InventoryModule dependencies and uses module-backed lookup/write paths when available, with legacy repository fallback retained.
+  - `AddProductModuleAssembler` now injects module dependencies from DI for this bridge path.
+  - added default storage-location bootstrap for add flow (`Pantry` per household) to satisfy InventoryModule location invariants.
+- Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).

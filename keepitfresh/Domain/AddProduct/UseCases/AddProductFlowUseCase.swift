@@ -7,9 +7,13 @@
 //
 
 import Foundation
+import InventoryModule
 
 actor AddProductFlowUseCase {
     private let inventoryRepository: any InventoryRepository
+    private let inventoryModuleService: (any InventoryModuleTypes.InventoryModuleServicing)?
+    private let inventoryModuleLocationRepository: (any InventoryModuleTypes.LocationRepository)?
+    private let inventoryModuleRepository: (any InventoryModuleTypes.InventoryRepository)?
     private let catalogService: any AddProductCatalogServicing
     private let householdProvider: any HouseholdContextProviding
 
@@ -22,10 +26,16 @@ actor AddProductFlowUseCase {
 
     init(
         inventoryRepository: any InventoryRepository,
+        inventoryModuleService: (any InventoryModuleTypes.InventoryModuleServicing)? = nil,
+        inventoryModuleLocationRepository: (any InventoryModuleTypes.LocationRepository)? = nil,
+        inventoryModuleRepository: (any InventoryModuleTypes.InventoryRepository)? = nil,
         catalogService: any AddProductCatalogServicing,
         householdProvider: any HouseholdContextProviding
     ) {
         self.inventoryRepository = inventoryRepository
+        self.inventoryModuleService = inventoryModuleService
+        self.inventoryModuleLocationRepository = inventoryModuleLocationRepository
+        self.inventoryModuleRepository = inventoryModuleRepository
         self.catalogService = catalogService
         self.householdProvider = householdProvider
     }
@@ -61,7 +71,22 @@ actor AddProductFlowUseCase {
 
         do {
             let householdId = try await householdProvider.currentHouseholdId()
-            
+
+            if let moduleInventory = try await findInventoryFromModule(householdId: householdId, barcode: barcode) {
+                currentInventoryHit = (moduleInventory, .inventoryLocal)
+                currentCatalogHit = nil
+                currentNotFoundContext = nil
+                let localCatalog = await loadCatalogForInventory(moduleInventory)
+                let draft = makeInventoryDraft(
+                    item: moduleInventory,
+                    catalog: localCatalog,
+                    source: .inventoryLocal,
+                    isEditable: false
+                )
+                transition(to: .reviewing(draft: draft, isEditable: false))
+                return
+            }
+
             if let localInventory = try await inventoryRepository.findLocal(householdId: householdId, barcode: barcode) {
                 currentInventoryHit = (localInventory, .inventoryLocal)
                 currentCatalogHit = nil
@@ -290,6 +315,21 @@ private extension AddProductFlowUseCase {
     }
 
     func saveInventoryWithFallback(_ item: InventoryItem) async -> Bool {
+        if let inventoryModuleService {
+            do {
+                let locationID = try await ensureDefaultStorageLocation(for: item.householdId)
+                let input = try makeInventoryModuleAddInput(
+                    from: item,
+                    storageLocationId: locationID
+                )
+                _ = try await inventoryModuleService.addInventoryItem(input)
+                return true
+            } catch {
+                transition(to: .failure(message: "Unable to persist inventory item locally."))
+                return false
+            }
+        }
+
         do {
             try await inventoryRepository.upsertLocal(item)
             do {
@@ -301,6 +341,136 @@ private extension AddProductFlowUseCase {
         } catch {
             transition(to: .failure(message: "Unable to persist inventory item locally."))
             return false
+        }
+    }
+
+    func findInventoryFromModule(householdId: String, barcode: Barcode) async throws -> InventoryItem? {
+        guard let inventoryModuleRepository else { return nil }
+
+        let normalizedProductID = barcode.value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedProductID.isNotEmpty else { return nil }
+
+        let batches = try await inventoryModuleRepository.fetchActiveBatches(
+            productId: normalizedProductID,
+            householdId: householdId
+        )
+        guard let match = batches.first else { return nil }
+
+        let quantityInt = max(
+            Int(match.quantity.value.rounded(.down)),
+            1
+        )
+        let unitString = moduleQuantityUnitString(match.quantity.unit)
+        let mappedBarcode = Barcode(value: normalizedProductID, symbology: barcode.symbology)
+
+        return InventoryItem(
+            id: match.id,
+            householdId: match.householdId,
+            barcode: mappedBarcode,
+            catalogRefId: match.productRef.productId,
+            batches: [InventoryBatch(quantity: quantityInt, unit: unitString)],
+            updatedAt: match.updatedAt,
+            needsBarcode: false
+        )
+    }
+
+    func ensureDefaultStorageLocation(for householdId: String) async throws -> String {
+        guard let inventoryModuleLocationRepository else {
+            throw InventoryRepositoryError.remoteUnavailable
+        }
+
+        let defaultLocationID = "default-pantry-\(householdId)"
+        if let existing = try await inventoryModuleLocationRepository.findById(
+            defaultLocationID,
+            householdId: householdId
+        ) {
+            return existing.id
+        }
+
+        let now = Date()
+        let location = InventoryModuleTypes.StorageLocation(
+            id: defaultLocationID,
+            householdId: householdId,
+            name: "Pantry",
+            isColdStorage: false,
+            createdAt: now,
+            updatedAt: now
+        )
+        try await inventoryModuleLocationRepository.upsert(location)
+        return defaultLocationID
+    }
+
+    func makeInventoryModuleAddInput(
+        from item: InventoryItem,
+        storageLocationId: String
+    ) throws -> InventoryModuleTypes.AddInventoryItemInput {
+        let productID = resolvedProductID(from: item)
+        let totalQuantity = max(item.batches.reduce(0) { $0 + max($1.quantity, 0) }, 1)
+        let preferredUnit = item.batches.last?.unit
+
+        return InventoryModuleTypes.AddInventoryItemInput(
+            householdId: item.householdId,
+            productRef: ProductRef(productId: productID),
+            quantity: Quantity(
+                value: Double(totalQuantity),
+                unit: mappedModuleQuantityUnit(from: preferredUnit)
+            ),
+            storageLocationId: storageLocationId,
+            expiryInfo: nil,
+            openedInfo: nil,
+            lotOrBatchCode: nil,
+            idempotencyRequestId: UUID().uuidString
+        )
+    }
+
+    func resolvedProductID(from item: InventoryItem) -> String {
+        let barcodeValue = item.barcode?.value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let barcodeValue, barcodeValue.isNotEmpty {
+            return barcodeValue
+        }
+        let catalogRef = item.catalogRefId?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let catalogRef, catalogRef.isNotEmpty {
+            return catalogRef
+        }
+        return item.id
+    }
+
+    func mappedModuleQuantityUnit(from legacyUnit: String?) -> QuantityUnit {
+        guard let legacyUnit = legacyUnit?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+              legacyUnit.isNotEmpty else {
+            return .piece
+        }
+
+        switch legacyUnit {
+        case "g", "gram", "grams":
+            return .gram
+        case "kg", "kilogram", "kilograms":
+            return .kilogram
+        case "ml", "milliliter", "milliliters":
+            return .milliliter
+        case "l", "liter", "liters":
+            return .liter
+        case "pack", "pkt", "package":
+            return .pack
+        default:
+            return .piece
+        }
+    }
+
+    func moduleQuantityUnitString(_ unit: QuantityUnit) -> String {
+        switch unit {
+        case .piece:
+            return "piece"
+        case .gram:
+            return "g"
+        case .kilogram:
+            return "kg"
+        case .milliliter:
+            return "ml"
+        case .liter:
+            return "l"
+        case .pack:
+            return "pack"
         }
     }
 

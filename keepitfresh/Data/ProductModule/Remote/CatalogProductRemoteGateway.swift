@@ -48,7 +48,11 @@ actor CatalogProductRemoteGateway: ProductRemoteGateway {
     }
 
     func query(_ query: PMRemoteGatewayProductQuery) async throws -> PMRemoteGatewayProductPage {
-        _ = query
+        if let firestoreRepository = catalogRepository as? FirestoreCatalogRepository {
+            return try await firestoreRepository.queryRemote(query)
+        }
+
+        // Fallback for repositories that do not support remote paging.
         return PMRemoteGatewayProductPage(items: [])
     }
 
