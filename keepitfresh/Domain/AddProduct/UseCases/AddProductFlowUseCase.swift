@@ -156,7 +156,7 @@ actor AddProductFlowUseCase {
             }
 
             let inventory = makeInventoryItem(from: draft, householdId: householdId, barcode: barcode)
-            let didSave = await saveInventory(inventory)
+            let didSave = await saveInventory(inventory, draft: draft)
             guard didSave else { return }
             transition(to: .success(savedItemId: inventory.id))
         } catch {
@@ -283,11 +283,12 @@ private extension AddProductFlowUseCase {
         "\(householdId)_\(barcode.value)"
     }
 
-    func saveInventory(_ item: InventoryItem) async -> Bool {
+    func saveInventory(_ item: InventoryItem, draft: ProductDraft? = nil) async -> Bool {
         do {
             let locationID = try await ensureDefaultStorageLocation(for: item.householdId)
             let input = try makeInventoryModuleAddInput(
                 from: item,
+                draft: draft,
                 storageLocationId: locationID
             )
             _ = try await inventoryModuleService.addInventoryItem(input)
@@ -350,11 +351,14 @@ private extension AddProductFlowUseCase {
 
     func makeInventoryModuleAddInput(
         from item: InventoryItem,
+        draft: ProductDraft?,
         storageLocationId: String
     ) throws -> InventoryModuleTypes.AddInventoryItemInput {
         let productID = resolvedProductID(from: item)
         let totalQuantity = max(item.batches.reduce(0) { $0 + max($1.quantity, 0) }, 1)
         let preferredUnit = item.batches.last?.unit
+        let expiryInfo = draft.flatMap(mappedExpiryInfo(from:))
+        let openedInfo = draft.flatMap(mappedOpenedInfo(from:))
 
         return InventoryModuleTypes.AddInventoryItemInput(
             householdId: item.householdId,
@@ -364,11 +368,65 @@ private extension AddProductFlowUseCase {
                 unit: mappedModuleQuantityUnit(from: preferredUnit)
             ),
             storageLocationId: storageLocationId,
-            expiryInfo: nil,
-            openedInfo: nil,
+            expiryInfo: expiryInfo,
+            openedInfo: openedInfo,
             lotOrBatchCode: nil,
             idempotencyRequestId: UUID().uuidString
         )
+    }
+
+    func mappedExpiryInfo(from draft: ProductDraft) -> InventoryDateInfo? {
+        let candidates = draft.dateEntries.compactMap(mappedInventoryDateInfo(from:))
+        if let explicitExpiry = candidates.first(where: { $0.kind == .expiry }) {
+            return explicitExpiry
+        }
+        if let useBy = candidates.first(where: { $0.kind == .useBy }) {
+            return useBy
+        }
+        if let bestBefore = candidates.first(where: { $0.kind == .bestBefore }) {
+            return bestBefore
+        }
+        return nil
+    }
+
+    func mappedOpenedInfo(from _: ProductDraft) -> InventoryDateInfo? {
+        nil
+    }
+
+    func mappedInventoryDateInfo(from entry: ProductDraftDateEntry) -> InventoryDateInfo? {
+        guard let isoDate = entry.value else { return nil }
+        let kind = mappedInventoryDateKind(from: entry.kind)
+        guard let kind else { return nil }
+
+        return InventoryDateInfo(
+            kind: kind,
+            rawText: iso8601DateString(from: isoDate),
+            confidence: entry.inputMode == .manualCalendar ? 1.0 : 0.8,
+            isoDate: isoDate
+        )
+    }
+
+    func mappedInventoryDateKind(from kind: ProductDateInfo.Kind) -> InventoryDateKind? {
+        switch kind {
+        case .expiry:
+            return .expiry
+        case .bestBefore:
+            return .bestBefore
+        case .useBy:
+            return .useBy
+        case .manufactured:
+            return .manufactured
+        case .packedOn:
+            return .packaged
+        case .unknown:
+            return nil
+        }
+    }
+
+    func iso8601DateString(from date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.string(from: date)
     }
 
     func resolvedProductID(from item: InventoryItem) -> String {
@@ -551,5 +609,5 @@ private extension AddProductFlowUseCase {
 // MARK: Test Plan
 // 1. Validate inventory-local hit short-circuits remote/catalog lookups.
 // 2. Validate local catalog lookup runs through AddProductCatalogServicing before remote fallbacks.
-// 3. Validate saveDraft upserts product data through AddProductCatalogServicing, then persists inventory with remote fallback queueing.
+// 3. Validate saveDraft upserts product data through AddProductCatalogServicing, then persists inventory through InventoryModule.
 // 4. Validate lock rules are present on drafts produced from inventory/catalog vs extraction.
