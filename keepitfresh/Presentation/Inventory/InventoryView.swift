@@ -17,27 +17,7 @@ struct InventoryView: View {
             LazyVStack(alignment: .leading, spacing: Theme.Spacing.s12) {
                 controlsSection
 
-                if viewModel.isLoading {
-                    ProgressView("Loading inventory...")
-                        .tint(Theme.Colors.accent)
-                        .padding(.top, Theme.Spacing.s12)
-                } else if let errorMessage = viewModel.errorMessage {
-                    InventoryStatusCardView(
-                        title: "Could not load inventory",
-                        subtitle: errorMessage,
-                        symbol: .warning,
-                        tint: Theme.Colors.danger.opacity(0.15)
-                    )
-                } else if viewModel.rows.isEmpty {
-                    InventoryStatusCardView(
-                        title: "No active inventory",
-                        subtitle: "Add products to see your household inventory here.",
-                        symbol: .stock,
-                        tint: Theme.Colors.success.opacity(0.10)
-                    )
-                } else {
-                    inventoryRows
-                }
+                inventoryContent
             }
             .padding(.horizontal, Theme.Spacing.s16)
             .padding(.top, Theme.Spacing.s16)
@@ -117,6 +97,32 @@ struct InventoryView: View {
                 }
                 .padding(.vertical, Theme.Spacing.s8)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var inventoryContent: some View {
+        switch viewModel.uiState {
+        case .loading:
+            ProgressView("Loading inventory...")
+                .tint(Theme.Colors.accent)
+                .padding(.top, Theme.Spacing.s12)
+        case let .error(errorMessage):
+            InventoryStatusCardView(
+                title: "Could not load inventory",
+                subtitle: errorMessage,
+                symbol: .warning,
+                tint: Theme.Colors.danger.opacity(0.15)
+            )
+        case .empty:
+            InventoryStatusCardView(
+                title: "No active inventory",
+                subtitle: "Add products to see your household inventory here.",
+                symbol: .stock,
+                tint: Theme.Colors.success.opacity(0.10)
+            )
+        case .content:
+            inventoryRows
         }
     }
 }
