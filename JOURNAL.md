@@ -303,6 +303,13 @@
   - Added a concrete coverage matrix doc (`Documentation/FIRESTORE_INDEX_RULES_VERIFICATION_PASS.md`) mapping live query shapes to rule/index requirements.
 - Chose a pragmatic short-term security posture: `ProductCatalog` remains authenticated read/write because current Add Product flow performs client upserts; documented this as an intentional tradeoff and a future tightening point once catalog writes move server-side.
 - Verification: config/docs update pass completed; app build safety checked with `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Added an emulator-backed Firestore rules test harness (`firebase-tests`) using `@firebase/rules-unit-testing` with starter coverage for:
+  - profile self-access isolation,
+  - house-member access to `Houses/{houseId}/Purchases`,
+  - authenticated `ProductCatalog` read/write policy,
+  - public-read/deny-write behavior for `AppMetadata`.
+- Included runbook docs in `firebase-tests/README.md` and linked harness usage from `Documentation/FIRESTORE_INDEX_RULES_VERIFICATION_PASS.md`.
+- Verification: test file syntax check (`node --check firebase-tests/firestore.rules.test.mjs`) and app build (`xcodebuild ... build`) both passed; full rules test execution requires local `npm install` and Firebase CLI/emulator.
 - Closed the inventory reconciliation gap for cross-device archive convergence in read refresh flows:
   - extended `InventoryRemoteGateway` with `fetchItemsSnapshot(householdId:)` and switched read/warm-up refresh use cases (`GetExpired`, `GetExpiring`, `WarmExpiringInventoryWindow`) to consume snapshot data rather than active-only remote reads.
   - updated app adapters (`FirestoreInventoryModuleRemoteGateway`, `StubInventoryModuleRemoteGateway`) and in-memory module gateway to return full household snapshots (all statuses) for refresh paths.
