@@ -6,6 +6,7 @@ export interface CommandRuntimeOptions {
 export interface ImporterConfig {
   dryRun: boolean;
   uploadsEnabled: boolean;
+  executionAck: boolean;
   maxWritesPerRun: number;
   batchSize: number;
   importFilePath: string;

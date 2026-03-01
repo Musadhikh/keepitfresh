@@ -79,3 +79,18 @@ Phase 4 artifacts also include:
   1. inspect run report `stopReason` + warning counts
   2. inspect lock file `output/import.lock`
   3. rerun with smaller `--max-writes` and `--resume`
+
+## Phase 7 rollout + safety
+- Rollout plan preview:
+  - `npm run rollout:plan -- --activate-from YYYY-MM-DD`
+  - outputs:
+    - `output/rollout/rollout_plan.json`
+    - `output/rollout/rollout_plan.md`
+- Rollout-enforced import:
+  - `npm run import:products -- --dry-run --rollout --activate-from YYYY-MM-DD --resume`
+- Execute mode now needs 3 gates:
+  1. CLI `--execute`
+  2. `IMPORTER_UPLOADS_ENABLED=true`
+  3. `IMPORTER_EXECUTION_ACK=true`
+- Read-only verification:
+  - `npm run verify:run -- --sample-size 10`

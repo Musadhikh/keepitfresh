@@ -13,6 +13,7 @@
     "preflight": "bash ./scripts/preflight.sh",
     "daily:run": "bash ./scripts/run-daily-import.sh",
     "logs:rotate": "bash ./scripts/rotate-logs.sh",
+    "rollout:plan": "tsx src/cli/index.ts rollout:plan",
     "sample": "tsx src/cli/index.ts sample",
     "schema:probe": "tsx src/cli/index.ts schema:probe",
     "compare:contract": "tsx src/cli/index.ts compare:contract",
@@ -25,7 +26,8 @@
     "phase4": "tsx src/cli/index.ts phase4",
     "phase5:dryrun": "tsx src/cli/index.ts importProducts --dry-run --file ../../../openfoodfacts-products.jsonl --max-lines 1000 --max-writes 500",
     "import:categories": "tsx src/cli/index.ts importCategories",
-    "import:products": "tsx src/cli/index.ts importProducts"
+    "import:products": "tsx src/cli/index.ts importProducts",
+    "verify:run": "tsx src/cli/index.ts verify:run"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

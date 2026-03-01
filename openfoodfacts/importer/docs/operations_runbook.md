@@ -5,6 +5,7 @@
 - Execute mode still requires explicit gates:
   - CLI: `--execute`
   - env: `IMPORTER_UPLOADS_ENABLED=true`
+  - env: `IMPORTER_EXECUTION_ACK=true`
 - Concurrency lock prevents overlapping runs via `output/import.lock`.
 
 ## Daily checklist
@@ -30,6 +31,7 @@ Dry-run:
 Execute (only when intended):
 ```bash
 IMPORTER_UPLOADS_ENABLED=true \
+IMPORTER_EXECUTION_ACK=true \
 FIREBASE_PROJECT_ID=... \
 FIREBASE_SERVICE_ACCOUNT_PATH=... \
 ./scripts/run-daily-import.sh --execute --file ../../../openfoodfacts-products.jsonl --max-writes 1000 --resume
@@ -76,10 +78,24 @@ FIREBASE_SERVICE_ACCOUNT_PATH=... \
 ## Categories import policy
 - Categories should be imported rarely (weekly/monthly) and only after taxonomy changes.
 - Daily schedules should run products import only.
+- Execute mode requires explicit acknowledgement flag:
+  - `--i-know-what-im-doing`
+
+## Phase 7 rollout mode
+- Generate rollout plan:
+```bash
+npm run rollout:plan -- --activate-from YYYY-MM-DD
+```
+- Use rollout cap during import:
+```bash
+npm run import:products -- --dry-run --rollout --activate-from YYYY-MM-DD --resume
+```
+- See:
+  - `docs/go_live_runbook.md`
+  - `docs/rollback_runbook.md`
 
 ## Log retention
 - Rotate logs periodically:
 ```bash
 ./scripts/rotate-logs.sh 30
 ```
-

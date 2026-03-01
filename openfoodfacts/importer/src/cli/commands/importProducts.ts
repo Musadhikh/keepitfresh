@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import {
+  assertExecutionAck,
   assertExecuteCredentials,
   assertUploadsEnabled,
   loadImporterConfig
@@ -8,6 +9,7 @@ import { CHECKPOINT_SAVE_EVERY, DEFAULT_LOCK_STALE_MINUTES } from "../../core/co
 import { acquireLock, isLockStale, readLockMetadata, releaseLock } from "../../core/lock.js";
 import { logger } from "../../core/logger.js";
 import { lockFilePath, resolveFromImporterRoot } from "../../core/paths.js";
+import { getMaxWritesForDate, getSingaporeTodayISO, loadRolloutPlan } from "../../core/rollout.js";
 import { writeRunReport } from "../../core/runReports.js";
 import type { CommandRuntimeOptions, ImportCheckpoint } from "../../core/types.js";
 import { nowISO } from "../../utils/time.js";
@@ -31,6 +33,9 @@ export interface ImportProductsArgs extends CommandRuntimeOptions {
   checkpointMode?: "file" | "firestore";
   skipUnchanged?: boolean;
   sinceDate?: string;
+  rollout?: boolean;
+  activateFrom?: string;
+  rolloutPlan?: string;
 }
 
 interface RejectEntry {
@@ -73,11 +78,36 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
 
     if (!config.dryRun) {
       assertUploadsEnabled(config);
+      assertExecutionAck(config);
       assertExecuteCredentials(config);
     }
 
     const filePath = resolveFromImporterRoot(args.file ?? config.importFilePath);
-    const maxWrites = args.maxWrites ?? config.maxWritesPerRun;
+    const cliMaxWrites =
+      typeof args.maxWrites === "number" && Number.isFinite(args.maxWrites)
+        ? Math.max(1, Math.floor(args.maxWrites))
+        : undefined;
+    let maxWrites = Math.min(config.maxWritesPerRun, cliMaxWrites ?? Number.MAX_SAFE_INTEGER);
+    let rolloutApplied = false;
+    let rolloutDate = getSingaporeTodayISO();
+    let rolloutActivation = args.activateFrom ?? rolloutDate;
+    let rolloutCap: number | undefined;
+    let rolloutCapSource: string | undefined;
+    let rolloutDayIndex: number | undefined;
+    if (args.rollout === true) {
+      const plan = await loadRolloutPlan(args.rolloutPlan);
+      rolloutDate = getSingaporeTodayISO();
+      const resolvedCap = getMaxWritesForDate(plan, rolloutDate, rolloutActivation);
+      rolloutApplied = true;
+      rolloutCap = resolvedCap.maxWrites;
+      rolloutCapSource = resolvedCap.source;
+      rolloutDayIndex = resolvedCap.dayIndex;
+      maxWrites = Math.min(maxWrites, resolvedCap.maxWrites);
+    }
+    if (!Number.isFinite(maxWrites) || maxWrites <= 0 || maxWrites === Number.MAX_SAFE_INTEGER) {
+      maxWrites = config.maxWritesPerRun;
+    }
+
     const maxLines = args.maxLines ?? config.maxLinesPerRun;
     const skipUnchanged = args.skipUnchanged ?? false;
 
@@ -108,6 +138,7 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
     const warningCounts: Record<string, number> = {};
     const rejectReasonCounts: Record<string, number> = {};
     const rejects: RejectEntry[] = [];
+    const writtenProductIds: string[] = [];
 
     const now = nowISO();
 
@@ -195,6 +226,9 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
         merge: true
       });
       written += 1;
+      if (writtenProductIds.length < 200) {
+        writtenProductIds.push(mapped.product.productId);
+      }
 
       if (parsed % CHECKPOINT_SAVE_EVERY === 0) {
         const cp: ImportCheckpoint = {
@@ -265,9 +299,22 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
           warningCounts,
           rejectReasonCounts,
           maxWrites,
+          configuredMaxWritesPerRun: config.maxWritesPerRun,
+          cliMaxWrites: cliMaxWrites ?? null,
+          rollout: rolloutApplied
+            ? {
+                enabled: true,
+                date: rolloutDate,
+                activateFrom: rolloutActivation,
+                dayIndex: rolloutDayIndex,
+                cap: rolloutCap,
+                capSource: rolloutCapSource
+              }
+            : { enabled: false },
           maxLines,
           skipUnchanged,
           sinceDate: args.sinceDate ?? null,
+          writtenProductIdsSample: writtenProductIds.slice(0, 50),
           warnings: warningCounts
         },
         checkpoint: finalCheckpoint
@@ -288,6 +335,13 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
         skipped,
         plannedWrites: budget.plannedWrites,
         executedWrites: budget.executedWrites,
+        maxWrites,
+        rolloutApplied,
+        rolloutDate,
+        rolloutActivation,
+        rolloutCap,
+        rolloutCapSource,
+        rolloutDayIndex,
         stopReason
       },
       "Import products completed"

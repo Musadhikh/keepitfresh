@@ -11,6 +11,8 @@
 - `storage_prediction_rules_v1.md`: storage prediction precedence and tuning notes.
 - `operations_runbook.md`: daily importer operations and failure handling.
 - `scheduling.md`: launchd/cron setup at 07:00 Asia/Singapore.
+- `go_live_runbook.md`: execute-mode rollout and verification checklist.
+- `rollback_runbook.md`: stop, quarantine, and safe recovery workflow.
 
 ## Who uses this
 - Importers: shape payloads, normalize safely, apply validation/reject codes, and enforce idempotency.

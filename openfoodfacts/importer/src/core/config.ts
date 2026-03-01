@@ -34,6 +34,7 @@ export function resolveDryRun(options: CommandRuntimeOptions): boolean {
 export function loadImporterConfig(options: CommandRuntimeOptions): ImporterConfig {
   const dryRun = resolveDryRun(options);
   const uploadsEnabled = parseBoolean(process.env.IMPORTER_UPLOADS_ENABLED, false);
+  const executionAck = parseBoolean(process.env.IMPORTER_EXECUTION_ACK, false);
   const maxWritesPerRun = parsePositiveInt(
     process.env.MAX_WRITES_PER_RUN,
     DEFAULT_MAX_WRITES_PER_RUN
@@ -62,6 +63,7 @@ export function loadImporterConfig(options: CommandRuntimeOptions): ImporterConf
   return {
     dryRun,
     uploadsEnabled,
+    executionAck,
     maxWritesPerRun,
     batchSize,
     importFilePath,
@@ -92,6 +94,14 @@ export function assertExecuteCredentials(config: ImporterConfig): void {
   if (!config.firebaseServiceAccountJson && !config.firebaseServiceAccountPath) {
     throw new ConfigError(
       "FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH is required for execute mode."
+    );
+  }
+}
+
+export function assertExecutionAck(config: ImporterConfig): void {
+  if (!config.executionAck) {
+    throw new ConfigError(
+      "Execute mode requires IMPORTER_EXECUTION_ACK=true. See docs/go_live_runbook.md."
     );
   }
 }

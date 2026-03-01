@@ -1,5 +1,10 @@
 import { readFile } from "node:fs/promises";
-import { assertExecuteCredentials, assertUploadsEnabled, loadImporterConfig } from "../../core/config.js";
+import {
+  assertExecuteCredentials,
+  assertExecutionAck,
+  assertUploadsEnabled,
+  loadImporterConfig
+} from "../../core/config.js";
 import { DEFAULT_LOCK_STALE_MINUTES } from "../../core/constants.js";
 import { acquireLock, isLockStale, readLockMetadata, releaseLock } from "../../core/lock.js";
 import { logger } from "../../core/logger.js";
@@ -50,6 +55,7 @@ interface Contract {
 export interface ImportCategoriesArgs extends CommandRuntimeOptions {
   in?: string;
   maxWrites?: number;
+  iKnowWhatImDoing?: boolean;
 }
 
 function validateCategoryShape(doc: CategoryDoc, requiredFields: string[]): string[] {
@@ -89,7 +95,13 @@ export async function runImportCategoriesCommand(args: ImportCategoriesArgs): Pr
     }
 
     if (!config.dryRun) {
+      if (!args.iKnowWhatImDoing) {
+        throw new Error(
+          "Category execute mode requires --i-know-what-im-doing. Categories should be imported rarely."
+        );
+      }
       assertUploadsEnabled(config);
+      assertExecutionAck(config);
       assertExecuteCredentials(config);
     }
 

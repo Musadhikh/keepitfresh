@@ -11,6 +11,8 @@ import { runCompareContractCommand } from "./commands/compareContract.js";
 import { runCategorySignalsCommand } from "./commands/categorySignals.js";
 import { runTransformSampleCommand } from "./commands/transformSample.js";
 import { runValidateProductsCommand } from "./commands/validateProducts.js";
+import { runRolloutPlanCommand } from "./commands/rolloutPlan.js";
+import { runVerifyRunCommand } from "./commands/verifyRun.js";
 
 function withDryRunFlags<T extends Record<string, unknown>>(command: Argv<T>) {
   return command
@@ -30,6 +32,22 @@ async function main() {
   await yargs(hideBin(process.argv))
     .scriptName("off-importer")
     .strict()
+    .command(
+      "rollout:plan",
+      "Generate rollout plan preview for next 14 days",
+      (cmd) =>
+        cmd
+          .option("out", { type: "string", default: "output/rollout/rollout_plan.json" })
+          .option("activate-from", { type: "string" })
+          .option("plan-file", { type: "string" }),
+      async (args) => {
+        await runRolloutPlanCommand({
+          out: args.out,
+          activateFrom: args["activate-from"],
+          planFile: args["plan-file"]
+        });
+      }
+    )
     .command(
       "sample",
       "Read first N valid JSONL objects and write sample + stats outputs",
@@ -232,13 +250,15 @@ async function main() {
       (cmd) =>
         withDryRunFlags(cmd)
           .option("in", { type: "string", default: "output/categories_preview.json" })
-          .option("max-writes", { type: "number" }),
+          .option("max-writes", { type: "number" })
+          .option("i-know-what-im-doing", { type: "boolean", default: false }),
       async (args) => {
         await runImportCategoriesCommand({
           in: args.in,
           dryRun: args["dry-run"] as boolean,
           execute: args.execute as boolean,
-          maxWrites: args["max-writes"]
+          maxWrites: args["max-writes"],
+          iKnowWhatImDoing: args["i-know-what-im-doing"] as boolean
         });
       }
     )
@@ -253,7 +273,10 @@ async function main() {
           .option("resume", { type: "boolean", default: true })
           .option("checkpoint-mode", { choices: ["file", "firestore"] as const })
           .option("skip-unchanged", { type: "boolean", default: false })
-          .option("since-date", { type: "string" }),
+          .option("since-date", { type: "string" })
+          .option("rollout", { type: "boolean", default: false })
+          .option("activate-from", { type: "string" })
+          .option("rollout-plan", { type: "string" }),
       async (args) => {
         await runImportProductsCommand({
           file: args.file,
@@ -264,7 +287,26 @@ async function main() {
           resume: args.resume as boolean,
           checkpointMode: args["checkpoint-mode"],
           skipUnchanged: args["skip-unchanged"] as boolean,
-          sinceDate: args["since-date"]
+          sinceDate: args["since-date"],
+          rollout: args.rollout as boolean,
+          activateFrom: args["activate-from"],
+          rolloutPlan: args["rollout-plan"]
+        });
+      }
+    )
+    .command(
+      "verify:run",
+      "Verify recent run output with lightweight read-only checks",
+      (cmd) =>
+        cmd
+          .option("report", { type: "string" })
+          .option("out", { type: "string" })
+          .option("sample-size", { type: "number", default: 10 }),
+      async (args) => {
+        await runVerifyRunCommand({
+          report: args.report,
+          out: args.out,
+          sampleSize: args["sample-size"]
         });
       }
     )

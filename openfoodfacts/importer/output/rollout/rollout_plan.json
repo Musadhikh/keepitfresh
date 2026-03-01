@@ -1,0 +1,112 @@
+{
+  "generatedAt": "2026-03-01T15:12:33.269Z",
+  "activateFrom": "2026-03-01",
+  "plan": {
+    "version": 1,
+    "timezone": "Asia/Singapore",
+    "stages": [
+      {
+        "dayIndex": 1,
+        "maxWrites": 200,
+        "note": "Initial safety run"
+      },
+      {
+        "dayIndex": 2,
+        "maxWrites": 1000,
+        "note": "Ramp step 2"
+      },
+      {
+        "dayIndex": 3,
+        "maxWrites": 3000,
+        "note": "Ramp step 3"
+      }
+    ],
+    "steadyStateMaxWrites": 10000
+  },
+  "preview": [
+    {
+      "dateISO": "2026-03-01",
+      "dayIndex": 1,
+      "maxWrites": 200,
+      "source": "stage"
+    },
+    {
+      "dateISO": "2026-03-02",
+      "dayIndex": 2,
+      "maxWrites": 1000,
+      "source": "stage"
+    },
+    {
+      "dateISO": "2026-03-03",
+      "dayIndex": 3,
+      "maxWrites": 3000,
+      "source": "stage"
+    },
+    {
+      "dateISO": "2026-03-04",
+      "dayIndex": 4,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-05",
+      "dayIndex": 5,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-06",
+      "dayIndex": 6,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-07",
+      "dayIndex": 7,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-08",
+      "dayIndex": 8,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-09",
+      "dayIndex": 9,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-10",
+      "dayIndex": 10,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-11",
+      "dayIndex": 11,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-12",
+      "dayIndex": 12,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-13",
+      "dayIndex": 13,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    },
+    {
+      "dateISO": "2026-03-14",
+      "dayIndex": 14,
+      "maxWrites": 10000,
+      "source": "steady_state"
+    }
+  ]
+}
