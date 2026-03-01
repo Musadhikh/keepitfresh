@@ -32,6 +32,8 @@ class ProfileViewModel {
     var errorMessage: String?
     var showDeleteConfirmation = false
     var isDeleting = false
+    var isUpdatingAppearance = false
+    var selectedAppearancePreference: ProfileAppearancePreference = .system
 
     @ObservationIgnored
     private var profileObservationTask: Task<Void, Never>?
@@ -52,6 +54,7 @@ class ProfileViewModel {
             }
             
             profile = try await profileSyncRepository.currentProfile(for: user.id)
+            selectedAppearancePreference = profile?.appearancePreference ?? .system
             startObservingProfileUpdates(for: user.id)
             await profileSyncRepository.synchronizeInBackground(for: user.id)
         } catch {
@@ -89,6 +92,31 @@ class ProfileViewModel {
             errorMessage = "Failed to delete account: \(error.localizedDescription)"
         }
     }
+
+    func updateAppearancePreference(
+        from previousPreference: ProfileAppearancePreference,
+        to preference: ProfileAppearancePreference
+    ) async {
+        guard isUpdatingAppearance == false else { return }
+        guard previousPreference != preference else { return }
+        isUpdatingAppearance = true
+        defer { isUpdatingAppearance = false }
+
+        do {
+            guard let user = try await userProvider.current() else {
+                selectedAppearancePreference = previousPreference
+                errorMessage = "No authenticated user found"
+                return
+            }
+
+            if let updatedProfile = try await profileSyncRepository.setAppearancePreference(for: user.id, preference: preference) {
+                profile = updatedProfile
+            }
+        } catch {
+            selectedAppearancePreference = previousPreference
+            errorMessage = "Failed to update app appearance: \(error.localizedDescription)"
+        }
+    }
 }
 
 private extension ProfileViewModel {
@@ -101,6 +129,7 @@ private extension ProfileViewModel {
                 guard !Task.isCancelled else { break }
                 if let profile = record?.profile {
                     self.profile = profile
+                    self.selectedAppearancePreference = profile.appearancePreference
                 }
             }
         }

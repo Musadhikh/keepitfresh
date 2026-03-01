@@ -74,6 +74,7 @@ actor ProfileSyncRepository {
             householdIds: [],
             lastSelectedHouseholdId: nil,
             isActive: true,
+            appearancePreference: .system,
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -114,6 +115,28 @@ actor ProfileSyncRepository {
         )
         try await storageService.upsert(record: updated)
         await emit(updated, for: userId)
+        return updated.profile
+    }
+
+    func setAppearancePreference(
+        for userId: String,
+        preference: ProfileAppearancePreference
+    ) async throws -> Profile? {
+        guard let existing = try await storageService.record(for: userId) else {
+            return nil
+        }
+
+        let updatedProfile = existing.profile.withAppearancePreference(preference)
+        let updated = ProfileSyncRecord(
+            profile: updatedProfile,
+            lastSyncedRemoteProfile: existing.lastSyncedRemoteProfile,
+            state: .pending,
+            lastError: nil,
+            updatedAt: Date()
+        )
+        try await storageService.upsert(record: updated)
+        await emit(updated, for: userId)
+        synchronizeInBackground(for: userId)
         return updated.profile
     }
 
@@ -240,6 +263,7 @@ private extension ProfileSyncRepository {
             householdIds: mergedHouseholds,
             lastSelectedHouseholdId: nil,
             isActive: mergeValue(base: effectiveBase.isActive, local: local.isActive, remote: remote.isActive, preferRemoteOnDoubleConflict: preferRemoteOnDoubleConflict),
+            appearancePreference: mergeValue(base: effectiveBase.appearancePreference, local: local.appearancePreference, remote: remote.appearancePreference, preferRemoteOnDoubleConflict: preferRemoteOnDoubleConflict),
             createdAt: local.createdAt ?? remote.createdAt,
             updatedAt: Date()
         )

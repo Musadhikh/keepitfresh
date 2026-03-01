@@ -33,6 +33,7 @@ struct UpdateProfileHouseholdsUseCase: Sendable {
             householdIds: updatedHouseholdIDs,
             lastSelectedHouseholdId: profile.lastSelectedHouseholdId,
             isActive: profile.isActive,
+            appearancePreference: profile.appearancePreference,
             createdAt: profile.createdAt,
             updatedAt: Date()
         )
