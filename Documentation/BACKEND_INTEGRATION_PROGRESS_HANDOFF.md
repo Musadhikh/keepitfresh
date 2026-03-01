@@ -33,8 +33,8 @@ This handoff covers Firebase backend integration work across Product + Inventory
   - `FirestoreCatalogRepository.queryRemote(_:)` now executes remote list queries with filter/sort/paging mapping.
 
 ### Add Product migration progress (P0 in progress)
-- `AddProductFlowUseCase` now accepts optional InventoryModule dependencies and uses InventoryModule-backed read/write path when available.
-- `AddProductModuleAssembler` now injects InventoryModule dependencies via DI.
+- `AddProductFlowUseCase` now requires InventoryModule dependencies and uses InventoryModule-backed read/write path only.
+- `AddProductModuleAssembler` now injects mandatory InventoryModule dependencies via DI.
 - Added default per-household storage-location bootstrap (`Pantry`) for add flow writes that require InventoryModule location invariants.
 
 ### Inventory reconciliation progress
@@ -76,20 +76,16 @@ Result: `BUILD SUCCEEDED`
 
 ## 3) Remaining P0 Items
 
-1. Complete Add Product migration cleanup to InventoryModule-only inventory orchestration.
-- Current state: bridge path implemented with fallback; legacy inventory repo path still exists.
-- Target: remove remaining legacy fallback and verify all add/read inventory operations in flow are InventoryModule-backed.
-
-2. Decide/document remote hard-delete reconciliation semantics (if needed).
+1. Decide/document remote hard-delete reconciliation semantics (if needed).
 - Current state: archive/status convergence is implemented via snapshot refresh.
 - Remaining decision: explicit policy for truly deleted remote docs (if ever used) and whether to introduce tombstone feed vs hard-delete prohibition.
 
 ## 4) Recommended Next Step (Immediate)
 
-Start with **P0 #1** (finish Add Product migration cleanup) to remove split inventory write paths:
-- Keep UI unchanged.
-- Replace only backend orchestration layer in `AddProductFlowUseCase` and its assembler dependencies.
-- Ensure add flow continues local-first and sync-aware via InventoryModule.
+Start with documenting/locking **P0 hard-delete semantics**:
+- Keep current archive-first behavior as the primary contract.
+- Decide whether remote hard-deletes are disallowed or need an explicit tombstone flow.
+- Add one integration test path for chosen behavior.
 
 ## 5) Key Files to Open First
 
