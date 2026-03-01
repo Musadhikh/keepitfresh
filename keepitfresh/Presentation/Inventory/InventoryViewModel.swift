@@ -58,6 +58,10 @@ final class InventoryViewModel {
     @Injected(\.productModuleService)
     private var productModuleService: any ProductModuleServicing
 
+    @ObservationIgnored
+    @Injected(\.inventoryModuleService)
+    private var inventoryModuleService: any InventoryModuleTypes.InventoryModuleServicing
+
     private(set) var rows: [InventoryListRow] = []
     private(set) var isLoading = false
     private(set) var isLoadingMore = false
@@ -80,6 +84,8 @@ final class InventoryViewModel {
 
     private var allRows: [InventoryListRow] = []
     private var nextOffset = 0
+    @ObservationIgnored
+    private var refreshTask: Task<Void, Never>?
 
     var uiState: UIState {
         if isLoading {
@@ -97,6 +103,7 @@ final class InventoryViewModel {
     func loadInitial(householdId: String?) async {
         guard isLoading == false else { return }
         guard let householdId, householdId.isNotEmpty else {
+            refreshTask?.cancel()
             rows = []
             allRows = []
             categoryOptions = ["All"]
@@ -114,20 +121,8 @@ final class InventoryViewModel {
                 asOf: Date(),
                 timeZone: TimeZone.current
             )
-
-            let productMap = await fetchProductMap(for: Set(items.map(\.productRef.productId)))
-            allRows = items.map { makeRow(from: $0, productMap: productMap) }
-
-            categoryOptions = ["All"] + Array(
-                Set(allRows.map(\.categoryTitle).filter(\.isNotEmpty))
-            ).sorted()
-
-            if categoryOptions.contains(selectedCategory) == false {
-                selectedCategory = "All"
-            }
-
-            errorMessage = nil
-            resetPagination()
+            await apply(items: items)
+            scheduleRemoteRefresh(householdId: householdId)
         } catch {
             rows = []
             allRows = []
@@ -136,6 +131,53 @@ final class InventoryViewModel {
             nextOffset = 0
             errorMessage = "Unable to load inventory list."
         }
+    }
+
+    private func scheduleRemoteRefresh(householdId: String) {
+        refreshTask?.cancel()
+        refreshTask = Task { [weak self] in
+            guard let self else { return }
+
+            let now = Date()
+            _ = try? await self.inventoryModuleService.warmExpiringInventoryWindow(
+                InventoryModuleTypes.WarmExpiringInventoryWindowInput(
+                    householdId: householdId,
+                    today: now,
+                    windowDays: 14,
+                    timeZone: TimeZone.current,
+                    launchId: "inventory-list-refresh-\(UUID().uuidString)"
+                )
+            )
+
+            guard Task.isCancelled == false else { return }
+
+            guard let refreshedItems = try? await self.inventoryRepository.fetchActiveByHouseholdSortedByExpiry(
+                householdId,
+                asOf: Date(),
+                timeZone: TimeZone.current
+            ) else {
+                return
+            }
+
+            guard Task.isCancelled == false else { return }
+            await self.apply(items: refreshedItems)
+        }
+    }
+
+    private func apply(items: [InventoryModuleTypes.InventoryItem]) async {
+        let productMap = await fetchProductMap(for: Set(items.map(\.productRef.productId)))
+        allRows = items.map { makeRow(from: $0, productMap: productMap) }
+
+        categoryOptions = ["All"] + Array(
+            Set(allRows.map(\.categoryTitle).filter(\.isNotEmpty))
+        ).sorted()
+
+        if categoryOptions.contains(selectedCategory) == false {
+            selectedCategory = "All"
+        }
+
+        errorMessage = nil
+        resetPagination()
     }
 
     func loadMoreIfNeeded(currentRow: InventoryListRow) async {
