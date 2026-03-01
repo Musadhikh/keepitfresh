@@ -76,16 +76,18 @@ Result: `BUILD SUCCEEDED`
 
 ## 3) Remaining P0 Items
 
-1. Decide/document remote hard-delete reconciliation semantics (if needed).
-- Current state: archive/status convergence is implemented via snapshot refresh.
-- Remaining decision: explicit policy for truly deleted remote docs (if ever used) and whether to introduce tombstone feed vs hard-delete prohibition.
+1. None open for the previously listed P0 set.
+- Hard-delete policy is now locked as archive-first:
+  - remote snapshot omission does not imply local hard-delete.
+  - archive/status convergence is handled through snapshot upsert by item ID/status.
+  - explicit hard-delete support is deferred until a tombstone/delta contract is introduced.
 
 ## 4) Recommended Next Step (Immediate)
 
-Start with documenting/locking **P0 hard-delete semantics**:
-- Keep current archive-first behavior as the primary contract.
-- Decide whether remote hard-deletes are disallowed or need an explicit tombstone flow.
-- Add one integration test path for chosen behavior.
+Start with next phase items (P1/operational hardening), e.g.:
+- Firestore index/rules verification pass.
+- Emulator/staging end-to-end sync integration tests.
+- Optional tombstone RFC only if remote hard-delete becomes a requirement.
 
 ## 5) Key Files to Open First
 

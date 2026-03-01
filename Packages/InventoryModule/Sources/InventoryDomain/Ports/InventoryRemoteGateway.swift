@@ -11,6 +11,9 @@ import Foundation
 public protocol InventoryRemoteGateway: Sendable {
     func upsert(_ items: [InventoryItem]) async throws
     func fetchActiveItems(householdId: String) async throws -> [InventoryItem]
+    /// Returns a household snapshot used for refresh reconciliation.
+    /// Contract: omitted item IDs MUST NOT be treated as hard-delete tombstones by callers.
+    /// Deletion semantics are archive-first via explicit status transitions.
     func fetchItemsSnapshot(householdId: String) async throws -> [InventoryItem]
 }
 

@@ -119,12 +119,9 @@ Notes:
 - Mirror Product’s lifecycle trigger approach in `KeepItFreshApp` for `syncPendingInventory`.
 - Keep throttled/best-effort semantics.
 
-4. Implement remote reconciliation strategy for Inventory.
-- Current “fetch active + local upsert” misses remote archival/deletion done elsewhere.
-- Add one:
-  - full-state reconciliation endpoint (active + archived relevant set), or
-  - delta feed with tombstones (`updatedSince` + status changes), or
-  - explicit remote revision checkpoints.
+4. Lock remote hard-delete policy for Inventory reconciliation.
+- Decision: **archive-first contract**. Snapshot reconciliation updates known items by ID and status, but absence from remote snapshot is **not** treated as local hard-delete.
+- If true hard-delete must be supported in the future, introduce explicit tombstones/delta feed first (`updatedSince` + delete markers), then add opt-in delete reconciliation.
 
 ## P1 (strongly recommended next)
 
@@ -169,10 +166,10 @@ Notes:
 - Add `InventoryPendingSyncTrigger` actor similar to `ProductPendingSyncTrigger`.
 - Trigger on `.main` + app active, with throttling and bounded limits.
 
-5. Inventory reconciliation upgrade.
-- Extend `InventoryRemoteGateway` contract and Firestore adapter to support reconciliation (tombstones/delta/full snapshot by status windows).
-- use `Houses/{householdId}/Purchases/{inventoryItemId}` as the canonical inventory path.
-- Update `GetExpired/GetExpiring/Warmup` refresh internals to apply reconciliation, not just blind upsert.
+5. Inventory reconciliation follow-up (optional future hard-delete support).
+- Snapshot reconciliation for archive/status convergence is implemented.
+- Keep `Houses/{householdId}/Purchases/{inventoryItemId}` as canonical path with archive-first semantics.
+- Future enhancement only if needed: add tombstone-capable delta sync and explicit delete reconciliation.
 
 6. Security rules + indexes + observability.
 - Confirm Firestore rules enforce household scope.
