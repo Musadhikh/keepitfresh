@@ -218,6 +218,12 @@ struct InventoryReadOfflineFirstTests {
             )
         )
 
+        try await waitUntil {
+            let refreshed = try await fixture.inventoryRepository.findById("item-1", householdId: fixture.householdId)
+            let fetchCalls = await fixture.remoteGateway.fetchCallsCount()
+            return refreshed?.quantity.value == 8 && fetchCalls == 1
+        }
+
         let refreshed = try await fixture.inventoryRepository.findById("item-1", householdId: fixture.householdId)
         let fetchCalls = await fixture.remoteGateway.fetchCallsCount()
 
@@ -1003,6 +1009,23 @@ private func makeItem(
         createdAt: now,
         updatedAt: now
     )
+}
+
+private func waitUntil(
+    timeoutNanoseconds: UInt64 = 1_000_000_000,
+    pollIntervalNanoseconds: UInt64 = 20_000_000,
+    condition: @escaping @Sendable () async throws -> Bool
+) async throws {
+    let deadline = DispatchTime.now().uptimeNanoseconds + timeoutNanoseconds
+
+    while DispatchTime.now().uptimeNanoseconds < deadline {
+        if try await condition() {
+            return
+        }
+        try await Task.sleep(nanoseconds: pollIntervalNanoseconds)
+    }
+
+    Issue.record("Timed out waiting for async condition.")
 }
 
 private struct TestConnectivityProvider: ConnectivityProviding {
