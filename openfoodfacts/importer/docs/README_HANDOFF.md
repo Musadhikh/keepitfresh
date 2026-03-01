@@ -55,3 +55,27 @@ Phase 4 artifacts also include:
 - If execute mode fails immediately, verify upload gate + Firebase creds env values.
 - If importer stops early, check `stopReason` in run report (budget or max-lines).
 - For long runs, use `--resume` with checkpoint file/firestore mode.
+
+## Phase 6 scheduling + operations
+- Daily runner script:
+  - `scripts/run-daily-import.sh` (dry-run default)
+- Preflight checks:
+  - `scripts/preflight.sh`
+- Log maintenance:
+  - `scripts/rotate-logs.sh`
+- Schedule templates:
+  - macOS: `schedule/macos/com.keepitfresh.openfoodfacts.importer.plist`
+  - Linux: `schedule/linux/cron.sample`
+
+## Handoff essentials
+- Checkpoint location:
+  - file mode: `output/checkpoint.json`
+  - firestore mode: `ImportCheckpoints/{CHECKPOINT_DOC_ID}`
+- Run reports:
+  - `output/run_reports/YYYY-MM-DD/run_report.json`
+  - `output/run_reports/YYYY-MM-DD/run_report.md`
+  - `output/run_reports/YYYY-MM-DD/daily_run.log` (runner logs)
+- If failures occur:
+  1. inspect run report `stopReason` + warning counts
+  2. inspect lock file `output/import.lock`
+  3. rerun with smaller `--max-writes` and `--resume`

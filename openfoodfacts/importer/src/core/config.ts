@@ -4,6 +4,7 @@ import {
   DEFAULT_CHECKPOINT_DOC_ID,
   DEFAULT_CHECKPOINT_MODE,
   DEFAULT_IMPORT_FILE_PATH,
+  DEFAULT_LOCK_FILE_PATH,
   DEFAULT_MAX_WRITES_PER_RUN
 } from "./constants.js";
 import { ConfigError } from "./errors.js";
@@ -48,6 +49,7 @@ export function loadImporterConfig(options: CommandRuntimeOptions): ImporterConf
   const checkpointMode =
     process.env.CHECKPOINT_MODE === "firestore" ? "firestore" : DEFAULT_CHECKPOINT_MODE;
   const checkpointDocId = process.env.CHECKPOINT_DOC_ID?.trim() || DEFAULT_CHECKPOINT_DOC_ID;
+  const lockFilePath = process.env.LOCK_FILE_PATH?.trim() || DEFAULT_LOCK_FILE_PATH;
   const runReportsEnabled = parseBoolean(process.env.RUN_REPORTS_ENABLED, true);
 
   const firebaseProjectId = process.env.FIREBASE_PROJECT_ID?.trim() || undefined;
@@ -66,6 +68,7 @@ export function loadImporterConfig(options: CommandRuntimeOptions): ImporterConf
     maxLinesPerRun,
     checkpointMode,
     checkpointDocId,
+    lockFilePath,
     runReportsEnabled,
     firebaseProjectId,
     firebaseServiceAccountJson,

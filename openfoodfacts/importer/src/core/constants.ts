@@ -9,3 +9,5 @@ export const CHECKPOINT_FILE_NAME = "checkpoint.json";
 export const DEFAULT_CHECKPOINT_MODE = "file";
 export const DEFAULT_CHECKPOINT_DOC_ID = "off_import_checkpoint";
 export const CHECKPOINT_SAVE_EVERY = 500;
+export const DEFAULT_LOCK_FILE_PATH = "output/import.lock";
+export const DEFAULT_LOCK_STALE_MINUTES = 180;

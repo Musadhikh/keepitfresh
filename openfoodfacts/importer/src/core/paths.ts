@@ -24,6 +24,10 @@ export function checkpointFilePath(): string {
   return path.resolve(outputRoot, CHECKPOINT_FILE_NAME);
 }
 
+export function lockFilePath(customPath?: string): string {
+  return path.resolve(importerRoot, customPath ?? "output/import.lock");
+}
+
 export function runReportsRootPath(): string {
   return path.resolve(outputRoot, "run_reports");
 }

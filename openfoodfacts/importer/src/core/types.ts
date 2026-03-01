@@ -12,6 +12,7 @@ export interface ImporterConfig {
   maxLinesPerRun?: number;
   checkpointMode: "file" | "firestore";
   checkpointDocId: string;
+  lockFilePath: string;
   runReportsEnabled: boolean;
   firebaseProjectId?: string;
   firebaseServiceAccountJson?: string;

@@ -1,16 +1,20 @@
-# Firestore Layer (Phase 0)
+# Firestore Layer
 
-This folder contains placeholders only for Firestore integration.
+This folder contains the active Firestore integration used by importer commands.
 
-## Phase 0 status
-- No Firebase Admin SDK initialization.
-- No remote writes.
-- Safety guardrails are active (dry-run default, execute lock, upload env lock).
+## Current status
+- Firebase Admin SDK client initialization is implemented.
+- Batched writes + retry/backoff are implemented.
+- Budget enforcement is active.
+- Checkpointing supports file mode and optional Firestore mode.
+- Safety guardrails remain active:
+  - dry-run default
+  - execute requires explicit gates
+  - lock prevents overlapping runs
 
 ## Files
-- `client.ts`: client stub for future Admin SDK wiring.
-- `batching.ts`: batch planner/committer stubs.
-- `checkpoints.ts`: local checkpoint file implementation.
-- `budget.ts`: write-budget enforcement helpers.
-
-Real Firestore implementation will be added in later phases.
+- `client.ts`: Firebase Admin setup and Firestore access.
+- `batching.ts`: buffered batch writer with retry/backoff.
+- `budget.ts`: strict per-run write budget helpers.
+- `checkpoints.ts`: checkpoint load/save (file/firestore modes).
+- `types.ts`: Firestore-like interfaces used by importer code.

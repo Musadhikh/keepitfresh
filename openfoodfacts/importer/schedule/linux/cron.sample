@@ -1,0 +1,8 @@
+# KeepItFresh OFF importer daily schedule (07:00 Asia/Singapore)
+#
+# Replace __IMPORTER_ROOT__ with absolute path to openfoodfacts/importer.
+# Ensure Node 20 is available in PATH for cron environment.
+
+TZ=Asia/Singapore
+0 7 * * * cd __IMPORTER_ROOT__ && ./scripts/run-daily-import.sh >> ./output/cron.log 2>&1
+

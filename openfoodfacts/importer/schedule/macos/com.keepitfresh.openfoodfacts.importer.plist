@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.keepitfresh.openfoodfacts.importer</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__IMPORTER_ROOT__/scripts/run-daily-import.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__IMPORTER_ROOT__</string>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>TZ</key>
+    <string>Asia/Singapore</string>
+    <key>IMPORTER_UPLOADS_ENABLED</key>
+    <string>false</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>__IMPORTER_ROOT__/output/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>__IMPORTER_ROOT__/output/launchd.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>
+

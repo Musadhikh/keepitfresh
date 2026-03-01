@@ -10,6 +10,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/storage_predictor.test.ts",
+    "preflight": "bash ./scripts/preflight.sh",
+    "daily:run": "bash ./scripts/run-daily-import.sh",
+    "logs:rotate": "bash ./scripts/rotate-logs.sh",
     "sample": "tsx src/cli/index.ts sample",
     "schema:probe": "tsx src/cli/index.ts schema:probe",
     "compare:contract": "tsx src/cli/index.ts compare:contract",

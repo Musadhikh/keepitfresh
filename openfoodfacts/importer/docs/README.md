@@ -9,6 +9,8 @@
 - `category_mapping_rules_v1.json`: editable mapping rules and overrides.
 - `storage_prediction_rules_v1.json`: deterministic storage type prediction rules.
 - `storage_prediction_rules_v1.md`: storage prediction precedence and tuning notes.
+- `operations_runbook.md`: daily importer operations and failure handling.
+- `scheduling.md`: launchd/cron setup at 07:00 Asia/Singapore.
 
 ## Who uses this
 - Importers: shape payloads, normalize safely, apply validation/reject codes, and enforce idempotency.

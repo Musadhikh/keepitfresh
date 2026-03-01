@@ -35,7 +35,7 @@ async function main() {
       "Read first N valid JSONL objects and write sample + stats outputs",
       (cmd) =>
         cmd
-          .option("file", { type: "string", default: "../openfoodfacts-products.jsonl" })
+          .option("file", { type: "string", default: "../../../openfoodfacts-products.jsonl" })
           .option("count", { type: "number", default: 100 })
           .option("max-lines", { type: "number" })
           .option("out", { type: "string", default: "output/off_sample_100.json" }),
@@ -89,7 +89,7 @@ async function main() {
       "Run sample -> schema:probe -> compare:contract",
       (cmd) =>
         cmd
-          .option("file", { type: "string", default: "../openfoodfacts-products.jsonl" })
+          .option("file", { type: "string", default: "../../../openfoodfacts-products.jsonl" })
           .option("count", { type: "number", default: 100 })
           .option("max-lines", { type: "number" })
           .option("sample-out", { type: "string", default: "output/off_sample_100.json" }),
@@ -121,7 +121,7 @@ async function main() {
       "Extract category signals from JSONL using discovered schema paths",
       (cmd) =>
         cmd
-          .option("file", { type: "string", default: "../openfoodfacts-products.jsonl" })
+          .option("file", { type: "string", default: "../../../openfoodfacts-products.jsonl" })
           .option("schema", { type: "string", default: "output/off_schema_summary.json" })
           .option("max-lines", { type: "number", default: 200000 })
           .option("min-count", { type: "number", default: 10 })
@@ -159,7 +159,7 @@ async function main() {
       "Run categories:signals -> categories:build",
       (cmd) =>
         cmd
-          .option("file", { type: "string", default: "../openfoodfacts-products.jsonl" })
+          .option("file", { type: "string", default: "../../../openfoodfacts-products.jsonl" })
           .option("schema", { type: "string", default: "output/off_schema_summary.json" })
           .option("max-lines", { type: "number", default: 200000 })
           .option("min-count", { type: "number", default: 10 }),
@@ -247,7 +247,7 @@ async function main() {
       "Import products to ProductCatalog (dry-run default, streaming JSONL)",
       (cmd) =>
         withDryRunFlags(cmd)
-          .option("file", { type: "string", default: "../openfoodfacts-products.jsonl" })
+          .option("file", { type: "string", default: "../../../openfoodfacts-products.jsonl" })
           .option("max-writes", { type: "number" })
           .option("max-lines", { type: "number" })
           .option("resume", { type: "boolean", default: true })
