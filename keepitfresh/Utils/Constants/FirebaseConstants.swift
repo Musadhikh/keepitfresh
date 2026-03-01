@@ -31,9 +31,15 @@ struct FirebaseConstants {
         
         /// Houses/Households collection
         static let houses = "Houses"
-        
-        /// Items/Inventory collection
+
+        /// Legacy items/inventory collection name
         static let items = "Items"
+
+        /// Canonical household purchases/inventory collection name
+        static let purchases = "Purchases"
+
+        /// Canonical product catalog collection
+        static let productCatalog = "ProductCatalog"
         
         /// Shopping lists collection
         static let shoppingLists = "ShoppingLists"

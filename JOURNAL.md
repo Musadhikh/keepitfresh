@@ -259,3 +259,21 @@
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - Completed naming consistency pass by removing remaining `*Screen` view type names: `HouseSelectionScreen`/`HouseSelectionScreenMode` became `HouseSelectionView`/`HouseSelectionViewMode`, and Add Product screen views were renamed to `BarcodeScannerView`, `CaptureImagesView`, and `ReviewProductView` (file names and references updated).
 - Verification: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Added backend readiness consolidation doc: `Documentation/FIREBASE_BACKEND_INTEGRATION_STATUS_AND_PLAN.md`, reconciling Product/Inventory module plans, handoff docs, and live code wiring into one execution plan for Firebase integration.
+- Captured the critical integration gaps explicitly (Product remote still stubbed, Add Product still on legacy inventory path, missing inventory lifecycle sync trigger, and inventory remote reconciliation constraints) plus a phased P0/P1 implementation sequence.
+- Verification: not run (documentation-only update).
+- Updated backend integration plan doc with finalized Firestore paths: Product uses `ProductCatalog/{productId}` and Inventory uses `Houses/{householdId}/Purchases/{inventoryItemId}`.
+- Verification: not run (documentation-only update).
+- Started P0 backend integration execution with concrete code:
+  - implemented real Firestore read/write adapter behavior in `Data/AddProduct/Remote/FirestoreCatalogRepository.swift` for `ProductCatalog` lookups and upserts (barcode-based canonical doc lookup, field-mapping fallback support, and mock-write policy guard).
+  - aligned household inventory Firestore pathing from `Items` to `Purchases` in `FirestoreInventoryModuleRemoteGateway` and updated the infrastructure smoke assertion accordingly.
+  - added canonical Firebase collection constants for `productCatalog` and `purchases` in `FirebaseConstants.Collections`.
+  - added app lifecycle replay for inventory pending sync via `InventoryPendingSyncTrigger` in `KeepItFreshApp`, mirroring product’s throttled best-effort trigger.
+- Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Removed `#if canImport(FirebaseFirestore)` guards from Firestore adapters (`FirestoreCatalogRepository`, `FirestoreInventoryModuleRemoteGateway`, and `FirestoreInventoryRepository`) so Firebase is now a hard compile-time dependency for these app infrastructure paths.
+- Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Refactored app root ownership by introducing `Presentation/Root/RootView.swift`: app-state routing, environment wiring, deep-link handling, and lifecycle sync triggers now live in `RootView` instead of `KeepItFreshApp`.
+- Kept bootstrap-only responsibilities in `KeepItFreshApp` (Firebase initialization, Google Sign-In setup, Firestore cache settings) and simplified scene body to `WindowGroup { RootView() }`.
+- Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Extracted root lifecycle sync actors out of `RootView.swift` into dedicated files (`Presentation/Root/ProductPendingSyncTrigger.swift` and `Presentation/Root/InventoryPendingSyncTrigger.swift`) to keep root view composition-focused and easier to navigate.
+- Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).

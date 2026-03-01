@@ -6,9 +6,7 @@
 //  Summary: Firestore-backed inventory repository stub kept optional and swappable.
 //
 
-#if canImport(FirebaseFirestore)
 import FirebaseFirestore
-#endif
 import Foundation
 
 actor FirestoreInventoryRepository: InventoryRepository {
