@@ -3,7 +3,7 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 27/2/26.
-//  Summary: Loads and exposes local Realm inventory items for Home screen rendering.
+//  Summary: Loads expired/expiring inventory alerts through InventoryModule query APIs.
 //
 
 import Factory
@@ -18,14 +18,11 @@ final class HomeInventoryViewModel {
     private static let homeLaunchWarmupID = UUID().uuidString
 
     @ObservationIgnored
-    @Injected(\.addProductInventoryRepository)
-    private var inventoryRepository: any InventoryRepository
-
-    @ObservationIgnored
     @Injected(\.inventoryModuleService)
     private var inventoryModuleService: any InventoryModuleTypes.InventoryModuleServicing
 
-    private(set) var inventoryItems: [InventoryItem] = []
+    private(set) var expiredItems: [InventoryModuleTypes.InventoryItem] = []
+    private(set) var expiringItems: [InventoryModuleTypes.InventoryItem] = []
     private(set) var isLoading = false
     private(set) var loadErrorMessage: String?
 
@@ -35,33 +32,62 @@ final class HomeInventoryViewModel {
         defer { isLoading = false }
 
         do {
-            if let householdId, householdId.isEmpty == false {
-                try? await inventoryModuleService.warmExpiringInventoryWindow(
-                    InventoryModuleTypes.WarmExpiringInventoryWindowInput(
-                        householdId: householdId,
-                        today: Date(),
-                        windowDays: 14,
-                        timeZone: .current,
-                        launchId: Self.homeLaunchWarmupID
-                    )
-                )
+            guard let householdId, householdId.isEmpty == false else {
+                expiredItems = []
+                expiringItems = []
+                loadErrorMessage = nil
+                return
             }
 
-            let items = try await inventoryRepository.fetchAllLocal(householdId: householdId)
-            inventoryItems = items.sorted(by: inventorySortComparator)
+            let now = Date()
+            let timeZone = TimeZone.current
+
+            _ = try? await inventoryModuleService.warmExpiringInventoryWindow(
+                InventoryModuleTypes.WarmExpiringInventoryWindowInput(
+                    householdId: householdId,
+                    today: now,
+                    windowDays: 14,
+                    timeZone: timeZone,
+                    launchId: Self.homeLaunchWarmupID
+                )
+            )
+
+            async let expired = inventoryModuleService.getExpiredItems(
+                InventoryModuleTypes.GetExpiredItemsInput(
+                    householdId: householdId,
+                    today: now,
+                    timeZone: timeZone
+                )
+            )
+            async let expiring = inventoryModuleService.getExpiringItems(
+                InventoryModuleTypes.GetExpiringItemsInput(
+                    householdId: householdId,
+                    today: now,
+                    windowDays: 14,
+                    timeZone: timeZone
+                )
+            )
+
+            let (expiredResult, expiringResult) = try await (expired, expiring)
+            expiredItems = expiredResult.sorted(by: inventorySortComparator)
+            expiringItems = expiringResult.sorted(by: inventorySortComparator)
             loadErrorMessage = nil
         } catch {
-            inventoryItems = []
-            loadErrorMessage = "Unable to load local inventory."
+            expiredItems = []
+            expiringItems = []
+            loadErrorMessage = "Unable to load inventory alerts."
         }
     }
 
-    private func inventorySortComparator(lhs: InventoryItem, rhs: InventoryItem) -> Bool {
-        let lhsDate = lhs.updatedAt ?? .distantPast
-        let rhsDate = rhs.updatedAt ?? .distantPast
+    private func inventorySortComparator(
+        lhs: InventoryModuleTypes.InventoryItem,
+        rhs: InventoryModuleTypes.InventoryItem
+    ) -> Bool {
+        let lhsDate = lhs.expiryInfo?.isoDate ?? .distantFuture
+        let rhsDate = rhs.expiryInfo?.isoDate ?? .distantFuture
 
         if lhsDate != rhsDate {
-            return lhsDate > rhsDate
+            return lhsDate < rhsDate
         }
         return lhs.id < rhs.id
     }

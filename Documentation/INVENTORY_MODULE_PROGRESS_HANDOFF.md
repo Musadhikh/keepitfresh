@@ -2,7 +2,7 @@
 
 Status date: 2026-03-01  
 Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `8be5201`
+Base commit at handoff: `3f8a67b`
 
 This document captures:
 - What is completed
@@ -193,26 +193,36 @@ References:
   - `swift test --package-path Packages/InventoryModule`
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build`
 
+### Home inventory query migration milestone (completed)
+- Migrated Home inventory read flow from legacy AddProduct inventory repository to InventoryModule query APIs.
+- `HomeInventoryViewModel` now:
+  - invokes one-time warm-up (`WarmExpiringInventoryWindow`) for next 14 days
+  - reads `expired` and `expiring` sections via:
+    - `getExpiredItems`
+    - `getExpiringItems`
+  - keeps local-first behavior through module orchestration (local snapshot + background refresh semantics)
+- `HomeView` now renders InventoryModule-driven alert sections:
+  - `Expired`
+  - `Expiring in 14 days`
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule` (30 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Migrate Home inventory reads to InventoryModule service queries.
+Follow-up sync hardening (future task).
 
 Goal:
-- Update Home inventory sections (Expired + Expiring soon) to query InventoryModule APIs directly.
-- Keep the local-first behavior and trigger refresh through existing module orchestration.
-- Avoid direct dependence on legacy AddProduct inventory repository in Home.
+- Improve mutation/query sync resilience with retry/backoff tuning and observability hooks.
+- Add conflict-resolution visibility and sync health metrics for operational debugging.
 
 Why this is next:
-- Infrastructure boundaries are now smoke-tested.
-- Remaining migration risk is the presentation integration path still reading from legacy inventory data flows.
+- Core module behaviors and Home integration are complete.
+- Remaining risk is long-tail sync reliability under flaky network and conflict scenarios.
 
 ## 3) Ordered Pending Steps
 
-1. Migrate Home inventory reads to InventoryModule service queries.
-   - Home should consume module query API directly for expired/expiring sections.
-   - Preserve local-first UX while warm-up sync refreshes cache in background.
-
-2. Follow-up sync hardening (future task).
+1. Follow-up sync hardening (future task).
    - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
 
 ## 4) Resume References (Another Machine)
