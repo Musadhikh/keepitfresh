@@ -64,6 +64,8 @@ struct RootTabView: View {
             addProductDestination(barcodePayload: barcodePayload, symbology: symbology)
         case .productsList:
             ProductsListView()
+        case .inventoryItemDetail(let item):
+            InventoryItemDetailView(item: item)
         }
     }
 

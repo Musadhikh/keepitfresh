@@ -20,7 +20,6 @@ struct HomeView: View {
     @State private var pendingAddProductBarcode: ScannedBarcode?
     @State private var capturedImages: [CameraCapturedImage] = []
     @State private var latestScannedBarcode: ScannedBarcode?
-    @State private var selectedDetailItem: InventoryModuleTypes.InventoryItem?
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -35,7 +34,7 @@ struct HomeView: View {
                         uiState: inventoryViewModel.uiState,
                         mutatingItemIDs: inventoryViewModel.mutatingItemIDs,
                         onSelect: { row in
-                            selectedDetailItem = row.item
+                            appState.navigate(to: .inventoryItemDetail(row.item))
                         },
                         onDiscard: { row in
                             await performDiscard(for: row)
@@ -79,9 +78,6 @@ struct HomeView: View {
         }
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.large)
-        .navigationDestination(item: $selectedDetailItem) { item in
-            InventoryItemDetailView(item: item)
-        }
         .fullScreenCover(isPresented: $isCameraPresented, content: cameraScannerSheet)
         .fullScreenCover(isPresented: $isBarcodeScannerPresented, content: barcodeScannerSheet)
         .onChange(of: isBarcodeScannerPresented) { oldValue, newValue in
