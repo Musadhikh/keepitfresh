@@ -2,7 +2,7 @@
 
 Status date: 2026-03-01  
 Branch at handoff: `task/homepage`  
-Base commit at handoff: `c975eae`
+Base commit at handoff: `cbfa08e`
 
 This document captures:
 - What is completed
@@ -256,24 +256,38 @@ References:
   - `swift test --package-path Packages/InventoryModule` (33 tests passed)
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### Sync hardening app integration milestone (completed)
+- Wired sync hardening contracts at app composition root:
+  - added `inventoryModuleSyncRetryPolicy` DI registration using `DefaultInventorySyncRetryPolicy`
+  - added `inventoryModuleSyncObservability` DI registration using app sink `AppInventorySyncObservability`
+  - injected both into `DefaultSyncPendingInventoryUseCase` from DI
+- Added app-layer observability sink:
+  - `AppInventorySyncObservability` records recent sync events and logs via `os.Logger`
+- Expanded app infrastructure smoke tests:
+  - verifies DI resolves retry-policy and observability concrete types
+  - verifies sync observability sink receives real events from a sync execution path
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule` (33 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Sync hardening app integration (future task).
+Retry policy tuning + telemetry rollout.
 
 Goal:
-- Connect observability hooks to app telemetry/logging sinks.
-- Tune retry policy thresholds in composition root based on production behavior.
+- Tune retry policy thresholds from operational telemetry (base/max delay, retry cap).
+- Route sync event stream beyond local logger into production metrics/alerting pipeline.
 
 Why this is next:
-- Core module hardening and contract-parity milestones are complete and test-covered.
-- Remaining work is operational wiring/tuning in app infrastructure.
+- Core module hardening and app DI integration are complete and test-covered.
+- Remaining work is operational calibration and richer telemetry consumption.
 
 ## 3) Ordered Pending Steps
 
-1. Sync hardening app integration (future task).
-   - Wire `InventorySyncObservability` into app logging/metrics pipeline.
-   - Configure `DefaultInventorySyncRetryPolicy` parameters from composition root policy.
-   - Add conflict/sync-health dashboards or counters using emitted events.
+1. Retry policy tuning + telemetry rollout.
+   - Tune `DefaultInventorySyncRetryPolicy` values using real-world sync behavior.
+   - Forward `InventorySyncEvent` into metrics/monitoring destinations.
+   - Define conflict/sync-health counters and alert thresholds.
 
 ## 4) Resume References (Another Machine)
 
