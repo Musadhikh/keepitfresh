@@ -39,6 +39,9 @@ export function loadImporterConfig(options: CommandRuntimeOptions): ImporterConf
     process.env.MAX_WRITES_PER_RUN,
     DEFAULT_MAX_WRITES_PER_RUN
   );
+  const totalRowsTarget = process.env.TOTAL_ROWS_TARGET
+    ? parsePositiveInt(process.env.TOTAL_ROWS_TARGET, Number.MAX_SAFE_INTEGER)
+    : undefined;
   const batchSize = parsePositiveInt(process.env.BATCH_SIZE, DEFAULT_BATCH_SIZE);
   const importFilePath = resolveFromImporterRoot(
     process.env.IMPORT_FILE_PATH ?? DEFAULT_IMPORT_FILE_PATH
@@ -65,6 +68,7 @@ export function loadImporterConfig(options: CommandRuntimeOptions): ImporterConf
     uploadsEnabled,
     executionAck,
     maxWritesPerRun,
+    totalRowsTarget,
     batchSize,
     importFilePath,
     maxLinesPerRun,

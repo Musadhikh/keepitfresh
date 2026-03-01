@@ -8,6 +8,7 @@ export interface ImporterConfig {
   uploadsEnabled: boolean;
   executionAck: boolean;
   maxWritesPerRun: number;
+  totalRowsTarget?: number;
   batchSize: number;
   importFilePath: string;
   maxLinesPerRun?: number;

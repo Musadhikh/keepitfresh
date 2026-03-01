@@ -9,6 +9,7 @@ import { CHECKPOINT_SAVE_EVERY, DEFAULT_LOCK_STALE_MINUTES } from "../../core/co
 import { acquireLock, isLockStale, readLockMetadata, releaseLock } from "../../core/lock.js";
 import { logger } from "../../core/logger.js";
 import { lockFilePath, resolveFromImporterRoot } from "../../core/paths.js";
+import { updateProgressCard } from "../../core/progress.js";
 import { getMaxWritesForDate, getSingaporeTodayISO, loadRolloutPlan } from "../../core/rollout.js";
 import { writeRunReport } from "../../core/runReports.js";
 import type { CommandRuntimeOptions, ImportCheckpoint } from "../../core/types.js";
@@ -320,6 +321,15 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
         checkpoint: finalCheckpoint
       });
     }
+
+    await updateProgressCard({
+      filePath,
+      scanned,
+      written,
+      rejected,
+      skipped,
+      totalRowsTarget: config.totalRowsTarget
+    });
 
     logger.info(
       {

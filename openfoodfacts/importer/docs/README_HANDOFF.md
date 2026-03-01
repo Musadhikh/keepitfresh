@@ -75,6 +75,9 @@ Phase 4 artifacts also include:
   - `output/run_reports/YYYY-MM-DD/run_report.json`
   - `output/run_reports/YYYY-MM-DD/run_report.md`
   - `output/run_reports/YYYY-MM-DD/daily_run.log` (runner logs)
+- Progress tracker:
+  - `output/progress/progress_state.json`
+  - `output/progress/progress_card.md`
 - If failures occur:
   1. inspect run report `stopReason` + warning counts
   2. inspect lock file `output/import.lock`

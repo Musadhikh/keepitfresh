@@ -10,6 +10,7 @@
 
 ## Daily checklist
 1. Confirm source file path is correct and readable.
+   - Optional: set `TOTAL_ROWS_TARGET` in `.env` to show exact pending rows in progress card.
 2. Confirm checkpoint state (`output/checkpoint.json`) is expected.
 3. Confirm no stale lock (`output/import.lock`).
 4. Run preflight:
@@ -20,6 +21,8 @@
    - `output/run_reports/YYYY-MM-DD/run_report.json`
    - `output/run_reports/YYYY-MM-DD/run_report.md`
    - `output/run_reports/YYYY-MM-DD/daily_run.log`
+7. Review progress card:
+   - `output/progress/progress_card.md`
 
 ## Manual run commands
 
@@ -44,6 +47,10 @@ FIREBASE_SERVICE_ACCOUNT_PATH=... \
   - `max_lines_reached`: line cap reached.
 - `warningCounts`: quality and mapping warnings.
 - `checkpoint.lineNumber`: safe resume position.
+- Progress snapshot:
+  - `output/progress/progress_state.json`
+  - `output/progress/progress_card.md`
+  - includes estimated days remaining (assumes at least one run/day)
 
 ## Common failure modes
 
