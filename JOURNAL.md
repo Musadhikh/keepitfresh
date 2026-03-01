@@ -235,3 +235,8 @@
 - Aligned Inventory local-first query behavior with the written contract: for local-hit + online paths, `GetExpiredItems`/`GetExpiringItems` now return local immediately and refresh cache in a background task instead of awaiting remote refresh.
 - Hardened the relevant InventoryModule test for async behavior by adding a small polling helper so cache-refresh assertions remain deterministic after switching to background refresh.
 - Verification: `swift test --package-path Packages/InventoryModule` (30 tests passed) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Completed Inventory sync hardening pass in the module core: `DefaultSyncPendingInventoryUseCase` now has an explicit retry policy abstraction with exponential backoff + deterministic jitter, plus observability events for started/offline/skipped/synced/failed/completed outcomes.
+- Big reliability fix: previously `.failed` sync metadata could become "dead letters"; now failed records are retried when backoff windows are elapsed, so sync can self-heal after transient outages.
+- Added contract-first extension points (`InventorySyncRetryPolicy`, `InventorySyncObservability`) with no-op defaults, which keeps app behavior stable today but unlocks production metrics wiring without module API churn later.
+- Expanded InventoryModule tests to cover backoff skip gating and observability emission across fail-then-retry-success flow.
+- Verification: `swift test --package-path Packages/InventoryModule` (32 tests passed) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).

@@ -634,6 +634,85 @@ struct InventorySyncCoordinatorTests {
         #expect(metadata?.state == .failed)
         #expect(metadata?.retryCount == 1)
     }
+
+    @Test
+    func syncPendingSkipsFailedItemUntilBackoffElapsed() async throws {
+        let item = makeItem(id: "sync-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let fixture = await makeSyncFixture(
+            online: true,
+            seed: [item],
+            retryPolicy: DefaultInventorySyncRetryPolicy(baseDelay: 120, maxDelay: 300, maxRetryCount: 8)
+        )
+
+        try await fixture.syncStore.upsertMetadata([
+            InventorySyncMetadata(
+                itemId: "sync-1",
+                householdId: fixture.householdId,
+                operation: .update,
+                state: .failed,
+                retryCount: 1,
+                lastError: "network timeout",
+                lastAttemptAt: fixture.now,
+                lastSyncedAt: nil,
+                idempotencyRequestId: "sync-req",
+                addAction: nil
+            )
+        ])
+
+        let output = try await fixture.useCase.execute(SyncPendingInventoryInput(householdId: fixture.householdId))
+        let remoteCalls = await fixture.remoteGateway.upsertCallsCount()
+
+        #expect(output.syncedCount == 0)
+        #expect(output.failedCount == 0)
+        #expect(output.skippedCount == 1)
+        #expect(remoteCalls == 0)
+    }
+
+    @Test
+    func syncPendingEmitsObservabilityEventsForFailedAndSuccessfulPaths() async throws {
+        let item = makeItem(id: "sync-1", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 3, quantity: 1)
+        let observer = RecordingInventorySyncObserver()
+        let fixture = await makeSyncFixture(
+            online: true,
+            seed: [item],
+            retryPolicy: DefaultInventorySyncRetryPolicy(baseDelay: 0, maxDelay: 0, maxRetryCount: 8),
+            observability: observer
+        )
+
+        try await fixture.syncStore.upsertMetadata([
+            InventorySyncMetadata(
+                itemId: "sync-1",
+                householdId: fixture.householdId,
+                operation: .update,
+                state: .pending,
+                retryCount: 0,
+                lastError: nil,
+                lastAttemptAt: fixture.now,
+                lastSyncedAt: nil,
+                idempotencyRequestId: "sync-req",
+                addAction: nil
+            )
+        ])
+
+        await fixture.remoteGateway.setShouldFailUpsert(true)
+        _ = try await fixture.useCase.execute(SyncPendingInventoryInput(householdId: fixture.householdId))
+        await fixture.remoteGateway.setShouldFailUpsert(false)
+        _ = try await fixture.useCase.execute(SyncPendingInventoryInput(householdId: fixture.householdId))
+
+        let events = await observer.events()
+        #expect(events.contains(where: { event in
+            if case .itemFailed(let itemId, _, let category) = event {
+                return itemId == "sync-1" && category == .unknown
+            }
+            return false
+        }))
+        #expect(events.contains(where: { event in
+            if case .itemSynced(let itemId, _) = event {
+                return itemId == "sync-1"
+            }
+            return false
+        }))
+    }
 }
 
 struct InventoryWarmupTests {
@@ -938,7 +1017,9 @@ private func makeSummaryFixture(seed: [InventoryItem]) async -> SummaryFixture {
 
 private func makeSyncFixture(
     online: Bool,
-    seed: [InventoryItem]
+    seed: [InventoryItem],
+    retryPolicy: any InventorySyncRetryPolicy = DefaultInventorySyncRetryPolicy(),
+    observability: any InventorySyncObservability = NoOpInventorySyncObservability()
 ) async -> SyncFixture {
     let now = Date(timeIntervalSince1970: 1_740_756_000)
     let householdId = "house-1"
@@ -951,7 +1032,9 @@ private func makeSyncFixture(
         remoteGateway: remoteGateway,
         syncStateStore: syncStore,
         connectivity: connectivity,
-        clock: FixedClock(now: now)
+        clock: FixedClock(now: now),
+        retryPolicy: retryPolicy,
+        observability: observability
     )
 
     return SyncFixture(
@@ -961,6 +1044,18 @@ private func makeSyncFixture(
         householdId: householdId,
         now: now
     )
+}
+
+private actor RecordingInventorySyncObserver: InventorySyncObservability {
+    private var recordedEvents: [InventorySyncEvent] = []
+
+    func record(_ event: InventorySyncEvent) async {
+        recordedEvents.append(event)
+    }
+
+    func events() -> [InventorySyncEvent] {
+        recordedEvents
+    }
 }
 
 private func makeWarmupFixture(
