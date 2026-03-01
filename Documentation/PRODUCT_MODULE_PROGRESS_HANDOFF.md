@@ -1,8 +1,8 @@
 # Product Module Progress Handoff
 
-Status date: 2026-02-28  
-Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `101d4f8`
+Status date: 2026-03-01  
+Branch at handoff: `task/homepage`  
+Base commit at handoff: `e15a5c9`
 
 This document captures:
 - What is completed
@@ -77,7 +77,24 @@ References:
 - Add Product flow now resolves product/catalog data via `AddProductCatalogServicing` backed by ProductModule adapters, while keeping inventory lookups/writes in inventory repositories.
 - Home screen now lists local Realm inventory.
 - Home has "Show Products" route to a product list screen backed by local Realm catalog cache.
-- Home product list flow is still using AddProduct catalog repository directly (not yet migrated to ProductModule query).
+- Home product list flow now queries via ProductModule and preserves existing row model mapping.
+
+### Home products list migration milestone (completed)
+- Migrated `ProductsListViewModel` from direct `CatalogRepository.fetchAllLocal()` reads to ProductModule `retrieveProducts(query:)`.
+- Added paginated ProductModule query loading to collect all available local-first product pages.
+- Preserved existing UI contract by mapping ProductModule `Product` records into `ProductCatalogItem` rows.
+
+References:
+- `keepitfresh/Presentation/Home/ProductsListViewModel.swift`
+
+### Product sync trigger milestone (completed)
+- Added app lifecycle-triggered replay path for ProductModule pending sync:
+  - trigger on launch-state transitions and on foreground activation
+  - throttled best-effort replay via `syncPending(limit:)` to avoid rapid duplicate runs
+  - non-blocking behavior to keep app startup/navigation responsive
+
+References:
+- `keepitfresh/App/KeepItFreshApp.swift`
 
 References:
 - `keepitfresh/Data/AddProduct/Local/RealmInventoryRepository.swift`
@@ -90,37 +107,28 @@ References:
 
 ## 2) Immediate Next Step (Do This First)
 
-Migrate Home products list screen to ProductModule query.
+Apply connectivity observation where UX needs live connectivity state.
 
 Goal:
-- Replace direct local catalog repository list read with ProductModule retrieval query.
-- Keep current sorting/filtering behavior equivalent.
-- Keep the UI contract unchanged while swapping the data source.
+- Use `.onNetworkConnectivityChange(...)` in screens that need live connectivity messaging.
+- Keep reactive connectivity behavior consistent across key ProductModule user paths.
 
 Why this is next:
-- ProductModule integration is now active in Add Product flow.
-- Home products list is the next visible surface still bypassing ProductModule.
+- Product list migration and pending-sync lifecycle trigger are completed.
+- Next value is UX polish and feedback consistency under changing network conditions.
 
 ## 3) Ordered Pending Steps
 
-1. Migrate Home products list screen to ProductModule query.
-   - Replace direct `CatalogRepository.fetchAllLocal()` path with `retrieveProducts(query:)`.
-   - Keep current sorting/filtering behavior equivalent during migration.
-
-2. Introduce periodic/manual sync trigger path using `syncPending(limit:)`.
-   - Add trigger point (app launch/foreground, pull-to-refresh, or dedicated sync action).
-   - Ensure sync errors are surfaced as actionable user messages.
-
-3. Apply connectivity observation where UX needs live connectivity state.
+1. Apply connectivity observation where UX needs live connectivity state.
    - Use `.onNetworkConnectivityChange(...)` in SwiftUI screens needing reactive connectivity feedback.
    - Use `NetworkConnectivityProviding` in non-UI classes for current-state checks and observation.
 
-4. Expand tests after integration.
+2. Expand tests after integration.
    - Adapter-level tests (Realm mapping + sync metadata behavior).
    - Integration tests for offline-first flows from app entry points.
    - Regression checks for barcode lookup semantics and identity invariant enforcement.
 
-5. Follow-up module extraction (future task).
+3. Follow-up module extraction (future task).
    - Extract Inventory into separate package/module.
    - Keep Product -> Inventory dependency direction one-way (`Inventory` references `productId`).
 
@@ -150,8 +158,7 @@ Why this is next:
 - `keepitfresh/App/DIContainer.swift`
 - `keepitfresh/App/KeepItFreshApp.swift`
 
-### Current app integration points to migrate
-- `keepitfresh/Presentation/Home/ProductsListViewModel.swift`
+### Current app integration points to evolve
 - `keepitfresh/Domain/AddProduct/Services/AddProductCatalogServicing.swift`
 - `keepitfresh/Domain/AddProduct/UseCases/AddProductFlowUseCase.swift`
 - `keepitfresh/Presentation/Product/AddProduct/AddProductModuleAssembler.swift`
