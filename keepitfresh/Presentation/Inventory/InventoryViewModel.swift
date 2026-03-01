@@ -15,6 +15,13 @@ import ProductModule
 @MainActor
 @Observable
 final class InventoryViewModel {
+    enum UIState: Equatable {
+        case loading
+        case error(String)
+        case empty
+        case content
+    }
+
     enum SortOption: String, CaseIterable, Identifiable {
         case expiryAscending = "Expiry Date"
         case alphabetical = "Alphabetical"
@@ -73,6 +80,19 @@ final class InventoryViewModel {
 
     private var allRows: [InventoryListRow] = []
     private var nextOffset = 0
+
+    var uiState: UIState {
+        if isLoading {
+            return .loading
+        }
+        if let errorMessage {
+            return .error(errorMessage)
+        }
+        if rows.isEmpty {
+            return .empty
+        }
+        return .content
+    }
 
     func loadInitial(householdId: String?) async {
         guard isLoading == false else { return }
