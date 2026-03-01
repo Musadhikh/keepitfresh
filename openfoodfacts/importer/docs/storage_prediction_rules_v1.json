@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "storageTypes": ["fridge", "freezer", "shelf", "pantry", "room_temp"],
+  "confidenceLevels": ["high", "medium", "low"],
+  "categoryRules": [
+    {
+      "matchSubContains": ["frozen"],
+      "storageType": "freezer",
+      "confidence": "high",
+      "reason": "subcategory contains frozen"
+    },
+    {
+      "matchSubAny": ["ice cream", "frozen foods", "frozen desserts"],
+      "storageType": "freezer",
+      "confidence": "high",
+      "reason": "frozen category"
+    },
+    {
+      "matchSubAny": ["dairy and eggs", "meat and poultry", "fish and seafood"],
+      "storageType": "fridge",
+      "confidence": "medium",
+      "reason": "typical refrigerated category"
+    },
+    {
+      "matchSubAny": ["grains pasta and rice", "canned and jarred", "snacks sweet", "snacks salty"],
+      "storageType": "shelf",
+      "confidence": "medium",
+      "reason": "typical shelf-stable category"
+    },
+    {
+      "matchSubAny": ["sauces dressings and condiments", "sweeteners and syrups", "oils and fats"],
+      "storageType": "pantry",
+      "confidence": "medium",
+      "reason": "typical pantry category"
+    }
+  ],
+  "textRules": {
+    "freezer": {
+      "high": ["keep frozen", "store frozen", "store below -18", "-18", "deep frozen", "frozen"],
+      "medium": ["freeze", "freezer"]
+    },
+    "fridge": {
+      "high": ["keep refrigerated", "refrigerate", "store at 4", "store between 0", "chilled"],
+      "medium": ["refrigerated", "fridge", "keep chilled"]
+    },
+    "shelf": {
+      "high": ["cool dry place", "store in a cool dry place", "ambient", "store at room temperature"],
+      "medium": ["store cool", "keep in a dry place", "shelf stable"]
+    },
+    "pantry": {
+      "high": ["store in pantry", "pantry storage"],
+      "medium": ["pantry"]
+    },
+    "room_temp": {
+      "high": ["room temperature", "store at room temp"],
+      "medium": ["ambient temperature", "keep at ambient"]
+    }
+  },
+  "fallback": {
+    "confidence": "low",
+    "reason": "no storage rule matched"
+  },
+  "limits": {
+    "reasonMaxLength": 120
+  }
+}

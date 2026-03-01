@@ -16,6 +16,10 @@ import {
   type CategoryMatcherContext,
   type ProductCategoryJson
 } from "./category_matcher.js";
+import {
+  predictStorageType,
+  type StorageRules
+} from "./storage_predictor.js";
 
 export interface TransformWarning {
   code: string;
@@ -89,6 +93,7 @@ export interface ProductJson {
 export interface TransformContext {
   paths: OffFieldPaths;
   categoryMatcher: CategoryMatcherContext;
+  storageRules: StorageRules;
   nowISO: string;
   importerVersion: string;
 }
@@ -334,6 +339,32 @@ export function transformOffToProduct(
     updatedAt,
     version: 1
   };
+
+  if (!product.attributes.storageType) {
+    const prediction = predictStorageType(
+      {
+        product,
+        off,
+        normalizedText: categorySignals.join(" ")
+      },
+      ctx.storageRules
+    );
+
+    if (prediction.storageType) {
+      product.attributes.storageType = prediction.storageType;
+      if (prediction.confidence) {
+        product.attributes.storageTypeConfidence = prediction.confidence;
+      }
+      if (prediction.reason) {
+        product.attributes.storageTypeReason = clampAttribute(prediction.reason, 120);
+      }
+    } else {
+      warnings.push({
+        code: "storage_type_unpredicted",
+        message: "No deterministic storage type prediction"
+      });
+    }
+  }
 
   product.qualitySignals.completenessScore = computeCompleteness(product);
 

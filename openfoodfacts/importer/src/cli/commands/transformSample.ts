@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { loadCategoryMatcherContext } from "../../mapping/category_matcher.js";
 import { deriveOffFieldPaths } from "../../mapping/off_paths.js";
+import { loadStoragePredictionRules } from "../../mapping/storage_predictor.js";
 import {
   transformOffToProduct,
   type ProductJson,
@@ -61,6 +62,7 @@ export async function runTransformSampleCommand(args: TransformSampleArgs): Prom
 
   const paths = await deriveOffFieldPaths(schemaPath);
   const categoryMatcher = await loadCategoryMatcherContext(mappingRulesPath, categoriesPreviewPath);
+  const storageRules = await loadStoragePredictionRules();
   const runNow = nowISO();
 
   const products: ProductJson[] = [];
@@ -75,6 +77,7 @@ export async function runTransformSampleCommand(args: TransformSampleArgs): Prom
     const result = transformOffToProduct(row, {
       paths,
       categoryMatcher,
+      storageRules,
       nowISO: runNow,
       importerVersion: "off-importer-v1"
     });
@@ -100,6 +103,8 @@ export async function runTransformSampleCommand(args: TransformSampleArgs): Prom
   }
 
   const warningCounts = warningCodeCounts(allWarnings.map((item) => item.warning));
+  const storageTypeCounts: Record<string, number> = {};
+  const storageConfidenceCounts: Record<string, number> = {};
 
   const missingFieldCounts: Record<string, number> = {};
   products.forEach((product) => {
@@ -107,6 +112,14 @@ export async function runTransformSampleCommand(args: TransformSampleArgs): Prom
     if (!product.brand) missingFieldCounts.brand = (missingFieldCounts.brand ?? 0) + 1;
     if (!product.category?.sub) missingFieldCounts.categorySub = (missingFieldCounts.categorySub ?? 0) + 1;
     if (!product.barcode?.value) missingFieldCounts.barcode = (missingFieldCounts.barcode ?? 0) + 1;
+    const storageType = product.attributes.storageType;
+    if (storageType) {
+      storageTypeCounts[storageType] = (storageTypeCounts[storageType] ?? 0) + 1;
+    }
+    const storageConfidence = product.attributes.storageTypeConfidence;
+    if (storageConfidence) {
+      storageConfidenceCounts[storageConfidence] = (storageConfidenceCounts[storageConfidence] ?? 0) + 1;
+    }
   });
 
   const stats = {
@@ -117,6 +130,9 @@ export async function runTransformSampleCommand(args: TransformSampleArgs): Prom
     drafts,
     actives,
     warningCounts,
+    storageTypeCounts,
+    storageConfidenceCounts,
+    storageUnpredictedCount: products.length - Object.values(storageTypeCounts).reduce((a, b) => a + b, 0),
     mostCommonMissingFields: Object.entries(missingFieldCounts)
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, 20)
@@ -125,6 +141,20 @@ export async function runTransformSampleCommand(args: TransformSampleArgs): Prom
 
   const warningMdLines: string[] = [];
   warningMdLines.push("# Mapping Warnings");
+  warningMdLines.push("");
+  warningMdLines.push("## Storage prediction");
+  warningMdLines.push("");
+  warningMdLines.push(`- Predicted: ${Object.values(storageTypeCounts).reduce((a, b) => a + b, 0)} / ${products.length}`);
+  warningMdLines.push(`- Unpredicted: ${products.length - Object.values(storageTypeCounts).reduce((a, b) => a + b, 0)}`);
+  warningMdLines.push("");
+  warningMdLines.push("| Storage Type | Count |");
+  warningMdLines.push("|---|---:|");
+  Object.entries(storageTypeCounts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .forEach(([storageType, count]) => warningMdLines.push(`| ${storageType} | ${count} |`));
+  if (Object.keys(storageTypeCounts).length === 0) {
+    warningMdLines.push("| (none) | 0 |");
+  }
   warningMdLines.push("");
   warningMdLines.push(`- Generated at: ${runNow}`);
   warningMdLines.push(`- Total warnings: ${allWarnings.length}`);

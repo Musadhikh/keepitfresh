@@ -14,6 +14,7 @@
 - `npm run phase2 -- --file ../../../openfoodfacts-products.jsonl --count 3000 --max-lines 300000`
 - `npm run phase3 -- --file ../../../openfoodfacts-products.jsonl --max-lines 300000 --min-count 10`
 - `npm run phase4 -- --in output/off_sample_100.json --out output/product_sample_100.json`
+  - Phase 4 includes deterministic storage type prediction in `attributes` when possible.
 
 ## Phase 5 dry-run usage
 - Categories:
@@ -45,6 +46,10 @@ Per-run reports are written to:
 - `output/run_reports/YYYY-MM-DD/run_report.json`
 - `output/run_reports/YYYY-MM-DD/run_report.md`
 - `output/run_reports/YYYY-MM-DD/warnings.json` (when warnings exist)
+
+Phase 4 artifacts also include:
+- `output/product_transform_stats.json` with storage type/confidence distributions
+- `output/mapping_warnings.md` with unpredicted storage note
 
 ## Troubleshooting
 - If execute mode fails immediately, verify upload gate + Firebase creds env values.

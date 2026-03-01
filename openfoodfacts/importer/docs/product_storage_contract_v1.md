@@ -66,6 +66,9 @@ Recommended ProductCatalog document id rule:
     "importerVersion": "string",
     "importedAt": "ISO-8601 datetime",
     "off_code": "string",
+    "storageType": "fridge|freezer|shelf|pantry|room_temp",
+    "storageTypeConfidence": "high|medium|low",
+    "storageTypeReason": "string<=120",
     "off_*": "string",
     "import_*": "string",
     "x_*": "string"
@@ -220,6 +223,17 @@ Reserved attributes namespaces:
 - `off_*`: Open Food Facts raw/carried metadata
 - `import_*`: importer metadata and control fields
 - `x_*`: experimental/non-contract keys
+
+### Derived Operational Attributes
+These optional keys are allowed in `attributes` when deterministically predicted by importer logic:
+- `storageType`: `fridge | freezer | shelf | pantry | room_temp`
+- `storageTypeConfidence`: `high | medium | low`
+- `storageTypeReason`: short reason string (<= 120 chars)
+
+Rules:
+- If storage type cannot be predicted with current rules, omit these keys.
+- Never persist `unknown` or `other` as storage type values.
+- Keep values query-friendly and bounded.
 
 Required provenance keys for imported products:
 - `attributes.importSource`
@@ -393,7 +407,10 @@ Deterministic rules:
     "importedAt": "2026-03-01T10:05:00.000Z",
     "off_code": "3017620422003",
     "off_categories_tags": "en:spreads,en:hazelnut-spreads",
-    "import_contentHash": "sha256:def456"
+    "import_contentHash": "sha256:def456",
+    "storageType": "pantry",
+    "storageTypeConfidence": "medium",
+    "storageTypeReason": "typical pantry category"
   },
   "qualitySignals": {
     "completenessScore": 0.92,

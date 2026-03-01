@@ -9,6 +9,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/storage_predictor.test.ts",
     "sample": "tsx src/cli/index.ts sample",
     "schema:probe": "tsx src/cli/index.ts schema:probe",
     "compare:contract": "tsx src/cli/index.ts compare:contract",

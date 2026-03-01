@@ -17,6 +17,7 @@ import { getFirestore } from "../../firestore/client.js";
 import { createJsonlReader } from "../../utils/jsonl.js";
 import { loadCategoryMatcherContext } from "../../mapping/category_matcher.js";
 import { deriveOffFieldPaths } from "../../mapping/off_paths.js";
+import { loadStoragePredictionRules } from "../../mapping/storage_predictor.js";
 import { transformOffToProduct } from "../../mapping/off_to_product.js";
 import { validateProductAgainstContract, type ContractSnapshot } from "../../validation/productValidator.js";
 import { stableHashObject } from "../../utils/hash.js";
@@ -65,6 +66,7 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
   const writer = new BatchWriter(firestore, config);
 
   const categoryMatcher = await loadCategoryMatcherContext();
+  const storageRules = await loadStoragePredictionRules();
   const paths = await deriveOffFieldPaths();
   const contract = JSON.parse(
     await readFile(resolveFromImporterRoot("docs/product_storage_contract_v1.json"), "utf8")
@@ -104,6 +106,7 @@ export async function runImportProductsCommand(args: ImportProductsArgs): Promis
     const mapped = transformOffToProduct(row.value, {
       paths,
       categoryMatcher,
+      storageRules,
       nowISO: now,
       importerVersion: "off-importer-v1"
     });

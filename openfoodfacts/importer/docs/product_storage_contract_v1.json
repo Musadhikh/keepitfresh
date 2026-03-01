@@ -69,7 +69,8 @@
           "type": "map<string,string>",
           "optional": false,
           "default": {},
-          "reservedNamespaces": ["off_*", "import_*", "x_*"]
+          "reservedNamespaces": ["off_*", "import_*", "x_*"],
+          "allowlist": ["storageType", "storageTypeConfidence", "storageTypeReason"]
         },
         {
           "name": "extractionMetadata",
@@ -176,6 +177,11 @@
         "invalid_nutrition",
         "invalid_payload_shape"
       ]
+    },
+    "attributesAllowlist": {
+      "storageType": ["fridge", "freezer", "shelf", "pantry", "room_temp"],
+      "storageTypeConfidence": ["high", "medium", "low"],
+      "storageTypeReasonMaxLength": 120
     }
   },
   "examples": {
@@ -234,7 +240,10 @@
         "importedAt": "2026-03-01T10:05:00.000Z",
         "off_code": "3017620422003",
         "off_categories_tags": "en:spreads,en:hazelnut-spreads",
-        "import_contentHash": "sha256:def456"
+        "import_contentHash": "sha256:def456",
+        "storageType": "pantry",
+        "storageTypeConfidence": "medium",
+        "storageTypeReason": "typical pantry category"
       },
       "qualitySignals": {
         "completenessScore": 0.92,

@@ -14,6 +14,13 @@ export interface ContractSnapshot {
       fields?: FieldDef[];
     };
   };
+  constraints?: {
+    attributesAllowlist?: {
+      storageType?: string[];
+      storageTypeConfidence?: string[];
+      storageTypeReasonMaxLength?: number;
+    };
+  };
 }
 
 export interface ValidationFailure {
@@ -82,6 +89,31 @@ export function validateProductAgainstContract(
     }
     if (!("value" in product.productDetails)) {
       failures.push({ field: "productDetails.value", reason: "required_missing" });
+    }
+  }
+
+  const attributesAllowlist = contract.constraints?.attributesAllowlist;
+  if (attributesAllowlist) {
+    const storageType = product.attributes.storageType;
+    if (storageType && !(attributesAllowlist.storageType ?? []).includes(storageType)) {
+      failures.push({ field: "attributes.storageType", reason: `invalid_enum:${storageType}` });
+    }
+
+    const storageTypeConfidence = product.attributes.storageTypeConfidence;
+    if (
+      storageTypeConfidence &&
+      !(attributesAllowlist.storageTypeConfidence ?? []).includes(storageTypeConfidence)
+    ) {
+      failures.push({
+        field: "attributes.storageTypeConfidence",
+        reason: `invalid_enum:${storageTypeConfidence}`
+      });
+    }
+
+    const maxReason = attributesAllowlist.storageTypeReasonMaxLength ?? 120;
+    const storageTypeReason = product.attributes.storageTypeReason;
+    if (storageTypeReason && storageTypeReason.length > maxReason) {
+      failures.push({ field: "attributes.storageTypeReason", reason: "max_length_exceeded" });
     }
   }
 

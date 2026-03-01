@@ -3,28 +3,113 @@
   "mainCategoryRules": [
     {
       "matchAny": [
+        "food",
+        "foods",
+        "snack",
+        "snacks",
+        "meal",
+        "meals",
+        "dish",
+        "dairy",
+        "milk",
+        "cheese",
+        "yogurt",
+        "yoghurt",
+        "meat",
+        "fish",
+        "seafood",
+        "egg",
+        "eggs",
+        "fruit",
+        "fruits",
+        "vegetable",
+        "vegetables",
+        "cereal",
+        "potato",
+        "bread",
+        "pasta",
+        "rice",
+        "sauce",
+        "sauces",
+        "condiment",
+        "condiments",
+        "soup",
+        "soups",
+        "pizza",
+        "pizzas",
+        "salsa",
+        "dip",
+        "dips",
+        "marinade",
+        "marinades",
+        "beans",
+        "canned",
+        "cream",
+        "creams",
+        "honey",
+        "honeys",
+        "sugar",
+        "sugars",
+        "crackers",
+        "dessert",
+        "desserts",
+        "ice cream",
+        "chips",
+        "tortilla chips",
+        "cold cuts",
+        "cooking helpers",
+        "syrup",
+        "syrups",
+        "frozen dinners",
+        "entrees",
+        "peanut butter",
+        "butter",
+        "spread",
+        "spice",
+        "spices",
+        "herb",
+        "herbs",
+        "chili",
+        "stew",
+        "sausages",
+        "ribs",
+        "pastries",
+        "olive oil",
+        "pastry",
+        "baking",
+        "mayonnaise",
+        "relish",
+        "dinner mixes",
+        "frozen foods",
+        "processed meat",
+        "composite foods",
+        "confectioneries",
+        "biscuits",
+        "cakes"
+      ],
+      "main": "food"
+    },
+    {
+      "matchAny": [
+        "beverage",
         "beverages",
+        "drink",
         "drinks",
         "tea",
         "coffee",
         "juice",
+        "nectar",
+        "smoothie",
         "soda",
-        "water"
+        "cola",
+        "carbonated",
+        "sparkling water",
+        "mineral water",
+        "flavored water",
+        "energy drink",
+        "sports drink"
       ],
       "main": "beverage"
-    },
-    {
-      "matchAny": [
-        "foods",
-        "snacks",
-        "meals",
-        "bread",
-        "dairy",
-        "meat",
-        "fruits",
-        "vegetables"
-      ],
-      "main": "food"
     },
     {
       "matchAny": [
@@ -68,8 +153,120 @@
       "main": "electronics"
     }
   ],
-  "subCategoryOverrides": [],
-  "synonyms": [],
+  "canonicalSubcategories": {
+    "food": [
+      "produce",
+      "dairy-and-eggs",
+      "meat-and-poultry",
+      "fish-and-seafood",
+      "bakery",
+      "grains-pasta-and-rice",
+      "breakfast-and-cereal",
+      "snacks-sweet",
+      "snacks-salty",
+      "confectionery",
+      "frozen-foods",
+      "prepared-meals",
+      "soups-and-broths",
+      "sauces-dressings-and-condiments",
+      "spreads-and-nut-butters",
+      "canned-and-jarred",
+      "baking-and-dessert-mixes",
+      "oils-and-fats",
+      "sweeteners-and-syrups",
+      "baby-food",
+      "special-diet-food",
+      "other-food"
+    ],
+    "beverage": [
+      "water",
+      "sparkling-and-soft-drinks",
+      "juice-and-nectar",
+      "tea",
+      "coffee",
+      "plant-based-drinks",
+      "sports-and-energy-drinks",
+      "powdered-and-concentrates",
+      "alcoholic",
+      "other-beverage"
+    ]
+  },
+  "subCategoryOverrides": [
+    {
+      "offPath": "cereals and potatoes",
+      "sub": "cereals and potatoes"
+    },
+    {
+      "offPath": "biscuits and cakes",
+      "sub": "biscuits and cakes"
+    },
+    {
+      "offPath": "fat and sauces",
+      "sub": "fats and sauces"
+    },
+    {
+      "offPath": "dressings and sauces",
+      "sub": "dressings and sauces"
+    },
+    {
+      "offPath": "condiments, sauces, groceries",
+      "sub": "condiments and sauces"
+    },
+    {
+      "offPath": "groceries, sauces",
+      "sub": "condiments and sauces"
+    },
+    {
+      "offPath": "fish and seafood",
+      "sub": "fish and seafood"
+    },
+    {
+      "offPath": "milk and dairy products",
+      "sub": "milk and dairy products"
+    },
+    {
+      "offPath": "one-dish meals",
+      "sub": "prepared meals"
+    },
+    {
+      "offPath": "composite foods",
+      "sub": "prepared meals"
+    },
+    {
+      "offPath": "processed meat",
+      "sub": "processed meat"
+    },
+    {
+      "offPath": "salty snacks",
+      "sub": "salty snacks"
+    },
+    {
+      "offPath": "salted snacks",
+      "sub": "salty snacks"
+    }
+  ],
+  "synonyms": [
+    {
+      "value": "salty snacks",
+      "synonyms": [
+        "salted snacks"
+      ]
+    },
+    {
+      "value": "condiments and sauces",
+      "synonyms": [
+        "groceries, sauces",
+        "condiments, sauces, groceries"
+      ]
+    },
+    {
+      "value": "prepared meals",
+      "synonyms": [
+        "one-dish meals",
+        "composite foods"
+      ]
+    }
+  ],
   "fallback": {
     "main": "other",
     "sub": null
