@@ -277,3 +277,5 @@
 - Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
 - Extracted root lifecycle sync actors out of `RootView.swift` into dedicated files (`Presentation/Root/ProductPendingSyncTrigger.swift` and `Presentation/Root/InventoryPendingSyncTrigger.swift`) to keep root view composition-focused and easier to navigate.
 - Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Added `Documentation/BACKEND_INTEGRATION_PROGRESS_HANDOFF.md` capturing current backend integration status, completed work, remaining P0 gaps, and resume pointers/commands for continuation on another machine.
+- Verification: not run (documentation-only update).
