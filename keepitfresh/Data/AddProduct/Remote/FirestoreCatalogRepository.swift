@@ -8,6 +8,13 @@
 
 import FirebaseFirestore
 import Foundation
+import ProductModule
+
+typealias PMQuery = ProductModuleTypes.ProductQuery
+typealias PMPage = ProductModuleTypes.ProductPage
+typealias PMSort = ProductModuleTypes.ProductSort
+typealias PMFilter = ProductModuleTypes.ProductFilter
+typealias PMSortOrder = ProductModuleTypes.SortOrder
 
 actor FirestoreCatalogRepository: CatalogRepository {
     private let db: Firestore
@@ -80,6 +87,38 @@ actor FirestoreCatalogRepository: CatalogRepository {
         try await productCatalogCollection()
             .document(item.id.isEmpty ? normalizedBarcode : item.id)
             .setData(payload, merge: true)
+    }
+
+    func queryRemote(_ query: PMQuery) async throws -> PMPage {
+        let safeLimit = max(1, query.page.limit)
+        let offset = max(Int(query.page.cursor?.value ?? "0") ?? 0, 0)
+        let fetchLimit = safeLimit + offset + 1
+
+        var firestoreQuery: Query = productCatalogCollection()
+        firestoreQuery = applyServerSideFilters(query.filters, to: firestoreQuery)
+        firestoreQuery = applySort(query.sort, to: firestoreQuery)
+        firestoreQuery = firestoreQuery.limit(to: fetchLimit)
+
+        let snapshot = try await firestoreQuery.getDocuments()
+        let slicedDocuments = Array(snapshot.documents.dropFirst(offset))
+        let hasMore = slicedDocuments.count > safeLimit
+        let pageDocuments = Array(slicedDocuments.prefix(safeLimit))
+
+        var products = pageDocuments.compactMap { document in
+            mapCatalogItem(
+                from: document,
+                fallbackBarcode: document.documentID,
+                fallbackSymbology: .unknown
+            )?.asProductModuleProduct()
+        }
+
+        // Text-search is applied client-side since current schema doesn't guarantee tokenized query fields.
+        products = applyClientSideFilters(query.filters, to: products)
+
+        let nextCursor: ProductModuleTypes.PageCursor? = hasMore
+            ? .init(value: String(offset + safeLimit))
+            : nil
+        return PMPage(items: products, nextCursor: nextCursor, totalCount: nil)
     }
 }
 
@@ -182,5 +221,81 @@ private extension FirestoreCatalogRepository {
             guard let dictionary = partial as? [String: Any] else { return nil }
             return dictionary[String(segment)]
         }
+    }
+
+    func applySort(_ sort: PMSort, to query: Query) -> Query {
+        switch sort {
+        case .updatedAt(let order):
+            query.order(by: "updatedAt", descending: order == .descending)
+        case .createdAt(let order):
+            query.order(by: "createdAt", descending: order == .descending)
+        case .title(let order):
+            query.order(by: "title", descending: order == .descending)
+        case .brand(let order):
+            query.order(by: "brand", descending: order == .descending)
+        }
+    }
+
+    func applyServerSideFilters(_ filters: [PMFilter], to query: Query) -> Query {
+        var output = query
+        for filter in filters {
+            switch filter {
+            case .status(let status):
+                output = output.whereField("status", isEqualTo: status.rawValue)
+            case .brand(let brand):
+                output = output.whereField("brand", isEqualTo: brand)
+            case .source(let source):
+                output = output.whereField("source", isEqualTo: source.rawValue)
+            case .category(let category):
+                output = output.whereField("categories", arrayContains: category.rawValue)
+            case .hasBarcode(let hasBarcode):
+                if hasBarcode {
+                    output = output.whereField("barcode", isGreaterThan: "")
+                }
+            case .textSearch:
+                // client-side filter fallback
+                continue
+            }
+        }
+        return output
+    }
+
+    func applyClientSideFilters(_ filters: [PMFilter], to products: [ProductModuleTypes.Product]) -> [ProductModuleTypes.Product] {
+        filters.reduce(products) { partial, filter in
+            partial.filter { product in
+                switch filter {
+                case .textSearch(let text):
+                    let normalizedQuery = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard normalizedQuery.isNotEmpty else { return true }
+                    return searchableFields(for: product).contains { field in
+                        field.localizedStandardContains(normalizedQuery)
+                    }
+                case .hasBarcode(let hasBarcode):
+                    return (product.barcode != nil) == hasBarcode
+                case .category(let category):
+                    return product.category?.main == category
+                case .status(let status):
+                    return product.status == status
+                case .brand(let brand):
+                    return (product.brand ?? "").localizedCaseInsensitiveCompare(brand) == .orderedSame
+                case .source(let source):
+                    return product.source == source
+                }
+            }
+        }
+    }
+
+    func searchableFields(for product: ProductModuleTypes.Product) -> [String] {
+        [
+            product.productId,
+            product.barcode?.value,
+            product.title,
+            product.brand,
+            product.shortDescription,
+            product.category?.sub
+        ]
+        .compactMap { $0 }
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter(\.isNotEmpty)
     }
 }
