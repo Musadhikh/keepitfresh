@@ -39,7 +39,10 @@ public actor DefaultGetExpiredItemsUseCase: GetExpiredItemsUseCase {
         }
 
         if hasLocalData {
-            try? await refreshLocalCache(householdId: input.householdId)
+            let householdId = input.householdId
+            Task {
+                try? await self.refreshLocalCache(householdId: householdId)
+            }
             return local
         }
 
@@ -64,4 +67,3 @@ private extension DefaultGetExpiredItemsUseCase {
         try await inventoryRepository.updateMany(remoteItems)
     }
 }
-
