@@ -24,4 +24,10 @@ actor StubInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemoteGate
             .filter { $0.householdId == householdId && $0.status == .active }
             .sorted { $0.createdAt < $1.createdAt }
     }
+
+    func fetchItemsSnapshot(householdId: String) async throws -> [InventoryModuleTypes.InventoryItem] {
+        remoteStorage.values
+            .filter { $0.householdId == householdId }
+            .sorted { $0.createdAt < $1.createdAt }
+    }
 }

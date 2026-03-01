@@ -232,6 +232,56 @@ struct InventoryReadOfflineFirstTests {
     }
 
     @Test
+    func localHitOnlineRefreshReconcilesRemoteArchivedStatus() async throws {
+        let now = Date(timeIntervalSince1970: 1_740_756_000)
+        let expiry = Calendar(identifier: .gregorian).date(byAdding: .day, value: 2, to: now)
+        let local = makeItem(id: "item-archive", householdId: "house-1", productId: "prod-1", expiryOffsetDays: 2, quantity: 1)
+        let remoteArchived = InventoryItem(
+            id: "item-archive",
+            householdId: "house-1",
+            productRef: ProductRef(productId: "prod-1"),
+            quantity: Quantity(value: 1, unit: .piece),
+            status: .archived,
+            storageLocationId: "loc-a",
+            expiryInfo: expiry.map { InventoryDateInfo(kind: .expiry, rawText: "2d", confidence: 1.0, isoDate: $0) },
+            createdAt: now,
+            updatedAt: now
+        )
+
+        let fixture = await makeReadFixture(
+            online: true,
+            localSeed: [local],
+            remoteSeed: [remoteArchived]
+        )
+
+        let initialOutput = try await fixture.useCase.execute(
+            GetExpiringItemsInput(
+                householdId: fixture.householdId,
+                today: fixture.now,
+                windowDays: 14,
+                timeZone: fixture.timeZone
+            )
+        )
+        #expect(initialOutput.count == 1)
+
+        try await waitUntil {
+            let refreshed = try await fixture.inventoryRepository.findById("item-archive", householdId: fixture.householdId)
+            return refreshed?.status == .archived
+        }
+
+        let refreshed = try await fixture.inventoryRepository.findById("item-archive", householdId: fixture.householdId)
+        let expiringAfterRefresh = try await fixture.inventoryRepository.fetchExpiring(
+            fixture.householdId,
+            asOf: fixture.now,
+            windowDays: 14,
+            timeZone: fixture.timeZone
+        )
+
+        #expect(refreshed?.status == .archived)
+        #expect(expiringAfterRefresh.contains(where: { $0.id == "item-archive" }) == false)
+    }
+
+    @Test
     func offlineLocalMissReturnsEmptyWithoutRemoteFetch() async throws {
         let fixture = await makeReadFixture(
             online: false,

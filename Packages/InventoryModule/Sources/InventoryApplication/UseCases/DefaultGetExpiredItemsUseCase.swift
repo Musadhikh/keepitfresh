@@ -63,7 +63,7 @@ private extension DefaultGetExpiredItemsUseCase {
     }
 
     func refreshLocalCache(householdId: String) async throws {
-        let remoteItems = try await remoteGateway.fetchActiveItems(householdId: householdId)
+        let remoteItems = try await remoteGateway.fetchItemsSnapshot(householdId: householdId)
         try await inventoryRepository.updateMany(remoteItems)
     }
 }

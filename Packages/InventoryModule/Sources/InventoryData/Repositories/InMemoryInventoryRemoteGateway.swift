@@ -49,6 +49,17 @@ public actor InMemoryInventoryRemoteGateway: InventoryRemoteGateway {
             .sorted { $0.createdAt < $1.createdAt }
     }
 
+    public func fetchItemsSnapshot(householdId: String) async throws -> [InventoryItem] {
+        if shouldFailFetch {
+            throw InMemoryInventoryRemoteGatewayError.fetchFailed
+        }
+
+        fetchHouseholdRequests.append(householdId)
+        return remoteStorage.values
+            .filter { $0.householdId == householdId }
+            .sorted { $0.createdAt < $1.createdAt }
+    }
+
     public func upsertCallsCount() -> Int {
         upsertedBatches.count
     }
