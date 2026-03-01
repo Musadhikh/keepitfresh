@@ -245,29 +245,32 @@ References:
   - `swift test --package-path Packages/InventoryModule` (33 tests passed)
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### Delete semantics alignment milestone (completed)
+- Finalized inventory delete contract as **archive-only**.
+- Confirmed package API and implementation alignment:
+  - `DeleteInventoryItemInput` remains `householdId + itemId + idempotencyRequestId`
+  - no `hardDelete` option in module contracts
+  - delete operation archives item locally and syncs archived state via remote upsert path
+- Updated implementation-plan documentation to remove hard-delete-oriented repository/gateway API examples.
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule` (33 tests passed)
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
+
 ## 2) Immediate Next Step (Do This First)
 
-Delete semantics + doc consistency alignment.
+Sync hardening app integration (future task).
 
 Goal:
-- Align delete API behavior with documented expectations (`hardDelete` support vs archive-only semantics).
-- Complete documentation consistency pass (paths/status/next-steps) across module docs.
+- Connect observability hooks to app telemetry/logging sinks.
+- Tune retry policy thresholds in composition root based on production behavior.
 
 Why this is next:
-- Core sync hardening and contract parity work is complete and test-covered.
-- Remaining gap is delete behavior/documentation alignment and final doc cleanup.
+- Core module hardening and contract-parity milestones are complete and test-covered.
+- Remaining work is operational wiring/tuning in app infrastructure.
 
 ## 3) Ordered Pending Steps
 
-1. Delete semantics alignment.
-   - Decide final contract: archive-only delete or optional hard delete.
-   - Implement and test selected behavior consistently across use case + gateway contracts.
-
-2. Documentation consistency pass.
-   - Update stale status/path references in Inventory planning/progress docs.
-   - Ensure accepted behavior in docs matches current implementation precisely.
-
-3. Sync hardening app integration (future task).
+1. Sync hardening app integration (future task).
    - Wire `InventorySyncObservability` into app logging/metrics pipeline.
    - Configure `DefaultInventorySyncRetryPolicy` parameters from composition root policy.
    - Add conflict/sync-health dashboards or counters using emitted events.
