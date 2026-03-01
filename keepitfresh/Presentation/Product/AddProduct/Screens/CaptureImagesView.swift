@@ -1,5 +1,5 @@
 //
-//  CaptureImagesScreen.swift
+//  CaptureImagesView.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
@@ -36,7 +36,7 @@ struct ImagesCaptured: ImageData,  Identifiable, Equatable, Sendable {
     }
 }
 
-struct CaptureImagesScreen: View {
+struct CaptureImagesView: View {
     let maxImages: Int
     let onSubmit: ([ImagesCaptured]) -> Void
     let onBack: () -> Void

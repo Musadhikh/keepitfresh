@@ -19,6 +19,7 @@ struct RootTabView: View {
                     .tabItem {
                         Label("Home", systemImage: Theme.Icon.homeTab.systemName)
                     }
+                    .badge(appState.homeExpiredBadgeCount > 0 ? Text("\(appState.homeExpiredBadgeCount)") : nil)
                     .tag(AppTab.home)
                 
                 ProfileView()
@@ -32,7 +33,7 @@ struct RootTabView: View {
         .id(appState.houseSessionID)
         .fullScreenCover(isPresented: $appState.requiresHouseSelection) {
             NavigationStack {
-                HouseSelectionScreen(mode: .required)
+                HouseSelectionView(mode: .required)
             }
             .interactiveDismissDisabled()
         }
@@ -58,11 +59,11 @@ struct RootTabView: View {
         case .profileDetails:
             ProfileDetailsView()
         case .householdSelection:
-            HouseSelectionScreen(mode: .manage)
+            HouseSelectionView(mode: .manage)
         case .addProduct(let barcodePayload, let symbology):
             addProductDestination(barcodePayload: barcodePayload, symbology: symbology)
         case .productsList:
-            ProductsListScreen()
+            ProductsListView()
         }
     }
 

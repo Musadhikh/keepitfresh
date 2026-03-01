@@ -9,14 +9,14 @@
 import SwiftUI
 
 struct AddProductFlowRootView: View {
-    @State var viewModel: AddProductViewModel
+    @State var viewModel: AddProductFlowRootViewModel
     @State private var reviewViewModel: ProductReviewViewModel?
 
     var body: some View {
         Group {
             switch viewModel.state {
             case .idle, .scanning:
-                BarcodeScannerScreen(
+                ManualBarcodeEntryView(
                     onSubmitManualBarcode: viewModel.submitManualBarcode,
                     onSkipToCamera: viewModel.skipToCaptureImages
                 )
@@ -37,7 +37,7 @@ struct AddProductFlowRootView: View {
                 notFoundScreen(context: context)
 
             case .captureImages(_, let plan):
-                CaptureImagesScreen(
+                CaptureImagesView(
                     maxImages: plan.maximumImageCount,
                     onSubmit: viewModel.submitCapturedImages,
                     onBack: viewModel.retryLastBarcode
@@ -81,7 +81,7 @@ struct AddProductFlowRootView: View {
     }
 
     private func reviewScreen(for draft: ProductDraft) -> some View {
-        ReviewProductScreen(
+        ReviewProductView(
             draft: Binding(
                 get: { viewModel.draft ?? draft },
                 set: { viewModel.draft = $0 }

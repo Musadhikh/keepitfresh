@@ -1,5 +1,5 @@
 //
-//  ProductsListScreen.swift
+//  ProductsListView.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 27/2/26.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct ProductsListScreen: View {
+struct ProductsListView: View {
     @State private var viewModel = ProductsListViewModel()
 
     var body: some View {
@@ -25,7 +25,7 @@ struct ProductsListScreen: View {
                     .font(Theme.Fonts.bodyRegular)
                     .foregroundStyle(Theme.Colors.textSecondary)
             } else {
-                Section("Products (Realm)") {
+                Section("Products") {
                     ForEach(viewModel.products, id: \.id) { product in
                         ProductCatalogRow(product: product)
                     }
@@ -75,7 +75,7 @@ private struct ProductCatalogRow: View {
 #if DEBUG
 #Preview {
     NavigationStack {
-        ProductsListScreen()
+        ProductsListView()
     }
 }
 #endif

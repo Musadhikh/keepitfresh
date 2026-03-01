@@ -1,5 +1,5 @@
 //
-//  AddProductViewModel.swift
+//  AddProductFlowRootViewModel.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
@@ -10,7 +10,7 @@ import Foundation
 
 @MainActor
 @Observable
-final class AddProductViewModel {
+final class AddProductFlowRootViewModel {
     private let useCase: AddProductFlowUseCase
     private let initialBarcode: Barcode?
     private var observeTask: Task<Void, Never>?

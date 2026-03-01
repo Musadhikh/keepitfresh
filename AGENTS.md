@@ -199,6 +199,51 @@ Required:
 - After app integration, verify app build:
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build`
 
+## 12) Presentation Folder and Naming Convention
+Keep the `Presentation` tree strictly organized by view ownership.
+
+Required:
+- Each top-level screen/view must have its own folder directly under `keepitfresh/Presentation` (for example `Home`, `ProductsList`, `InventoryItemDetail`).
+- Use `*View` naming for SwiftUI screens; do not use `*Screen` suffix for view types.
+- A feature folder should contain only:
+  - `<Feature>View.swift`
+  - `<Feature>ViewModel.swift` (if needed)
+  - feature-local component views used only by that main view.
+- If a view is not strictly part of another view's composition, it must live in its own folder.
+- View model names must always follow: `<ViewName>Model`.
+  - Example: `HomeView` -> `HomeViewModel`
+  - Example: `ProductsListView` -> `ProductsListViewModel`
+- Reusable shared UI components must live outside feature folders (for example in `Presentation/CustomViewComponents`).
+
+Avoid:
+- Putting multiple unrelated screens in the same feature folder.
+- Keeping detail screens in parent feature folders when they are standalone screens.
+- Naming view models that do not match the owning view name.
+
+## 13) Home Status Card Pattern (Apply When Relevant)
+For status/info cards in feature screens (for example Home), keep the implementation strongly typed and componentized.
+
+Required:
+- Do not keep non-trivial status card UI as a computed view inside the parent screen.
+- Create a dedicated component view file in the owning feature folder (for example `Presentation/Home/HomeStatusCardView.swift`).
+- Pass icon inputs as `Theme.Icon` (typed), not `String` or raw SF Symbol values.
+- In SwiftUI views, use `Image(icon: someThemeIcon)` from `Image+Extension`, instead of `Image(systemName:)` when the icon source is `Theme.Icon`.
+- For collection emptiness checks, prefer `isNotEmpty` from `Collections+Extensions` over `isEmpty == false`.
+- For multi-branch screen rendering states, model a typed `UIState` in the ViewModel and render with `switch` in the View.
+
+Avoid:
+- Hardcoded symbol strings for status cards.
+- Converting `Theme.Icon` to raw values in caller code unless an API strictly requires a `String`.
+- Long `if/else if` chains in SwiftUI views for primary screen states when a `UIState` enum can express intent.
+
+## 14) Navigation Destination Placement
+Required:
+- Attach `navigationDestination` modifiers outside lazy containers (`List`, `LazyVStack`, `LazyHStack`, etc.) so destinations are always visible to `NavigationStack`.
+- Prefer item/value-driven navigation APIs (`navigationDestination(item:)` / `navigationDestination(for:)`) over boolean-driven optional destination closures.
+
+Avoid:
+- `navigationDestination(isPresented:)` closures that return optional views (for example `if let` inside destination closure).
+
 # Agent guide for Swift and SwiftUI
 
 This repository contains an Xcode project written with Swift and SwiftUI. Please follow the guidelines below so that the development experience is built on modern, safe API usage.

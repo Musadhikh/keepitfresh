@@ -1,5 +1,5 @@
 //
-//  BarcodeScannerScreen.swift
+//  ManualBarcodeEntryView.swift
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct BarcodeScannerScreen: View {
+struct ManualBarcodeEntryView: View {
     let onSubmitManualBarcode: (String) -> Void
     let onSkipToCamera: () -> Void
 

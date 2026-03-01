@@ -148,7 +148,7 @@ struct CreateHouseSheet: View {
 
 #Preview("House Selection - Required") {
     NavigationStack {
-        HouseSelectionScreen(mode: .required)
+        HouseSelectionView(mode: .required)
             .environment(AppState())
     }
 }

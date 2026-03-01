@@ -115,11 +115,15 @@ public enum Theme {
         // States and alerts
         case maintenance = "wrench.and.screwdriver"
         case warning = "exclamationmark.triangle.fill"
+        case success = "checkmark.seal.fill"
         case profileUnavailable = "person.crop.circle.badge.xmark"
 
         // Profile actions
         case logout = "rectangle.portrait.and.arrow.right"
         case delete = "trash"
+        case deleteFilled = "trash.fill"
+        case doneFilled = "checkmark.circle"
+        case addFilled = "plus.circle.fill"
 
         case locationPin = "mappin.and.ellipse"
 

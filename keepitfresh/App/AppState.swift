@@ -26,6 +26,7 @@ final class AppState {
     
     private(set) var currentState: State = .splash
     var selectedTab: AppTab = .home
+    var homeExpiredBadgeCount = 0
     var navigationPath = NavigationPath()
     private(set) var selectedHouse: House?
     private(set) var houseSessionID = UUID()
@@ -170,6 +171,7 @@ final class AppState {
     
     private func resetNavigation() {
         selectedTab = .home
+        homeExpiredBadgeCount = 0
         navigationPath = NavigationPath()
     }
     
