@@ -1,8 +1,8 @@
 # Inventory Module Progress Handoff
 
-Status date: 2026-02-28  
+Status date: 2026-03-01  
 Branch at handoff: `task/inventory-module`  
-Base commit at handoff: `ab62956`
+Base commit at handoff: `8be5201`
 
 This document captures:
 - What is completed
@@ -173,31 +173,46 @@ References:
   - `swift test --package-path Packages/InventoryModule` (30 tests passed)
   - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`)
 
+### Adapter/composition smoke tests milestone (completed)
+- Added app-layer infrastructure smoke tests:
+  - `keepitfreshTests/InventoryModuleInfrastructureSmokeTests.swift`
+- Coverage added:
+  - Firestore house-scoped path assumption check (`Houses/{householdId}/Items`)
+  - Firestore gateway guard behavior smoke checks:
+    - blank household fetch returns empty
+    - empty upsert payload is a no-op
+  - DI composition resolution checks:
+    - `inventoryModuleRemoteGateway` resolves to `FirestoreInventoryModuleRemoteGateway`
+    - `inventoryModuleService` resolves to `AppInventoryModuleService`
+  - Service invocation smoke check through DI:
+    - invalid household validation path throws as expected
+- Added small adapter test seam:
+  - `FirestoreInventoryModuleRemoteGateway.houseItemsCollectionPath(householdId:)`
+  - Keeps path assertion explicit without coupling tests to Firestore internals.
+- Verification completed:
+  - `swift test --package-path Packages/InventoryModule`
+  - `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build`
+
 ## 2) Immediate Next Step (Do This First)
 
-Add adapter/composition smoke tests for InventoryModule app-layer infrastructure.
+Migrate Home inventory reads to InventoryModule service queries.
 
 Goal:
-- Add app-layer tests around:
-  - `FirestoreInventoryModuleRemoteGateway` encode/decode behavior and house-scoped path assumptions
-  - DI resolution smoke checks for `inventoryModuleService` and dependent use cases
-- Keep tests focused on adapter boundaries (module remains backend-agnostic).
+- Update Home inventory sections (Expired + Expiring soon) to query InventoryModule APIs directly.
+- Keep the local-first behavior and trigger refresh through existing module orchestration.
+- Avoid direct dependence on legacy AddProduct inventory repository in Home.
 
 Why this is next:
-- Core business logic and remote adapter wiring are now complete.
-- Next risk area is integration correctness and regression safety in app composition boundaries.
+- Infrastructure boundaries are now smoke-tested.
+- Remaining migration risk is the presentation integration path still reading from legacy inventory data flows.
 
 ## 3) Ordered Pending Steps
 
-1. Add adapter and composition smoke tests at app layer.
-   - Repository/store mapper round-trip sanity checks.
-   - DI resolution and service invocation smoke tests.
-
-2. Migrate Home inventory reads to InventoryModule service queries.
+1. Migrate Home inventory reads to InventoryModule service queries.
    - Home should consume module query API directly for expired/expiring sections.
    - Preserve local-first UX while warm-up sync refreshes cache in background.
 
-3. Follow-up sync hardening (future task).
+2. Follow-up sync hardening (future task).
    - Add retry policy/backoff tuning, observability, and conflict resolution metrics.
 
 ## 4) Resume References (Another Machine)
