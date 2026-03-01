@@ -57,14 +57,6 @@ struct HomeView: View {
         }
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.large)
-        .toolbar(.visible, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Text("Home")
-                    .font(Theme.Fonts.title)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-            }
-        }
         .fullScreenCover(isPresented: $isCameraPresented, content: cameraScannerSheet)
         .fullScreenCover(isPresented: $isBarcodeScannerPresented, content: barcodeScannerSheet)
         .onChange(of: isBarcodeScannerPresented) { oldValue, newValue in
