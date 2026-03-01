@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import InventoryModule
 
 enum AppTab: Hashable {
     case home
@@ -19,6 +20,7 @@ enum AppRoute: Hashable {
     case householdSelection
     case addProduct(barcodePayload: String?, symbology: String?)
     case productsList
+    case inventoryItemDetail(InventoryModuleTypes.InventoryItem)
 }
 
 enum AppDeepLinkParser {
