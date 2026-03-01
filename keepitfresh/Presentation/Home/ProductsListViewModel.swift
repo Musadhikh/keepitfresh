@@ -3,19 +3,20 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 27/2/26.
-//  Summary: Loads and exposes local Realm catalog items for the products list screen.
+//  Summary: Loads products through ProductModule query APIs and exposes the existing catalog row model.
 //
 
 import Factory
 import Foundation
 import Observation
+import ProductModule
 
 @MainActor
 @Observable
 final class ProductsListViewModel {
     @ObservationIgnored
-    @Injected(\.addProductCatalogRepository)
-    private var catalogRepository: any CatalogRepository
+    @Injected(\.productModuleService)
+    private var productModuleService: any ProductModuleServicing
 
     private(set) var products: [ProductCatalogItem] = []
     private(set) var isLoading = false
@@ -27,8 +28,9 @@ final class ProductsListViewModel {
         defer { isLoading = false }
 
         do {
-            let localProducts = try await catalogRepository.fetchAllLocal()
-            products = localProducts.sorted(by: productSortComparator)
+            let moduleProducts = try await fetchAllProductsFromModule()
+            products = moduleProducts.compactMap { $0.asCatalogItemForRepository() }
+                .sorted(by: productSortComparator)
             loadErrorMessage = nil
         } catch {
             products = []
@@ -44,5 +46,23 @@ final class ProductsListViewModel {
             return lhsTitle.localizedCaseInsensitiveCompare(rhsTitle) == .orderedAscending
         }
         return lhs.barcode.value < rhs.barcode.value
+    }
+
+    private func fetchAllProductsFromModule() async throws -> [ProductModuleTypes.Product] {
+        var aggregated: [ProductModuleTypes.Product] = []
+        var cursor: ProductModuleTypes.PageCursor?
+
+        repeat {
+            let query = ProductModuleTypes.ProductQuery(
+                page: ProductModuleTypes.PageRequest(limit: 200, cursor: cursor),
+                sort: .title(order: .ascending),
+                filters: []
+            )
+            let page = try await productModuleService.retrieveProducts(query: query)
+            aggregated.append(contentsOf: page.items)
+            cursor = page.nextCursor
+        } while cursor != nil
+
+        return aggregated
     }
 }
