@@ -11,4 +11,11 @@ import Foundation
 public protocol InventoryRemoteGateway: Sendable {
     func upsert(_ items: [InventoryItem]) async throws
     func fetchActiveItems(householdId: String) async throws -> [InventoryItem]
+    func fetchItemsSnapshot(householdId: String) async throws -> [InventoryItem]
+}
+
+public extension InventoryRemoteGateway {
+    func fetchItemsSnapshot(householdId: String) async throws -> [InventoryItem] {
+        try await fetchActiveItems(householdId: householdId)
+    }
 }

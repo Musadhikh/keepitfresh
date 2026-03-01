@@ -68,6 +68,21 @@ actor FirestoreInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemot
             )
         }
     }
+
+    func fetchItemsSnapshot(householdId: String) async throws -> [IMRemoteItem] {
+        guard householdId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            return []
+        }
+
+        let snapshot = try await itemsCollection(householdId: householdId).getDocuments()
+        return try snapshot.documents.map { document in
+            try FirestoreCodableHelpers.decodeDocument(
+                IMRemoteItem.self,
+                from: document,
+                injectingDocumentIdTo: "id"
+            )
+        }
+    }
 }
 
 extension FirestoreInventoryModuleRemoteGateway {

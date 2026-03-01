@@ -40,7 +40,7 @@ public actor DefaultWarmExpiringInventoryWindowUseCase: WarmExpiringInventoryWin
 
         var refreshedCount = 0
         if await connectivity.isOnline() {
-            let remoteItems = try await remoteGateway.fetchActiveItems(householdId: input.householdId)
+            let remoteItems = try await remoteGateway.fetchItemsSnapshot(householdId: input.householdId)
             try await inventoryRepository.updateMany(remoteItems)
             refreshedCount = remoteItems.count
         }

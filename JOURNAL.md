@@ -287,3 +287,8 @@
   - `AddProductModuleAssembler` now injects module dependencies from DI for this bridge path.
   - added default storage-location bootstrap for add flow (`Pantry` per household) to satisfy InventoryModule location invariants.
 - Verification: `xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).
+- Closed the inventory reconciliation gap for cross-device archive convergence in read refresh flows:
+  - extended `InventoryRemoteGateway` with `fetchItemsSnapshot(householdId:)` and switched read/warm-up refresh use cases (`GetExpired`, `GetExpiring`, `WarmExpiringInventoryWindow`) to consume snapshot data rather than active-only remote reads.
+  - updated app adapters (`FirestoreInventoryModuleRemoteGateway`, `StubInventoryModuleRemoteGateway`) and in-memory module gateway to return full household snapshots (all statuses) for refresh paths.
+- Added a regression test (`localHitOnlineRefreshReconcilesRemoteArchivedStatus`) proving that a locally active item is updated to `.archived` after remote refresh and drops out of expiring results.
+- Verification: `swift test --package-path Packages/InventoryModule` (34 tests passed) and `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` (`BUILD SUCCEEDED`).

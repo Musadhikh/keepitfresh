@@ -2,7 +2,7 @@
 
 Status date: 2026-03-01  
 Branch at handoff: `task/inventory-add`  
-Latest commit at handoff: `35c234d`
+Latest commit at handoff: `52232f6`
 
 This handoff covers Firebase backend integration work across Product + Inventory and the recent root refactor.
 
@@ -28,6 +28,28 @@ This handoff covers Firebase backend integration work across Product + Inventory
   - implemented remote barcode lookup in `ProductCatalog`
   - implemented remote upsert with mock-write guard support
   - added resilient field mapping fallbacks (`title/name`, `description/shortDescription`, `images/imageUrl`, etc.)
+- Implemented Firestore-backed Product remote query path:
+  - `CatalogProductRemoteGateway.query(_:)` now delegates to Firestore adapter when available.
+  - `FirestoreCatalogRepository.queryRemote(_:)` now executes remote list queries with filter/sort/paging mapping.
+
+### Add Product migration progress (P0 in progress)
+- `AddProductFlowUseCase` now accepts optional InventoryModule dependencies and uses InventoryModule-backed read/write path when available.
+- `AddProductModuleAssembler` now injects InventoryModule dependencies via DI.
+- Added default per-household storage-location bootstrap (`Pantry`) for add flow writes that require InventoryModule location invariants.
+
+### Inventory reconciliation progress
+- Added snapshot refresh capability to InventoryModule remote contract:
+  - `InventoryRemoteGateway.fetchItemsSnapshot(householdId:)`
+- Switched local-refresh read paths to snapshot-based reconciliation:
+  - `DefaultGetExpiredItemsUseCase`
+  - `DefaultGetExpiringItemsUseCase`
+  - `DefaultWarmExpiringInventoryWindowUseCase`
+- Updated remote adapters to provide full household snapshot (all statuses) for refresh:
+  - `Packages/InventoryModule/.../InMemoryInventoryRemoteGateway.swift`
+  - `keepitfresh/Data/InventoryModule/Remote/FirestoreInventoryModuleRemoteGateway.swift`
+  - `keepitfresh/Data/InventoryModule/Remote/StubInventoryModuleRemoteGateway.swift`
+- Added regression test coverage:
+  - `localHitOnlineRefreshReconcilesRemoteArchivedStatus`
 
 ### Inventory backend path alignment
 - Updated inventory Firestore path to your required structure:
@@ -54,21 +76,17 @@ Result: `BUILD SUCCEEDED`
 
 ## 3) Remaining P0 Items
 
-1. Finish Product remote integration for query path.
-- Current gap: `CatalogProductRemoteGateway.query(_:)` still returns empty page.
-- Implement real remote query behavior backed by Firestore `ProductCatalog` (or define explicit constraints and fallback strategy).
+1. Complete Add Product migration cleanup to InventoryModule-only inventory orchestration.
+- Current state: bridge path implemented with fallback; legacy inventory repo path still exists.
+- Target: remove remaining legacy fallback and verify all add/read inventory operations in flow are InventoryModule-backed.
 
-2. Migrate Add Product inventory flow to InventoryModule APIs.
-- Current gap: `AddProductFlowUseCase` still writes/reads via legacy `Domain/AddProduct/Repositories/InventoryRepository`.
-- Target: route save/read operations through `InventoryModuleServicing` (`addInventoryItem`, query/read equivalents) to avoid split architecture.
-
-3. Inventory remote reconciliation strategy.
-- Current behavior refreshes by fetching active items and upserting local.
-- Gap: no explicit tombstone/deletion reconciliation for cross-device archive/delete state convergence.
+2. Decide/document remote hard-delete reconciliation semantics (if needed).
+- Current state: archive/status convergence is implemented via snapshot refresh.
+- Remaining decision: explicit policy for truly deleted remote docs (if ever used) and whether to introduce tombstone feed vs hard-delete prohibition.
 
 ## 4) Recommended Next Step (Immediate)
 
-Start with **P0 #2** (Add Product migration) to remove split inventory write paths:
+Start with **P0 #1** (finish Add Product migration cleanup) to remove split inventory write paths:
 - Keep UI unchanged.
 - Replace only backend orchestration layer in `AddProductFlowUseCase` and its assembler dependencies.
 - Ensure add flow continues local-first and sync-aware via InventoryModule.
@@ -92,4 +110,3 @@ git pull
 
 xcodebuild -project keepitfresh/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build
 ```
-
