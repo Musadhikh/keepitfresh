@@ -27,6 +27,5 @@ struct HomeAddProductButtonView: View {
         .background(Theme.Colors.accent)
         .clipShape(.rect(cornerRadius: Theme.Radius.pill))
         .shadow(color: Theme.Colors.primary30, radius: 2, y: 1)
-        .padding(.bottom, Theme.Spacing.s20)
     }
 }

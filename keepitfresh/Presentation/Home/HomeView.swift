@@ -22,62 +22,49 @@ struct HomeView: View {
     @State private var latestScannedBarcode: ScannedBarcode?
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: Theme.Spacing.s16) {
-                    if inventoryViewModel.expiredCount > 0 {
-                        HomeExpiredSummaryCardView(
-                            expiredCount: inventoryViewModel.expiredCount
-                        )
-                    }
-                    HomeInventoryStateView(
-                        uiState: inventoryViewModel.uiState,
-                        mutatingItemIDs: inventoryViewModel.mutatingItemIDs,
-                        onSelect: { row in
-                            appState.navigate(to: .inventoryItemDetail(row.item))
-                        },
-                        onDiscard: { row in
-                            await performDiscard(for: row)
-                        },
-                        onFinished: { row in
-                            await performFinish(for: row)
-                        },
-                        onAddNew: {
-                            startAddProductWithScan()
-                        }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: Theme.Spacing.s16) {
+                if inventoryViewModel.expiredCount > 0 {
+                    HomeExpiredSummaryCardView(
+                        expiredCount: inventoryViewModel.expiredCount
                     )
                 }
-                .padding(.horizontal, Theme.Spacing.s16)
-                .padding(.top, Theme.Spacing.s16)
-                .padding(.bottom, 96)
-            }
-            
-            HomeAddProductButtonView(
-                onTap: startAddProductWithScan
-            )
-            
-            if let undoBanner = inventoryViewModel.undoBanner {
-                HomeUndoBannerView(
-                    message: undoBanner.message,
-                    onUndo: {
-                        Task {
-                            let didUndo = await inventoryViewModel.undoLastAction(householdId: appState.selectedHouse?.id)
-                            if didUndo {
-                                generateHaptic(.success)
-                            }
-                        }
+                HomeInventoryStateView(
+                    uiState: inventoryViewModel.uiState,
+                    mutatingItemIDs: inventoryViewModel.mutatingItemIDs,
+                    onSelect: { row in
+                        appState.navigate(to: .inventoryItemDetail(row.item))
+                    },
+                    onDiscard: { row in
+                        await performDiscard(for: row)
+                    },
+                    onFinished: { row in
+                        await performFinish(for: row)
+                    },
+                    onAddNew: {
+                        startAddProductWithScan()
                     }
                 )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .padding(.horizontal, Theme.Spacing.s16)
-                .padding(.bottom, 84)
             }
+            .padding(.horizontal, Theme.Spacing.s16)
+            .padding(.top, Theme.Spacing.s16)
+        }
+        .safeAreaInset(edge: .bottom) {
+            bottomActionArea
         }
         .refreshable {
             await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
         }
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Text("Home")
+                    .font(Theme.Fonts.title)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
+        }
         .fullScreenCover(isPresented: $isCameraPresented, content: cameraScannerSheet)
         .fullScreenCover(isPresented: $isBarcodeScannerPresented, content: barcodeScannerSheet)
         .onChange(of: isBarcodeScannerPresented) { oldValue, newValue in
@@ -97,6 +84,38 @@ struct HomeView: View {
             await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
             appState.homeExpiredBadgeCount = inventoryViewModel.expiredCount
         }
+    }
+
+    @ViewBuilder
+    private var bottomActionArea: some View {
+        VStack(spacing: Theme.Spacing.s12) {
+            if let undoBanner = inventoryViewModel.undoBanner {
+                HomeUndoBannerView(
+                    message: undoBanner.message,
+                    onUndo: {
+                        Task {
+                            let didUndo = await inventoryViewModel.undoLastAction(householdId: appState.selectedHouse?.id)
+                            if didUndo {
+                                generateHaptic(.success)
+                            }
+                        }
+                    }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            HStack {
+                Spacer()
+
+                HomeAddProductButtonView(
+                    onTap: startAddProductWithScan
+                )
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.s16)
+        .padding(.top, Theme.Spacing.s8)
+        .padding(.bottom, Theme.Spacing.s12)
+        .frame(maxWidth: .infinity)
     }
 
     private func cameraScannerSheet() -> some View {
