@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function housePath(houseId) {
+      return /databases/$(database)/documents/Houses/$(houseId);
+    }
+
+    function isHouseMember(houseId) {
+      return isSignedIn()
+        && exists(housePath(houseId))
+        && (
+          get(housePath(houseId)).data.ownerId == request.auth.uid
+          || request.auth.uid in get(housePath(houseId)).data.memberIds
+        );
+    }
+
+    // Global app metadata used at app startup.
+    match /AppMetadata/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // User profile document keyed by authenticated user id.
+    match /Profiles/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Household root docs are private to members.
+    match /Houses/{houseId} {
+      allow read: if isHouseMember(houseId);
+      allow create: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.auth.uid in request.resource.data.memberIds;
+      allow update, delete: if isHouseMember(houseId);
+
+      // Inventory is scoped under each house.
+      match /Purchases/{purchaseId} {
+        allow read, write: if isHouseMember(houseId);
+      }
+    }
+
+    // Product catalog is shared across houses.
+    // Writes are authenticated for now because add-product flow performs client upserts.
+    match /ProductCatalog/{productId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Read-only OpenFoodFacts reference data.
+    match /OpenFoodFactsProducts/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /OpenFoodFactsCategories/{categoryId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

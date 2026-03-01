@@ -199,3 +199,13 @@ Notes:
 2. Add `InventoryPendingSyncTrigger` in `KeepItFreshApp`.
 3. Start Add Product migration to `InventoryModuleServicing` for save path first.
 4. Add reconciliation design RFC for inventory remote refresh (tombstones/delta).
+
+## 8) Firestore Verification Artifacts (Completed)
+
+- Added baseline Firebase CLI config and policy/index files:
+  - `firebase.json`
+  - `firestore.rules`
+  - `firestore.indexes.json`
+- Added verification matrix/report:
+  - `Documentation/FIRESTORE_INDEX_RULES_VERIFICATION_PASS.md`
+- This pass aligns current app query shapes with an initial index set and access-control rules.

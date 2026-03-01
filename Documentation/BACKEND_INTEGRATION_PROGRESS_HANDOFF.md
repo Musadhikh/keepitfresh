@@ -63,6 +63,11 @@ This handoff covers Firebase backend integration work across Product + Inventory
 ### Integration planning docs
 - Added consolidated backend status + plan:
   - `Documentation/FIREBASE_BACKEND_INTEGRATION_STATUS_AND_PLAN.md`
+- Added Firestore verification artifacts and coverage report:
+  - `firebase.json`
+  - `firestore.rules`
+  - `firestore.indexes.json`
+  - `Documentation/FIRESTORE_INDEX_RULES_VERIFICATION_PASS.md`
 
 ## 2) Build Verification
 
@@ -85,7 +90,6 @@ Result: `BUILD SUCCEEDED`
 ## 4) Recommended Next Step (Immediate)
 
 Start with next phase items (P1/operational hardening), e.g.:
-- Firestore index/rules verification pass.
 - Emulator/staging end-to-end sync integration tests.
 - Optional tombstone RFC only if remote hard-delete becomes a requirement.
 
