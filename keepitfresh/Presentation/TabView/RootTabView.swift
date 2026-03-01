@@ -24,6 +24,15 @@ struct RootTabView: View {
             .badge(appState.homeExpiredBadgeCount > 0 ? Text("\(appState.homeExpiredBadgeCount)") : nil)
             .tag(AppTab.home)
 
+            NavigationStack(path: $appState.inventoryNavigationPath) {
+                InventoryView()
+                    .navigationDestination(for: AppRoute.self, destination: destination(for:))
+            }
+            .tabItem {
+                Label("Inventory", systemImage: Theme.Icon.stock.systemName)
+            }
+            .tag(AppTab.inventory)
+
             NavigationStack(path: $appState.profileNavigationPath) {
                 ProfileView()
                     .navigationDestination(for: AppRoute.self, destination: destination(for:))

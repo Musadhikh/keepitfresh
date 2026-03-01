@@ -29,6 +29,7 @@ final class AppState {
     var homeExpiredBadgeCount = 0
     private(set) var appearancePreference: ProfileAppearancePreference = .system
     var homeNavigationPath = NavigationPath()
+    var inventoryNavigationPath = NavigationPath()
     var profileNavigationPath = NavigationPath()
     private(set) var selectedHouse: House?
     private(set) var houseSessionID = UUID()
@@ -173,6 +174,9 @@ final class AppState {
         case .home:
             guard !homeNavigationPath.isEmpty else { return }
             homeNavigationPath.removeLast()
+        case .inventory:
+            guard !inventoryNavigationPath.isEmpty else { return }
+            inventoryNavigationPath.removeLast()
         case .profile:
             guard !profileNavigationPath.isEmpty else { return }
             profileNavigationPath.removeLast()
@@ -206,11 +210,13 @@ final class AppState {
         selectedTab = .home
         homeExpiredBadgeCount = 0
         homeNavigationPath = NavigationPath()
+        inventoryNavigationPath = NavigationPath()
         profileNavigationPath = NavigationPath()
     }
     
     private func clearVolatileHouseScopedState() {
         homeNavigationPath = NavigationPath()
+        inventoryNavigationPath = NavigationPath()
         profileNavigationPath = NavigationPath()
     }
 
@@ -218,6 +224,8 @@ final class AppState {
         switch tab {
         case .home:
             homeNavigationPath.append(route)
+        case .inventory:
+            inventoryNavigationPath.append(route)
         case .profile:
             profileNavigationPath.append(route)
         }
@@ -227,6 +235,8 @@ final class AppState {
         switch tab {
         case .home:
             homeNavigationPath = NavigationPath()
+        case .inventory:
+            inventoryNavigationPath = NavigationPath()
         case .profile:
             profileNavigationPath = NavigationPath()
         }
