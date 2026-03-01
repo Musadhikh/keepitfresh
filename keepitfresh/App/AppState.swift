@@ -27,7 +27,8 @@ final class AppState {
     private(set) var currentState: State = .splash
     var selectedTab: AppTab = .home
     var homeExpiredBadgeCount = 0
-    var navigationPath = NavigationPath()
+    var homeNavigationPath = NavigationPath()
+    var profileNavigationPath = NavigationPath()
     private(set) var selectedHouse: House?
     private(set) var houseSessionID = UUID()
     var requiresHouseSelection = false
@@ -138,23 +139,29 @@ final class AppState {
     }
     
     func navigate(to route: AppRoute) {
-        navigationPath.append(route)
+        append(route, to: selectedTab)
     }
     
     func navigateBack() {
-        guard !navigationPath.isEmpty else { return }
-        navigationPath.removeLast()
+        switch selectedTab {
+        case .home:
+            guard !homeNavigationPath.isEmpty else { return }
+            homeNavigationPath.removeLast()
+        case .profile:
+            guard !profileNavigationPath.isEmpty else { return }
+            profileNavigationPath.removeLast()
+        }
     }
     
     func popToRoot() {
-        navigationPath = NavigationPath()
+        resetPath(for: selectedTab)
     }
     
     func setNavigation(tab: AppTab, routes: [AppRoute]) {
         selectedTab = tab
-        navigationPath = NavigationPath()
+        resetPath(for: tab)
         for route in routes {
-            navigationPath.append(route)
+            append(route, to: tab)
         }
     }
     
@@ -172,11 +179,31 @@ final class AppState {
     private func resetNavigation() {
         selectedTab = .home
         homeExpiredBadgeCount = 0
-        navigationPath = NavigationPath()
+        homeNavigationPath = NavigationPath()
+        profileNavigationPath = NavigationPath()
     }
     
     private func clearVolatileHouseScopedState() {
-        navigationPath = NavigationPath()
+        homeNavigationPath = NavigationPath()
+        profileNavigationPath = NavigationPath()
+    }
+
+    private func append(_ route: AppRoute, to tab: AppTab) {
+        switch tab {
+        case .home:
+            homeNavigationPath.append(route)
+        case .profile:
+            profileNavigationPath.append(route)
+        }
+    }
+
+    private func resetPath(for tab: AppTab) {
+        switch tab {
+        case .home:
+            homeNavigationPath = NavigationPath()
+        case .profile:
+            profileNavigationPath = NavigationPath()
+        }
     }
 
     private func applyResolvedHouseContext(_ house: House) {

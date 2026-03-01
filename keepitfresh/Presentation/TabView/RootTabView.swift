@@ -12,23 +12,26 @@ struct RootTabView: View {
     
     var body: some View {
         @Bindable var appState = appState
-        
-        NavigationStack(path: $appState.navigationPath) {
-            TabView(selection: $appState.selectedTab) {
+
+        TabView(selection: $appState.selectedTab) {
+            NavigationStack(path: $appState.homeNavigationPath) {
                 HomeView()
-                    .tabItem {
-                        Label("Home", systemImage: Theme.Icon.homeTab.systemName)
-                    }
-                    .badge(appState.homeExpiredBadgeCount > 0 ? Text("\(appState.homeExpiredBadgeCount)") : nil)
-                    .tag(AppTab.home)
-                
-                ProfileView()
-                    .tabItem {
-                        Label("Profile", systemImage: Theme.Icon.profileTab.systemName)
-                    }
-                    .tag(AppTab.profile)
+                    .navigationDestination(for: AppRoute.self, destination: destination(for:))
             }
-            .navigationDestination(for: AppRoute.self, destination: destination(for:))
+            .tabItem {
+                Label("Home", systemImage: Theme.Icon.homeTab.systemName)
+            }
+            .badge(appState.homeExpiredBadgeCount > 0 ? Text("\(appState.homeExpiredBadgeCount)") : nil)
+            .tag(AppTab.home)
+
+            NavigationStack(path: $appState.profileNavigationPath) {
+                ProfileView()
+                    .navigationDestination(for: AppRoute.self, destination: destination(for:))
+            }
+            .tabItem {
+                Label("Profile", systemImage: Theme.Icon.profileTab.systemName)
+            }
+            .tag(AppTab.profile)
         }
         .id(appState.houseSessionID)
         .fullScreenCover(isPresented: $appState.requiresHouseSelection) {
