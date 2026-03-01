@@ -11,6 +11,7 @@ import InventoryModule
 
 enum AppTab: Hashable {
     case home
+    case inventory
     case profile
 }
 
