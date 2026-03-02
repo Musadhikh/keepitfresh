@@ -24,6 +24,7 @@ struct HomeAddProductButtonView: View {
             .padding(.vertical, Theme.Spacing.s12)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("home.addProductButton")
         .background(Theme.Colors.accent)
         .clipShape(.rect(cornerRadius: Theme.Radius.pill))
         .shadow(color: Theme.Colors.primary30, radius: 2, y: 1)

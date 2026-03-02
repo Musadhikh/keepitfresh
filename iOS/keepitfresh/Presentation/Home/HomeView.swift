@@ -3,32 +3,24 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 15/2/26.
-//  Summary: Renders inventory urgency buckets with actions, undo, and add-item scan entry.
+//  Summary: Renders inventory urgency buckets with actions, undo, and Add Product flow entry.
 //
 
 import SwiftUI
-import CameraModule
-import BarcodeScannerModule
 import InventoryModule
 import UIKit
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @State private var inventoryViewModel = HomeViewModel()
-    @State private var isCameraPresented = false
-    @State private var isBarcodeScannerPresented = false
-    @State private var pendingAddProductBarcode: ScannedBarcode?
-    @State private var capturedImages: [CameraCapturedImage] = []
-    @State private var latestScannedBarcode: ScannedBarcode?
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Theme.Spacing.s16) {
                 if inventoryViewModel.expiredCount > 0 {
-                    HomeExpiredSummaryCardView(
-                        expiredCount: inventoryViewModel.expiredCount
-                    )
+                    HomeExpiredSummaryCardView(expiredCount: inventoryViewModel.expiredCount)
                 }
+
                 HomeInventoryStateView(
                     uiState: inventoryViewModel.uiState,
                     mutatingItemIDs: inventoryViewModel.mutatingItemIDs,
@@ -41,9 +33,7 @@ struct HomeView: View {
                     onFinished: { row in
                         await performFinish(for: row)
                     },
-                    onAddNew: {
-                        startAddProductWithScan()
-                    }
+                    onAddNew: startAddProductFlow
                 )
             }
             .padding(.horizontal, Theme.Spacing.s16)
@@ -57,18 +47,6 @@ struct HomeView: View {
         }
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.large)
-        .fullScreenCover(isPresented: $isCameraPresented, content: cameraScannerSheet)
-        .fullScreenCover(isPresented: $isBarcodeScannerPresented, content: barcodeScannerSheet)
-        .onChange(of: isBarcodeScannerPresented) { oldValue, newValue in
-            guard oldValue == true, newValue == false, let barcode = pendingAddProductBarcode else { return }
-            pendingAddProductBarcode = nil
-            appState.navigate(
-                to: .addProduct(
-                    barcodePayload: barcode.payload,
-                    symbology: barcode.symbology
-                )
-            )
-        }
         .onChange(of: inventoryViewModel.expiredCount) { _, newCount in
             appState.homeExpiredBadgeCount = newCount
         }
@@ -98,53 +76,13 @@ struct HomeView: View {
 
             HStack {
                 Spacer()
-
-                HomeAddProductButtonView(
-                    onTap: startAddProductWithScan
-                )
+                HomeAddProductButtonView(onTap: startAddProductFlow)
             }
         }
         .padding(.horizontal, Theme.Spacing.s16)
         .padding(.top, Theme.Spacing.s8)
         .padding(.bottom, Theme.Spacing.s12)
         .frame(maxWidth: .infinity)
-    }
-
-    private func cameraScannerSheet() -> some View {
-        CameraScannerView(
-            onCancel: { isCameraPresented = false },
-            onComplete: { result in
-                if result.isEmpty { return }
-                capturedImages = result
-                isCameraPresented = false
-            }
-        )
-    }
-
-    private func barcodeScannerSheet() -> some View {
-        BarcodeScannerView(
-            configuration: BarcodeScannerConfiguration(
-                mode: .continuous,
-                quality: .fast,
-                symbologies: [.ean13, .ean8, .upce, .code128],
-                isHighFrameRateTrackingEnabled: true,
-                isPinchToZoomEnabled: true,
-                isGuidanceEnabled: false,
-                isHighlightingEnabled: false,
-                isHapticsEnabled: true,
-                continuousDebounceInterval: 0.08,
-                duplicateFilterInterval: 0.75
-            ),
-            onCancel: { isBarcodeScannerPresented = false },
-            onBarcodeDetected: { barcode in
-                guard pendingAddProductBarcode == nil else {
-                    return
-                }
-                latestScannedBarcode = barcode
-                pendingAddProductBarcode = barcode
-                isBarcodeScannerPresented = false
-            }
-        )
     }
 
     private func performDiscard(for row: HomeViewModel.InventoryRowModel) async {
@@ -161,9 +99,8 @@ struct HomeView: View {
         }
     }
 
-    private func startAddProductWithScan() {
-        pendingAddProductBarcode = nil
-        isBarcodeScannerPresented = true
+    private func startAddProductFlow() {
+        appState.navigate(to: .addProduct(barcodePayload: nil, symbology: nil))
     }
 
     private func generateHaptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {

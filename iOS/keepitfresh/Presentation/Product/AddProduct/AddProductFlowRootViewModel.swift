@@ -3,26 +3,42 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
-//  Summary: Main-actor view model that binds Add Product use case state to SwiftUI.
+//  Summary: Main-actor view model that binds Add Product flow state and drives S1-S6 presentation routing.
 //
 
 import Foundation
+import ImageDataModule
 
 @MainActor
 @Observable
 final class AddProductFlowRootViewModel {
     private let useCase: AddProductFlowUseCase
     private let initialBarcode: Barcode?
+    private let imageProcessor: ImageProcessor
     private var observeTask: Task<Void, Never>?
+    private var extractionTask: Task<Void, Never>?
     private var lastResolvedBarcode: Barcode?
     private var didResolveInitialBarcode = false
 
     private(set) var state: AddProductState = .idle
+    private(set) var screen: AddProductFlowScreen = .addActionSheet
+
     var draft: ProductDraft?
+    var extractionDraft = AddProductExtractionReviewDraft()
+
+    var isBarcodeScannerPresented = false
+    var isImageCapturePresented = false
+    var isSaving: Bool {
+        if case .saving = state {
+            return true
+        }
+        return false
+    }
 
     init(useCase: AddProductFlowUseCase, initialBarcode: Barcode? = nil) {
         self.useCase = useCase
         self.initialBarcode = initialBarcode
+        self.imageProcessor = ImageProcessor(instruction: .inventoryAssistant)
     }
 
     func start() async {
@@ -37,11 +53,35 @@ final class AddProductFlowRootViewModel {
         await useCase.handleBarcode(initialBarcode)
     }
 
-    func submitManualBarcode(_ rawValue: String) {
-        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard value.isEmpty == false else { return }
-        let barcode = Barcode(value: value, symbology: .unknown)
-        onDetectedBarcode(barcode)
+    func closeFlow() {
+        screen = .addActionSheet
+    }
+
+    func openScanLabel() {
+        screen = .scanLabel
+        Task {
+            await useCase.skipBarcodeAndCaptureImages()
+        }
+    }
+
+    func openScanBarcode() {
+        isBarcodeScannerPresented = true
+    }
+
+    func openProductSearch() {
+        screen = .productSearch
+    }
+
+    func openManualAdd() {
+        Task {
+            await useCase.openManualEntry()
+        }
+    }
+
+    func quickAddPreset() {
+        Task {
+            await useCase.openManualEntry(prefilledTitle: "Eggs")
+        }
     }
 
     func onDetectedBarcode(_ barcode: Barcode) {
@@ -61,73 +101,64 @@ final class AddProductFlowRootViewModel {
         }
     }
 
-    func continueFromCatalog() {
-        Task {
-            await useCase.continueFromCatalogHit()
-        }
-    }
-
-    func skipToCaptureImages() {
-        Task {
-            await useCase.skipBarcodeAndCaptureImages()
-        }
-    }
-
     func submitCapturedImages(_ images: [ImagesCaptured]) {
-        Task {
+        extractionTask?.cancel()
+        extractionTask = Task {
             await useCase.handleCapturedImages(images)
+            await runExtraction(for: images)
         }
     }
 
-    func quickAddOne() {
+    func continueFromExtractionReview() {
+        let convertedDraft = AddProductFlowDraftMapper.makeDraft(from: extractionDraft)
+        draft = convertedDraft
         Task {
-            await useCase.quickAddOne()
+            await useCase.reviewDraft(convertedDraft, isEditable: true)
         }
     }
 
-    func quickAddBatch() {
+    func continueFromManualAdd() {
+        guard let draft else { return }
         Task {
-            await useCase.quickAddBatch()
+            await useCase.reviewDraft(draft, isEditable: true)
         }
     }
 
-    func editDates() {
+    func selectSearchResult(_ row: AddProductSearchViewModel.SearchResultRow) {
+        let catalogItem = AddProductFlowDraftMapper.makeCatalogItem(from: row.product)
         Task {
-            await useCase.editDatesForInventoryHit()
+            await useCase.reviewCatalogProduct(catalogItem, source: .catalogLocal)
         }
     }
 
-    func openManualDraft() {
-        Task {
-            await useCase.openManualEntry()
-        }
-    }
-
-    func saveDraft() {
+    func saveDraftOnly() {
         guard let draft else { return }
         Task {
             await useCase.saveDraft(draft)
         }
     }
 
-    func saveExtractedProduct(_ product: Product, numberOfItems: Int) {
-        let draft = makeDraft(from: product, numberOfItems: numberOfItems)
-        self.draft = draft
+    func addToInventory() {
+        guard let draft else { return }
         Task {
             await useCase.saveDraft(draft)
-        }
-    }
-
-    func saveAndAddAnother() {
-        saveDraft()
-        Task {
-            await useCase.resetAndScan()
         }
     }
 
     func startAnother() {
         Task {
             await useCase.resetAndScan()
+        }
+    }
+
+    func backFromConfirm() {
+        if case .reviewing = state {
+            screen = .addActionSheet
+            Task {
+                await useCase.resetAndScan()
+            }
+        } else {
+            screen = .addActionSheet
         }
     }
 
@@ -143,49 +174,157 @@ final class AddProductFlowRootViewModel {
                     break
                 }
                 self.state = nextState
-                if case .reviewing(let draft, _) = nextState {
-                    self.draft = draft
-                } else if case .manualEntry(let draft) = nextState {
-                    self.draft = draft
-                }
+                self.reducePresentationState(with: nextState)
             }
         }
     }
 
-    private func makeDraft(from product: Product, numberOfItems: Int) -> ProductDraft {
-        let normalizedItemCount = max(1, numberOfItems)
-        let categories = makeCategories(from: product.category)
+    private func reducePresentationState(with nextState: AddProductState) {
+        switch nextState {
+        case .idle, .scanning:
+            screen = .addActionSheet
+        case .resolving:
+            break
+        case .captureImages:
+            screen = .scanLabel
+            isImageCapturePresented = true
+        case .extracting:
+            seedExtractionDraftIfNeeded()
+            screen = .extractionReview
+        case .manualEntry(let draft):
+            self.draft = draft
+            screen = .manualAdd
+        case .reviewing(let draft, _):
+            self.draft = draft
+            screen = .confirmPurchase
+        case .success:
+            screen = .addActionSheet
+        case .barcodeNotFound:
+            screen = .addActionSheet
+        case .inventoryFound, .catalogFound, .saving, .failure:
+            break
+        }
+    }
 
-        return ProductDraft(
-            id: product.id,
-            source: .aiExtraction,
-            isEditable: true,
-            barcode: product.barcode,
-            catalog: nil,
-            title: product.title,
-            brand: product.brand,
-            description: product.shortDescription,
-            categories: categories,
-            category: product.category,
-            productDetail: product.productDetail,
-            size: nil,
-            images: [],
-            quantity: normalizedItemCount,
-            numberOfItems: normalizedItemCount,
-            unit: nil,
-            dateEntries: [],
-            notes: nil,
-            lockedFields: [],
-            fieldConfidences: [:]
+    private func seedExtractionDraftIfNeeded() {
+        if extractionDraft.productName.isEmpty == false {
+            return
+        }
+        extractionDraft = AddProductExtractionReviewDraft(
+            productName: "",
+            brand: "",
+            category: .food,
+            subCategory: "",
+            expiryDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date(),
+            manufacturedDate: Date(),
+            includeManufacturedDate: false,
+            barcode: lastResolvedBarcode?.value ?? ""
         )
     }
 
-    private func makeCategories(from category: ProductCategory) -> [String] {
-        if let subCategory = category.subCategory?.trimmingCharacters(in: .whitespacesAndNewlines),
-           subCategory.isEmpty == false {
-            return [category.main.rawValue, subCategory]
+    private func runExtraction(for images: [ImagesCaptured]) async {
+        do {
+            var latest: ExtractedData.PartiallyGenerated?
+            let stream = imageProcessor.inventoryData(images: images)
+            for try await partial in stream {
+                if Task.isCancelled { return }
+                latest = partial
+            }
+            if let latest {
+                applyExtraction(latest)
+            }
+        } catch {
+            logger.error("Label extraction failed: \(error)")
+        }
+    }
+
+    private func applyExtraction(_ extracted: ExtractedData.PartiallyGenerated) {
+        let fallbackExpiry = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+        let parsedDates = parseDates(from: extracted.dateInfo)
+        let expiryDate = parsedDates.expiry ?? parsedDates.useBy ?? parsedDates.bestBefore ?? fallbackExpiry
+        let manufacturedDate = parsedDates.manufactured ?? parsedDates.packed ?? Date()
+        let includeManufacturedDate = parsedDates.manufactured != nil || parsedDates.packed != nil
+
+        extractionDraft = AddProductExtractionReviewDraft(
+            productName: extracted.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? extractionDraft.productName,
+            brand: extracted.brand?.trimmingCharacters(in: .whitespacesAndNewlines) ?? extractionDraft.brand,
+            category: MainCategory(generated: extracted.category?.mainCategory),
+            subCategory: extracted.category?.subCategory?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            expiryDate: expiryDate,
+            manufacturedDate: manufacturedDate,
+            includeManufacturedDate: includeManufacturedDate,
+            barcode: extracted.barcodeInfo?.barcode?.trimmingCharacters(in: .whitespacesAndNewlines)
+                ?? lastResolvedBarcode?.value
+                ?? extractionDraft.barcode
+        )
+    }
+
+    private func parseDates(from entries: [ExtractedDateInfo.PartiallyGenerated]?) -> (
+        expiry: Date?,
+        useBy: Date?,
+        bestBefore: Date?,
+        manufactured: Date?,
+        packed: Date?
+    ) {
+        var expiry: Date?
+        var useBy: Date?
+        var bestBefore: Date?
+        var manufactured: Date?
+        var packed: Date?
+
+        for entry in entries ?? [] {
+            guard
+                let raw = entry.date?.trimmingCharacters(in: .whitespacesAndNewlines),
+                raw.isNotEmpty,
+                let parsedDate = parseDate(raw)
+            else {
+                continue
+            }
+
+            switch entry.dateType {
+            case .expiry:
+                expiry = expiry ?? parsedDate
+            case .useBy:
+                useBy = useBy ?? parsedDate
+            case .bestBefore, .useBefore:
+                bestBefore = bestBefore ?? parsedDate
+            case .manufactured:
+                manufactured = manufactured ?? parsedDate
+            case .packed:
+                packed = packed ?? parsedDate
+            case nil:
+                continue
+            }
         }
 
-        return [category.main.rawValue]
+        return (expiry, useBy, bestBefore, manufactured, packed)
+    }
+
+    private func parseDate(_ raw: String) -> Date? {
+        let normalized = raw.replacingOccurrences(of: ".", with: "/")
+            .replacingOccurrences(of: "-", with: "/")
+
+        let formats = [
+            "dd/MM/yyyy",
+            "d/M/yyyy",
+            "dd/MM/yy",
+            "d/M/yy",
+            "yyyy/MM/dd",
+            "yyyy/M/d",
+            "MM/dd/yyyy",
+            "M/d/yyyy"
+        ]
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+
+        for format in formats {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: normalized) {
+                return date
+            }
+        }
+        return nil
     }
 }

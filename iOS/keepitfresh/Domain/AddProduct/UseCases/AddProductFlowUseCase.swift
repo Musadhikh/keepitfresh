@@ -134,9 +134,30 @@ actor AddProductFlowUseCase {
         transition(to: .captureImages(context: context, plan: .productAnalysisDefault))
     }
 
-    func openManualEntry() async {
+    func openManualEntry(prefilledTitle: String? = nil) async {
         let draft = makeManualDraft()
+        if let prefilledTitle {
+            var updatedDraft = draft
+            let trimmedTitle = prefilledTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmedTitle.isNotEmpty {
+                updatedDraft.title = trimmedTitle
+            }
+            transition(to: .manualEntry(draft: updatedDraft))
+            return
+        }
         transition(to: .manualEntry(draft: draft))
+    }
+
+    func reviewCatalogProduct(_ item: ProductCatalogItem, source: ProductDataSource) async {
+        currentCatalogHit = (item, source)
+        currentInventoryHit = nil
+        currentNotFoundContext = nil
+        let draft = makeCatalogDraft(item: item, source: source, isEditable: false)
+        transition(to: .reviewing(draft: draft, isEditable: false))
+    }
+
+    func reviewDraft(_ draft: ProductDraft, isEditable: Bool) async {
+        transition(to: .reviewing(draft: draft, isEditable: isEditable))
     }
 
     func saveDraft(_ draft: ProductDraft) async {

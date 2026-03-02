@@ -432,3 +432,74 @@ What shipped:
 Important stabilization fix:
 - Category signal extraction was previously unbounded and hit `Map maximum size exceeded` on large scans.
 - Added deterministic caps + pair limits + drop counters to keep runs stable on large input windows.
+
+## 2026-03-02 - Add Product UI Flow Rebuilt (S1-S6 Stitch Alignment)
+
+Replaced the old Add Product screens with a full Stitch-aligned flow and kept domain orchestration intact.
+
+What changed:
+- Rebuilt Add Product presentation into explicit screens:
+  - S1 Add Action Sheet
+  - S2 Scan Label
+  - S3 Extraction Review
+  - S4 Product Search
+  - S5 Manual Add
+  - S6 Confirm Purchase
+- Rewired Home entry so Add Product starts via app route (flow owns scan/manual/search now).
+- Added typed Add Product presentation models and a dedicated mapper from UI drafts to domain draft/catalog contracts.
+- Extended `AddProductFlowUseCase` with minimal orchestration hooks needed by the new UI:
+  - prefilled manual entry
+  - review selected catalog item
+  - review arbitrary draft
+- Added accessibility identifiers for Add flow entry/actions and confirm actions.
+- Removed superseded Add Product screens under `Presentation/Product/AddProduct/Screens`.
+
+Validation:
+- App build: `xcodebuild -project keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` -> **BUILD SUCCEEDED**.
+- Added tests:
+  - `keepitfreshTests/AddProductFlowDraftMapperTests.swift`
+  - `keepitfreshUITests/AddProductFlowPerformanceUITests.swift`
+- Test execution note: full `xcodebuild test` is currently blocked by pre-existing compile failures in existing `keepitfreshTests` files unrelated to this change (`Fixtures.swift`, `AppLaunchUseCaseBuilder.swift`).
+
+Lesson:
+- Big UI rewrites are safest when domain state machine stays authoritative and the new UI only adds thin routing + mapper seams.
+
+## 2026-03-02 - Scan Label Extraction Wiring Restored
+
+Fixed a real flow regression: Scan Label could capture images and navigate to Review, but the review form stayed mostly empty because extraction was never executed.
+
+What changed:
+- Reconnected extraction in `AddProductFlowRootViewModel` using `ImageProcessor(instruction: .inventoryAssistant)`.
+- Added a cancellable extraction task so repeated captures don’t race each other.
+- Mapped extracted output into `AddProductExtractionReviewDraft`:
+  - `title` -> product name
+  - `brand` -> brand
+  - `category.main/sub` -> category + subcategory
+  - `barcodeInfo.barcode` -> barcode (with scanned barcode fallback)
+  - `dateInfo` -> expiry + manufactured dates
+- Added multi-format date parsing (`dd/MM/yyyy`, `yyyy/MM/dd`, `MM/dd/yyyy`, etc.) for label date variability.
+
+Validation:
+- Build passed after wiring:
+  - `xcodebuild -project keepitfresh/iOS/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` -> **BUILD SUCCEEDED**
+
+Lesson:
+- State transitions alone are not enough; when a flow step implies computed data, the extraction task itself must be part of the transition path, not just the UI routing.
+
+## 2026-03-02 - Inventory Remote Sync Was Quietly Disabled
+
+Bug found:
+- Adding inventory updated local storage but not Firestore remote, which looked like sync failure.
+
+Root cause:
+- `FirebaseWritePolicy.isMockWriteEnabled` defaulted to `true` when no user default existed, so remote writes were silently no-op by default.
+
+Fix:
+- Switched default mock-write behavior to `false` in `FirebaseWritePolicy`.
+- Added an explicit warning log in `FirestoreInventoryModuleRemoteGateway` when writes are skipped due to mock mode.
+
+Validation:
+- `xcodebuild -project keepitfresh/iOS/keepitfresh.xcodeproj -scheme keepitfresh -configuration Debug -destination 'generic/platform=iOS' build` -> **BUILD SUCCEEDED**
+
+Lesson:
+- Global safety toggles should fail loud and default to production-safe behavior once backend integration begins.

@@ -17,7 +17,7 @@ enum FirebaseWritePolicy {
     static var isMockWriteEnabled: Bool {
         get {
             if UserDefaults.standard.object(forKey: storageKey) == nil {
-                return true
+                return false
             }
             return UserDefaults.standard.bool(forKey: storageKey)
         }

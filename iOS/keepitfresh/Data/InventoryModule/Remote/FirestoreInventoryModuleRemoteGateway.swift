@@ -34,6 +34,7 @@ actor FirestoreInventoryModuleRemoteGateway: InventoryModuleTypes.InventoryRemot
         guard items.isEmpty == false else { return }
 
         if FirebaseWritePolicy.isMockWriteEnabled {
+            logger.warning("Inventory Firestore upsert skipped because mock Firebase writes are enabled.")
             return
         }
 

@@ -3,199 +3,232 @@
 //  keepitfresh
 //
 //  Created by musadhikh on 20/2/26.
-//  Summary: Root state-driven navigation surface for add-product flow.
+//  Summary: Root state-driven S1-S6 Add Product flow composed with modular SwiftUI screens.
 //
 
 import SwiftUI
+import CameraModule
+import BarcodeScannerModule
 
 struct AddProductFlowRootView: View {
+    @Environment(\.dismiss) private var dismiss
     @State var viewModel: AddProductFlowRootViewModel
-    @State private var reviewViewModel: ProductReviewViewModel?
+    @State private var capturedImages: [CameraCapturedImage] = []
+    @State private var isTorchEnabled = false
+    @State private var isAutoDetectEnabled = true
 
     var body: some View {
         Group {
-            switch viewModel.state {
-            case .idle, .scanning:
-                ManualBarcodeEntryView(
-                    onSubmitManualBarcode: viewModel.submitManualBarcode,
-                    onSkipToCamera: viewModel.skipToCaptureImages
+            switch viewModel.screen {
+            case .addActionSheet:
+                AddProductActionSheetView(
+                    householdName: "Home",
+                    onClose: { dismiss() },
+                    onScanLabel: viewModel.openScanLabel,
+                    onScanBarcode: viewModel.openScanBarcode,
+                    onSearchProducts: viewModel.openProductSearch,
+                    onManualAdd: viewModel.openManualAdd,
+                    onQuickAdd: viewModel.quickAddPreset
                 )
-
-            case .resolving(let barcode):
-                progressScreen(
-                    title: "Looking Up Barcode",
-                    message: "Checking inventory and catalog for \(barcode.value)"
+            case .scanLabel:
+                AddProductScanLabelView(
+                    maxImages: 3,
+                    detectedName: viewModel.extractionDraft.productName.isNotEmpty ? viewModel.extractionDraft.productName : "No label yet",
+                    detectedDateText: formattedExtractionDate,
+                    detectedBarcodeText: viewModel.extractionDraft.barcode.isNotEmpty ? viewModel.extractionDraft.barcode : "No barcode yet",
+                    isTorchEnabled: isTorchEnabled,
+                    isAutoDetectEnabled: isAutoDetectEnabled,
+                    onToggleTorch: { isTorchEnabled.toggle() },
+                    onToggleAutoDetect: { isAutoDetectEnabled = $0 },
+                    onCapture: { viewModel.isImageCapturePresented = true },
+                    onBack: viewModel.closeFlow
                 )
-
-            case .inventoryFound, .catalogFound:
-                progressScreen(
-                    title: "Preparing Product",
-                    message: "Found product details. Building review form..."
+            case .extractionReview:
+                AddProductExtractionReviewView(
+                    draft: $viewModel.extractionDraft,
+                    onContinue: viewModel.continueFromExtractionReview,
+                    onBack: viewModel.closeFlow
                 )
-
-            case .barcodeNotFound(let context):
-                notFoundScreen(context: context)
-
-            case .captureImages(_, let plan):
-                CaptureImagesView(
-                    maxImages: plan.maximumImageCount,
-                    onSubmit: viewModel.submitCapturedImages,
-                    onBack: viewModel.retryLastBarcode
+            case .productSearch:
+                AddProductSearchView(
+                    viewModel: AddProductSearchViewModel(),
+                    onBack: viewModel.closeFlow,
+                    onSelectProduct: viewModel.selectSearchResult
                 )
-
-            case .extracting:
-                if let reviewViewModel {
-                    ProductReviewView(
-                        viewModel: reviewViewModel,
-                        onAdd: { product in
-                            let numberOfItems = max(1, reviewViewModel.numberOfItems)
-                            viewModel.saveExtractedProduct(product, numberOfItems: numberOfItems)
-                        }
+            case .manualAdd:
+                if let draft = bindingDraft {
+                    AddProductManualAddView(
+                        draft: draft,
+                        onBack: viewModel.closeFlow,
+                        onContinue: viewModel.continueFromManualAdd
                     )
                 } else {
-                    progressScreen(title: "Preparing", message: "Building review draft…")
+                    ProgressView()
+                        .tint(Theme.Colors.accent)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-
-            case .manualEntry(let draft):
-                reviewScreen(for: draft)
-            case .reviewing(let draft, _):
-                reviewScreen(for: draft)
-            case .saving:
-                progressScreen(title: "Saving", message: "Persisting product locally and syncing…")
-
-            case .success(let savedItemId):
-                successScreen(savedItemId: savedItemId)
-
-            case .failure(let message):
-                failureScreen(message: message)
+            case .confirmPurchase:
+                if let draft = bindingDraft {
+                    AddProductConfirmPurchaseView(
+                        draft: draft,
+                        isSaving: viewModel.isSaving,
+                        onBack: viewModel.backFromConfirm,
+                        onSaveDraft: viewModel.saveDraftOnly,
+                        onAddToInventory: viewModel.addToInventory
+                    )
+                } else {
+                    ProgressView()
+                        .tint(Theme.Colors.accent)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .fullScreenCover(isPresented: $viewModel.isBarcodeScannerPresented) {
+            barcodeScannerSheet
+        }
+        .fullScreenCover(isPresented: $viewModel.isImageCapturePresented) {
+            cameraScannerSheet
+        }
+        .alert("Saved", isPresented: successAlertBinding) {
+            Button("Done") {
+                dismiss()
+            }
+            Button("Add Another") {
+                viewModel.startAnother()
+            }
+        } message: {
+            Text("Product saved to inventory.")
+        }
+        .alert("Something went wrong", isPresented: failureAlertBinding) {
+            Button("Retry") {
+                viewModel.retryLastBarcode()
+            }
+            Button("Close", role: .cancel) {
+                dismiss()
+            }
+        } message: {
+            if case .failure(let message) = viewModel.state {
+                Text(message)
             }
         }
         .task {
-            syncReviewViewModel(for: viewModel.state)
             await viewModel.start()
         }
-        .onChange(of: viewModel.state) { _, newState in
-            syncReviewViewModel(for: newState)
-        }
-        .dynamicTypeSize(.xSmall ... .accessibility2)
+        .background(Theme.Colors.background)
     }
 
-    private func reviewScreen(for draft: ProductDraft) -> some View {
-        ReviewProductView(
-            draft: Binding(
-                get: { viewModel.draft ?? draft },
-                set: { viewModel.draft = $0 }
-            ),
-            onSave: viewModel.saveDraft,
-            onSaveAndAddAnother: viewModel.saveAndAddAnother,
-            onBack: viewModel.retryLastBarcode
+    private var formattedExtractionDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: viewModel.extractionDraft.expiryDate)
+    }
+
+    private var bindingDraft: Binding<ProductDraft>? {
+        guard viewModel.draft != nil else { return nil }
+        return Binding(
+            get: { viewModel.draft ?? ProductDraft.emptyManualDraft() },
+            set: { viewModel.draft = $0 }
         )
     }
 
-    private func progressScreen(title: String, message: String) -> some View {
-        VStack(spacing: Theme.Spacing.s12) {
-            ProgressView()
-                .tint(Theme.Colors.accent)
-            Text(title)
-                .font(Theme.Fonts.title)
-                .foregroundStyle(Theme.Colors.textPrimary)
-            Text(message)
-                .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(Theme.Spacing.s20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+    private var successAlertBinding: Binding<Bool> {
+        Binding(
+            get: {
+                if case .success = viewModel.state {
+                    return true
+                }
+                return false
+            },
+            set: { isPresented in
+                if isPresented == false {
+                    viewModel.closeFlow()
+                }
+            }
+        )
     }
 
-    private func notFoundScreen(context: AddProductNotFoundContext) -> some View {
-        VStack(spacing: Theme.Spacing.s16) {
-            Text("Product Not Found")
-                .font(Theme.Fonts.title)
-                .foregroundStyle(Theme.Colors.textPrimary)
-
-            Text(context.message)
-                .font(Theme.Fonts.body(15, weight: .regular, relativeTo: .body))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-
-            Button("Take Picture and Analyze", action: viewModel.skipToCaptureImages)
-                .primaryButtonStyle(height: 48)
-
-            Button("Enter Details Manually", action: viewModel.openManualDraft)
-                .font(Theme.Fonts.body(15, weight: .semibold, relativeTo: .headline))
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Theme.Colors.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Theme.Radius.r16)
-                        .stroke(Theme.Colors.border, lineWidth: 1)
-                )
-                .clipShape(.rect(cornerRadius: Theme.Radius.r16))
-
-            Button("Retry Barcode", action: viewModel.retryLastBarcode)
-                .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
-                .foregroundStyle(Theme.Colors.textSecondary)
-        }
-        .padding(Theme.Spacing.s20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+    private var failureAlertBinding: Binding<Bool> {
+        Binding(
+            get: {
+                if case .failure = viewModel.state {
+                    return true
+                }
+                return false
+            },
+            set: { _ in }
+        )
     }
 
-    private func failureScreen(message: String) -> some View {
-        VStack(spacing: Theme.Spacing.s16) {
-            Text("Something went wrong")
-                .font(Theme.Fonts.title)
-                .foregroundStyle(Theme.Colors.danger)
-
-            Text(message)
-                .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-
-            Button("Retry", action: viewModel.retryLastBarcode)
-                .primaryButtonStyle(height: 46)
-
-            Button("Enter Manually", action: viewModel.openManualDraft)
-                .font(Theme.Fonts.body(14, weight: .semibold, relativeTo: .subheadline))
-                .foregroundStyle(Theme.Colors.textPrimary)
-        }
-        .padding(Theme.Spacing.s20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+    private var barcodeScannerSheet: some View {
+        BarcodeScannerView(
+            configuration: BarcodeScannerConfiguration(
+                mode: .continuous,
+                quality: .balanced,
+                symbologies: [.ean13, .ean8, .upce, .code128],
+                isHighFrameRateTrackingEnabled: true,
+                isPinchToZoomEnabled: true,
+                isGuidanceEnabled: true,
+                isHighlightingEnabled: true,
+                isHapticsEnabled: true,
+                continuousDebounceInterval: 0.1,
+                duplicateFilterInterval: 0.7
+            ),
+            onCancel: { viewModel.isBarcodeScannerPresented = false },
+            onBarcodeDetected: { scanned in
+                viewModel.isBarcodeScannerPresented = false
+                let barcode = Barcode(value: scanned.payload, symbology: .init(value: scanned.symbology))
+                viewModel.onDetectedBarcode(barcode)
+            }
+        )
     }
 
-    private func successScreen(savedItemId: String) -> some View {
-        VStack(spacing: Theme.Spacing.s16) {
-            Text("Saved")
-                .font(Theme.Fonts.title)
-                .foregroundStyle(Theme.Colors.textPrimary)
-
-            Text("Item ID: \(savedItemId)")
-                .font(Theme.Fonts.body(14, weight: .regular, relativeTo: .subheadline))
-                .foregroundStyle(Theme.Colors.textSecondary)
-
-            Button("Add Another", action: viewModel.startAnother)
-                .primaryButtonStyle(height: 46)
-        }
-        .padding(Theme.Spacing.s20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+    private var cameraScannerSheet: some View {
+        CameraScannerView(
+            onCancel: {
+                viewModel.isImageCapturePresented = false
+            },
+            onComplete: { result in
+                capturedImages = result
+                viewModel.isImageCapturePresented = false
+                let images = result.prefix(3).map {
+                    ImagesCaptured(
+                        id: $0.id,
+                        image: $0.image,
+                        boundingBox: $0.boundingBox,
+                        imageSize: $0.imageSize
+                    )
+                }
+                viewModel.submitCapturedImages(images)
+            }
+        )
     }
+}
 
-    private func syncReviewViewModel(for state: AddProductState) {
-        guard case let .extracting(images) = state else {
-            reviewViewModel = nil
-            return
-        }
-
-        let incomingIDs = images.map(\.id)
-        let currentIDs = reviewViewModel?.capturedImages.map(\.id)
-        if incomingIDs != currentIDs {
-            reviewViewModel = ProductReviewViewModel(capturedImages: images)
-        }
+private extension ProductDraft {
+    static func emptyManualDraft() -> ProductDraft {
+        ProductDraft(
+            id: UUID().uuidString,
+            source: .manual,
+            isEditable: true,
+            barcode: nil,
+            catalog: nil,
+            title: nil,
+            brand: nil,
+            description: nil,
+            categories: nil,
+            category: nil,
+            productDetail: nil,
+            size: nil,
+            images: [],
+            quantity: 1,
+            numberOfItems: 1,
+            unit: "Count",
+            dateEntries: [],
+            notes: nil,
+            lockedFields: [],
+            fieldConfidences: [:]
+        )
     }
 }
 
