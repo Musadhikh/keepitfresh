@@ -58,6 +58,10 @@ export interface ImportCategoriesArgs extends CommandRuntimeOptions {
   iKnowWhatImDoing?: boolean;
 }
 
+function categoryFirestoreDocumentId(categoryId: string): string {
+  return categoryId.replaceAll("/", "__");
+}
+
 function validateCategoryShape(doc: CategoryDoc, requiredFields: string[]): string[] {
   const errors: string[] = [];
   for (const field of requiredFields) {
@@ -149,7 +153,7 @@ export async function runImportCategoriesCommand(args: ImportCategoriesArgs): Pr
 
       await writer.add({
         collectionPath: "ProductCategories",
-        documentId: category.id,
+        documentId: categoryFirestoreDocumentId(category.id),
         payload: category,
         merge: true
       });
