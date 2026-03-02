@@ -13,6 +13,24 @@ export interface BatchCommitResult {
   executedWrites: number;
 }
 
+function sanitizeUndefinedDeep(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizeUndefinedDeep(item))
+      .filter((item) => item !== undefined);
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .map(([key, nested]) => [key, sanitizeUndefinedDeep(nested)] as const)
+      .filter(([, nested]) => nested !== undefined);
+
+    return Object.fromEntries(entries);
+  }
+
+  return value === undefined ? undefined : value;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -90,7 +108,8 @@ export class BatchWriter {
     const batch = this.firestore.batch();
     for (const write of toCommit) {
       const docRef = this.firestore.collection(write.collectionPath).doc(write.documentId);
-      batch.set(docRef, write.payload, { merge: write.merge ?? true });
+      const sanitizedPayload = sanitizeUndefinedDeep(write.payload);
+      batch.set(docRef, sanitizedPayload, { merge: write.merge ?? true });
     }
 
     await commitWithRetry(() => batch.commit());

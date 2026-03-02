@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-03-01T15:19:41.859Z",
+  "updatedAt": "2026-03-01T15:25:52.928Z",
   "filePath": "/Users/musadhikhmuhammed/Projects/Personal/Github/KeepItFresh/openfoodfacts-products.jsonl",
   "totalRowsTarget": 200,
-  "latestScannedLine": 220,
-  "latestWrittenRows": 220,
+  "latestScannedLine": 242,
+  "latestWrittenRows": 242,
   "pendingRows": 0,
   "estimatedDaysRemaining": 0,
   "estimationBasis": "no pending rows",
   "daily": [
     {
       "date": "2026-03-01",
-      "scanned": 220,
-      "written": 20,
+      "scanned": 242,
+      "written": 10,
       "rejected": 0,
-      "skipped": 0
+      "skipped": 1
     }
   ]
 }

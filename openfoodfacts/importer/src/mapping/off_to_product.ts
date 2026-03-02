@@ -98,6 +98,21 @@ export interface TransformContext {
   importerVersion: string;
 }
 
+function isMetadataTagPath(path: string): boolean {
+  const lower = path.toLowerCase();
+  return lower.includes("tags") || lower.includes("hierarchy");
+}
+
+function canonicalCodePathsFromContext(paths: OffFieldPaths): string[] {
+  const hardcoded = ["code", "_id", "id"];
+  const fromSchema = paths.code.filter((path) => {
+    const lower = path.toLowerCase();
+    if (isMetadataTagPath(lower)) return false;
+    return lower === "code" || lower === "_id" || lower === "id" || lower.endsWith(".code");
+  });
+  return [...hardcoded, ...fromSchema];
+}
+
 function clampAttribute(value: string, maxLength = 300): string {
   return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
 }
@@ -194,8 +209,9 @@ export function transformOffToProduct(
   const warnings: TransformWarning[] = [];
   const errors: TransformErrorCode[] = [];
 
-  const rawCode = getFirstString(off, ctx.paths.code.length > 0 ? ctx.paths.code : ctx.paths.barcode);
-  const barcodeValue = normalizeBarcode(rawCode ?? getFirstString(off, ctx.paths.barcode));
+  const rawCode = getFirstString(off, canonicalCodePathsFromContext(ctx.paths));
+  const barcodePaths = ctx.paths.barcode.filter((path) => !isMetadataTagPath(path));
+  const barcodeValue = normalizeBarcode(rawCode ?? getFirstString(off, barcodePaths));
 
   const title = getFirstString(off, ctx.paths.title);
   const brand = getFirstString(off, ctx.paths.brands);

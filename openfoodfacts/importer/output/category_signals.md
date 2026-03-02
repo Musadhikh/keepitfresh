@@ -1,10 +1,10 @@
 # Category Signals (Phase 3)
 
-- Generated at: 2026-03-01T14:46:17.040Z
-- Scanned lines: 50001
-- Records with category data: 50000
+- Generated at: 2026-03-01T16:19:06.134Z
+- Scanned lines: 4290376
+- Records with category data: 4290376
 - Min count filter: 10
-- Max lines cap: 50000
+- Max lines cap: 4290376
 
 ## Discovered field paths
 
@@ -331,351 +331,351 @@
 
 | Value | Count |
 |---|---:|
-| ingredients | 506165 |
-| unknown | 497049 |
-| en:salt | 250736 |
-| org-database-usda | 246046 |
-| en:product-name-completed | 212688 |
-| en:brands-completed | 211200 |
-| en:expiration-date-to-be-completed | 208104 |
-| en:categories-completed | 200460 |
-| en:to-be-completed | 199780 |
-| en:packaging-code-to-be-completed | 198948 |
-| en:food-groups-3-unknown | 198548 |
-| en:characteristics-to-be-completed | 198328 |
-| en:nutrition-facts-completed | 197968 |
-| en:origins-to-be-completed | 197608 |
-| openfoodfacts-contributors | 196178 |
-| additives | 195531 |
-| en:ingredients-completed | 193260 |
-| en:english | 193100 |
-| en:packaging-to-be-completed | 192044 |
-| en:no-packaging-data | 192016 |
-| en:sugar | 191957 |
-| en:ingredients-percent-analysis-ok | 191868 |
-| en:united-states | 189096 |
-| usda-ndb-import | 182712 |
-| en:photos-to-be-uploaded | 147616 |
-| en:quantity-completed | 140660 |
-| en:food-groups-2-unknown | 140520 |
-| en:food-groups-1-unknown | 139876 |
-| en:environmental-score-production-system-no-label | 137936 |
-| en:environmental-score-origins-of-ingredients-origins-are-100-percent-unknown | 135388 |
-| en:flavouring | 133524 |
-| en:environmental-score-packaging-packaging-data-missing | 132188 |
-| missing-association | 127260 |
-| en:water | 124130 |
-| e | 117350 |
-| en:environmental-score-extended-data-not-computed | 113444 |
-| en:undefined | 113197 |
-| en:e330 | 108952 |
-| en:unknown | 100230 |
-| all-products | 100000 |
-| en:packagings-not-complete | 99668 |
-| en:added-sugar | 97890 |
-| code-13 | 97144 |
-| 00xxxxxxxxxxx | 97140 |
-| 0xxxxxxxxxxxx | 97140 |
-| en:vegetable-oil | 96774 |
-| en:milk | 96100 |
-| en:packagings-number-of-components-0 | 96008 |
-| en:packagings-empty | 95988 |
-| 2017 | 95880 |
+| unknown | 59121367 |
+| en:product-name-completed | 17697208 |
+| en:expiration-date-to-be-completed | 17212812 |
+| en:to-be-completed | 17090664 |
+| en:characteristics-to-be-completed | 16800536 |
+| en:food-groups-3-unknown | 16626408 |
+| en:origins-to-be-completed | 16495608 |
+| en:packaging-code-to-be-completed | 16288392 |
+| en:packaging-to-be-completed | 15669516 |
+| en:no-packaging-data | 15380280 |
+| en:packaging-photo-to-be-selected | 14573848 |
+| kiliweb | 14403352 |
+| en:front-photo-selected | 13351320 |
+| en:photos-uploaded | 13251836 |
+| en:nutrition-facts-completed | 13132136 |
+| en:quantity-to-be-completed | 12963156 |
+| en:photos-to-be-validated | 12708724 |
+| en:brands-completed | 12262940 |
+| en:ingredients-to-be-completed | 12252332 |
+| en:food-groups-2-unknown | 11578344 |
+| ingredients | 11503838 |
+| en:environmental-score-production-system-no-label | 11415220 |
+| en:food-groups-1-unknown | 11399880 |
+| en:environmental-score-origins-of-ingredients-origins-are-100-percent-unknown | 11372752 |
+| en:categories-to-be-completed | 11132544 |
+| en:environmental-score-packaging-packaging-data-missing | 10911872 |
+| missing-category | 9815632 |
+| en:ingredients-photo-to-be-selected | 9012516 |
+| en:nutrition-photo-selected | 9011232 |
+| en:environmental-score-threatened-species-ingredients-missing | 8891908 |
+| en:environmental-score-extended-data-not-computed | 8622368 |
+| all-products | 8488700 |
+| en:unknown | 8440970 |
+| en:packagings-not-complete | 8394094 |
+| en:categories-completed | 8102936 |
+| code-13 | 8001462 |
+| en:1 | 7752668 |
+| en:english | 7740778 |
+| en:packagings-number-of-components-0 | 7689826 |
+| en:packagings-empty | 7678138 |
+| agribalyse-food-code-unknown | 7340836 |
+| agribalyse-proxy-food-code-unknown | 7224672 |
+| en:brands-to-be-completed | 6972540 |
+| en:ecoscore-extended-data-not-computed | 6937302 |
+| en:nutrition-no-fiber-or-fruits-vegetables-nuts | 6832878 |
+| apps | 6757246 |
+| ciqual-food-code-unknown | 6677902 |
+| roboto-app | 6658968 |
+| agribalyse-unknown | 6480600 |
+| en:quantity-completed | 6272324 |
 
 ## Top paths
 
 | Value | Count |
 |---|---:|
-| snacks, sweet snacks, confectioneries | 4645 |
-| dairies, fermented foods, fermented milk products, cheeses | 3979 |
-| fromage -aliment moyen- | 3946 |
-| cheese -average- | 3496 |
-| sugary snacks | 3433 |
-| snacks, sweet snacks, biscuits and cakes, biscuits | 2664 |
-| groceries, sauces | 2624 |
-| salted snacks | 2595 |
-| desserts, frozen foods, frozen desserts | 2406 |
-| plant-based foods and beverages, beverages, plant-based beverages | 2275 |
-| plant-based foods and beverages, plant-based foods, cereals and potatoes, cereals and their products | 2275 |
-| condiments, sauces, groceries | 2201 |
-| beverages, carbonated drinks, sodas | 2178 |
-| cereals and potatoes | 2165 |
-| gâteau -aliment moyen- | 2128 |
-| cake -average- | 2094 |
-| fat and sauces | 2024 |
-| plant-based foods and beverages, plant-based foods, canned foods, fruits and vegetables based foods, canned plant-based foods, vegetables based foods, canned vegetables | 1979 |
-| popcorn, peanuts, seeds & related snacks | 1899 |
-| plant-based foods and beverages, plant-based foods, cereals and potatoes, cereals and their products, pastas | 1878 |
-| biscuits and cakes | 1864 |
-| plant-based foods and beverages, plant-based foods, cereals and potatoes, breads | 1703 |
-| no nova group when the product does not have ingredients | 1613 |
-| frozen foods | 1592 |
-| dressings and sauces | 1530 |
-| pain -aliment moyen- | 1492 |
-| bread -average- | 1490 |
-| charcuterie -aliment moyen- | 1472 |
-| milk and dairy products | 1460 |
-| cured meat and sausages -average- | 1442 |
-| soupe -aliment moyen- | 1390 |
-| soup -average- | 1382 |
-| pickles, olives, peppers & relishes | 1343 |
-| plant-based foods and beverages, plant-based foods, canned foods, fruits and vegetables based foods, canned plant-based foods, fruits based foods, canned fruits | 1342 |
-| organic, en:organic | 1307 |
-| beverages, waters | 1266 |
-| plant-based foods and beverages, plant-based foods, fruits and vegetables based foods, frozen foods, vegetables based foods, frozen plant-based foods, frozen vegetables | 1213 |
-| snacks, sweet snacks, biscuits and cakes, cakes | 1179 |
-| yaourt ou spécialité laitière nature ou aux fruits -aliment moyen- | 1166 |
-| yoghurt, plain or fruit -average- | 1166 |
-| cookies & biscuits | 1073 |
-| condiments, groceries | 1034 |
-| eau de source, embouteillée -aliment moyen- | 1026 |
-| water, bottled -average- | 1026 |
-| canned vegetables | 1010 |
-| ice cream & frozen yogurt | 982 |
-| sweetened beverages | 980 |
-| xx:marks & spencer | 976 |
-| chips, pretzels & snacks | 958 |
-| fruit & vegetable juice, nectars & fruit drinks | 954 |
+| no nova group when the product does not have ingredients | 2956833 |
+| sugary snacks | 283647 |
+| fish meat eggs | 185665 |
+| cereals and potatoes | 175430 |
+| milk and dairy products | 168539 |
+| fat and sauces | 121872 |
+| biscuits and cakes | 114630 |
+| composite foods | 100370 |
+| fruits and vegetables | 97523 |
+| dressings and sauces | 86254 |
+| salty snacks | 85397 |
+| no nova group if too many ingredients are unknown: 1 out of 1 | 77118 |
+| alcoholic beverages | 74067 |
+| one-dish meals | 68780 |
+| processed meat | 65715 |
+| fromage -aliment moyen- | 60176 |
+| milk and yogurt | 58412 |
+| fish and seafood | 48439 |
+| point vert | 45605 |
+| snacks, sweet snacks, confectioneries | 44738 |
+| no gluten | 41838 |
+| no nova group when the product does not have a category | 40690 |
+| cheese -average- | 38872 |
+| charcuterie -aliment moyen- | 38460 |
+| sweetened beverages | 37606 |
+| no gmos, non gmo project | 36907 |
+| dairies, fermented foods, fermented milk products, cheeses | 34870 |
+| snacks, sweet snacks, biscuits and cakes, biscuits | 31158 |
+| unsweetened beverages | 30170 |
+| chocolate products | 29867 |
+| desserts, frozen foods, frozen desserts | 28745 |
+| salty and fatty products | 28241 |
+| pain -aliment moyen- | 26638 |
+| punto verde | 26031 |
+| bio, bio européen, ab agriculture biologique | 25946 |
+| gâteau -aliment moyen- | 25800 |
+| bread -average- | 25708 |
+| condiments, sauces, groceries | 25207 |
+| breakfast cereals | 25124 |
+| sans gluten | 24473 |
+| fabriqué en france | 23068 |
+| sin gluten | 22723 |
+| cured meat and sausages -average- | 22656 |
+| plant-based foods and beverages, plant-based foods, cereals and potatoes, breads | 22634 |
+| cake -average- | 22628 |
+| frozen foods | 21522 |
+| plant-based foods and beverages, plant-based foods, cereals and potatoes, cereals and their products | 20134 |
+| salted snacks | 19759 |
+| plant-based foods and beverages, beverages, plant-based beverages | 19251 |
+| ice cream | 18849 |
 
 ## Co-occurrence pairs
 
 | Pair | Count |
 |---|---:|
-| 00xxxxxxxxxxx + 0xxxxxxxxxxxx | 48570 |
-| 00xxxxxxxxxxx + 2017 | 45791 |
-| 0xxxxxxxxxxxx + 2017 | 45791 |
-| 2017 + 2017-03 | 45318 |
-| 00xxxxxxxxxxx + 2017-03 | 45147 |
-| 0xxxxxxxxxxxx + 2017-03 | 45147 |
-| 2017-03 + 2017-03-09 | 36524 |
-| 2017 + 2017-03-09 | 36524 |
-| 00xxxxxxxxxxx + 2017-03-09 | 36414 |
-| 0xxxxxxxxxxxx + 2017-03-09 | 36414 |
-| 00xxxxxxxxxxx + 2025 | 30631 |
-| 0xxxxxxxxxxxx + 2025 | 30631 |
-| 2017 + 2025 | 29930 |
-| 2017-03 + 2025 | 29628 |
-| 00xxxxxxxxxxx + 4 | 27214 |
-| 0xxxxxxxxxxxx + 4 | 27214 |
-| 2017 + 4 | 26874 |
-| 2017-03 + 4 | 26610 |
-| 2025 + 2025-02 | 24627 |
-| 2017 + 2025-02 | 24572 |
-| 2017-03 + 2025-02 | 24554 |
-| 00xxxxxxxxxxx + 2025-02 | 24529 |
-| 0xxxxxxxxxxxx + 2025-02 | 24529 |
-| 2017-03-09 + 2025 | 23227 |
-| 00xxxxxxxxxxx + 1-10 | 21804 |
-| 0xxxxxxxxxxxx + 1-10 | 21804 |
-| 2017-03-09 + 4 | 21588 |
-| 1-10 + 2017 | 21239 |
-| 1-10 + 2017-03 | 20928 |
-| 2017-03-09 + 2025-02 | 19084 |
-| 00xxxxxxxxxxx + 11-20 | 17104 |
-| 0xxxxxxxxxxxx + 11-20 | 17104 |
-| 1-10 + 2017-03-09 | 16883 |
-| 2025 + 4 | 16738 |
-| 11-20 + 2017 | 16702 |
-| 11-20 + 2017-03 | 16507 |
-| 1-10 + 2025 | 14971 |
-| 2025-02 + 4 | 14823 |
-| 001xxxxxxxxxx + 00xxxxxxxxxxx | 14735 |
-| 001xxxxxxxxxx + 0xxxxxxxxxxxx | 14735 |
-| 4 + additives | 14074 |
-| 00xxxxxxxxxxx + agribalyse-food-code-unknown | 14005 |
-| 0xxxxxxxxxxxx + agribalyse-food-code-unknown | 14005 |
-| 00xxxxxxxxxxx + additives | 13932 |
-| 0xxxxxxxxxxxx + additives | 13932 |
-| 2017 + additives | 13905 |
-| 001xxxxxxxxxx + 2017 | 13881 |
-| 2017-03 + additives | 13747 |
-| 001xxxxxxxxxx + 2017-03 | 13705 |
-| 2017 + agribalyse-food-code-unknown | 13495 |
-| 2017-03 + agribalyse-food-code-unknown | 13156 |
-| 2025-02 + 2025-02-23 | 12745 |
-| 2025 + 2025-02-23 | 12745 |
-| 2017-03 + 2025-02-23 | 12744 |
-| 2017 + 2025-02-23 | 12744 |
-| 00xxxxxxxxxxx + 2025-02-23 | 12712 |
-| 0xxxxxxxxxxxx + 2025-02-23 | 12712 |
-| 11-20 + 2017-03-09 | 12572 |
-| 11-20 + 4 | 12330 |
-| 11-20 + 2025 | 11814 |
-| 1-10 + 2025-02 | 11762 |
-| 00xxxxxxxxxxx + 2020 | 11498 |
-| 0xxxxxxxxxxxx + 2020 | 11498 |
-| 001xxxxxxxxxx + 2017-03-09 | 11291 |
-| 2017-03-09 + additives | 11275 |
-| 2017 + 2020 | 11159 |
-| 2017-03 + 2020 | 11018 |
-| 2020 + 2020-04 | 10722 |
-| 00xxxxxxxxxxx + 2020-04 | 10699 |
-| 0xxxxxxxxxxxx + 2020-04 | 10699 |
-| 2017 + 2020-04 | 10554 |
-| 2017-03 + 2020-04 | 10512 |
-| 2017-03-09 + agribalyse-food-code-unknown | 10422 |
-| 2025 + agribalyse-food-code-unknown | 10172 |
-| 11-20 + 2025-02 | 9962 |
-| 2017-03-09 + 2025-02-23 | 9720 |
-| 2017 + a | 9563 |
-| 00xxxxxxxxxxx + a | 9530 |
-| 0xxxxxxxxxxxx + a | 9530 |
-| 2017-03 + a | 9491 |
-| 2017-03-09 + 2020 | 9466 |
-| 001xxxxxxxxxx + 2025 | 9433 |
-| 1-10 + agribalyse-food-code-unknown | 9118 |
-| 2017-03-09 + 2020-04 | 9062 |
-| 2025-02 + agribalyse-food-code-unknown | 8753 |
-| 00xxxxxxxxxxx + 3 | 8740 |
-| 0xxxxxxxxxxxx + 3 | 8740 |
-| 2017 + 3 | 8714 |
-| 2017-03 + 2017-03-10 | 8705 |
-| 2017 + 2017-03-10 | 8705 |
-| 2025 + additives | 8698 |
-| 00xxxxxxxxxxx + 2017-03-10 | 8680 |
-| 0xxxxxxxxxxxx + 2017-03-10 | 8680 |
-| 2020-04 + 2020-04-22 | 8642 |
-| 2020 + 2020-04-22 | 8642 |
-| 2017-03 + 3 | 8638 |
-| 00xxxxxxxxxxx + 2020-04-22 | 8637 |
-| 0xxxxxxxxxxxx + 2020-04-22 | 8637 |
-| 001xxxxxxxxxx + 4 | 8626 |
-| 0011xxxxxxxxx + 001xxxxxxxxxx | 8598 |
-| 0011xxxxxxxxx + 00xxxxxxxxxxx | 8598 |
-| 0011xxxxxxxxx + 0xxxxxxxxxxxx | 8598 |
-| 2017 + 2020-04-22 | 8598 |
-| 2017-03-09 + 2020-04-22 | 8591 |
-| 2017-03 + 2020-04-22 | 8591 |
-| 0011xxxxxxxxx + 2017 | 8481 |
-| 0011xxxxxxxxx + 2017-03 | 8447 |
-| 1-10 + 4 | 8278 |
-| 2025 + a | 8252 |
-| 2025-02-23 + 4 | 8016 |
-| 001xxxxxxxxxx + 2025-02 | 7949 |
-| 2020 + 4 | 7899 |
-| 2025-02 + additives | 7790 |
-| 2020-04 + 4 | 7678 |
-| 2017-03-09 + a | 7650 |
-| 2025-02 + a | 7588 |
-| 11-20 + additives | 7248 |
-| 0011xxxxxxxxx + 2017-03-09 | 7180 |
-| 2017-03-09 + 3 | 7087 |
-| 1 + 1-10 | 6985 |
-| 00xxxxxxxxxxx + 1 | 6939 |
-| 0xxxxxxxxxxxx + 1 | 6939 |
-| 1 + 2017 | 6812 |
-| 1 + 2017-03 | 6725 |
-| 2025 + 3 | 6713 |
-| 1-10 + 3 | 6634 |
-| 001xxxxxxxxxx + 1-10 | 6526 |
-| 2017-03-10 + 2025 | 6363 |
-| 2020-04-22 + 4 | 6292 |
-| 1-10 + a | 6089 |
-| 1-10 + 2025-02-23 | 6024 |
-| 2025-02 + 3 | 5853 |
-| 0011xxxxxxxxx + 2025 | 5801 |
-| 00111xxxxxxxx + 0011xxxxxxxxx | 5634 |
-| 00111xxxxxxxx + 001xxxxxxxxxx | 5634 |
-| 00111xxxxxxxx + 00xxxxxxxxxxx | 5634 |
-| 00111xxxxxxxx + 0xxxxxxxxxxxx | 5634 |
-| 00111xxxxxxxx + 2017 | 5567 |
-| 00111xxxxxxxx + 2017-03 | 5545 |
-| 2017-03-10 + 2025-02 | 5466 |
-| 0011xxxxxxxxx + 4 | 5442 |
-| 11-20 + 2025-02-23 | 5378 |
-| 3 + agribalyse-food-code-unknown | 5349 |
-| 4 + agribalyse-food-code-unknown | 5345 |
-| 1 + 2017-03-09 | 5212 |
-| 0011xxxxxxxxx + 2025-02 | 5072 |
-| 001xxxxxxxxxx + 11-20 | 5066 |
-| 2017-03-10 + 4 | 5012 |
-| 1 + 2025 | 5001 |
-| 2025-02-23 + agribalyse-food-code-unknown | 4872 |
-| 2025-02 + 2025-02-24 | 4854 |
-| 2025 + 2025-02-24 | 4854 |
-| 2017 + 2025-02-24 | 4853 |
-| 00xxxxxxxxxxx + 2025-02-24 | 4852 |
-| 0xxxxxxxxxxxx + 2025-02-24 | 4852 |
-| 2017-03 + 2025-02-24 | 4852 |
-| 00111xxxxxxxx + 2017-03-09 | 4766 |
-| 4 + a | 4545 |
-| 001xxxxxxxxxx + additives | 4513 |
-| 1-10 + 2020 | 4475 |
-| 001xxxxxxxxxx + agribalyse-food-code-unknown | 4393 |
-| 00xxxxxxxxxxx + 21-30 | 4318 |
-| 0xxxxxxxxxxxx + 21-30 | 4318 |
-| 2025-02-23 + a | 4311 |
-| 1-10 + 2020-04 | 4124 |
-| 2017 + 21-30 | 4122 |
-| 2017-03 + 2025-02-22 | 4077 |
-| 2017 + 2025-02-22 | 4077 |
-| 2025-02 + 2025-02-22 | 4077 |
-| 2025 + 2025-02-22 | 4077 |
-| 001xxxxxxxxxx + 2025-02-22 | 4073 |
-| 00xxxxxxxxxxx + 2025-02-22 | 4073 |
-| 0xxxxxxxxxxxx + 2025-02-22 | 4073 |
-| 1-10 + 2017-03-10 | 4024 |
-| 2017-03 + 21-30 | 4013 |
-| 2025-02-23 + additives | 4009 |
-| 11-20 + 2017-03-10 | 3921 |
-| 2020 + additives | 3856 |
-| 2017-03-09 + 2025-02-24 | 3855 |
-| 1 + 2025-02 | 3834 |
-| 00111xxxxxxxx + 2025 | 3833 |
-| 0011xxxxxxxxx + 1-10 | 3807 |
-| 0011xxxxxxxxx + 2025-02-22 | 3759 |
-| 2020-04 + additives | 3750 |
-| 11-20 + agribalyse-food-code-unknown | 3736 |
-| 1 + agribalyse-food-code-unknown | 3617 |
-| 2017-03-09 + 21-30 | 3556 |
-| 00xxxxxxxxxxx + 2022 | 3552 |
-| 0xxxxxxxxxxxx + 2022 | 3552 |
-| 001xxxxxxxxxx + 2020 | 3523 |
-| agribalyse-food-code-unknown + agribalyse-proxy-food-code-unknown | 3490 |
-| 11-20 + 2020 | 3451 |
-| 21-30 + 4 | 3381 |
-| 00111xxxxxxxx + 4 | 3376 |
-| 001111xxxxxxx + 00111xxxxxxxx | 3350 |
-| 001111xxxxxxx + 0011xxxxxxxxx | 3350 |
-| 001111xxxxxxx + 001xxxxxxxxxx | 3350 |
-| 001111xxxxxxx + 00xxxxxxxxxxx | 3350 |
-| 001111xxxxxxx + 0xxxxxxxxxxxx | 3350 |
-| 1-10 + 2020-04-22 | 3333 |
+| agribalyse-food-code-unknown + agribalyse-proxy-food-code-unknown | 2679411 |
+| agribalyse-food-code-unknown + agribalyse-unknown | 2546245 |
+| agribalyse-proxy-food-code-unknown + agribalyse-unknown | 2546245 |
+| agribalyse-proxy-food-code-unknown + all-products | 2372465 |
+| agribalyse-food-code-unknown + all-products | 2372349 |
+| agribalyse-unknown + all-products | 2360340 |
+| agribalyse-food-code-unknown + categories-unknown | 1284413 |
+| agribalyse-proxy-food-code-unknown + categories-unknown | 1284413 |
+| agribalyse-unknown + categories-unknown | 1284413 |
+| all-products + categories-unknown | 1284413 |
+| all-products + apps | 1121558 |
+| agribalyse-proxy-food-code-unknown + apps | 1118996 |
+| agribalyse-food-code-unknown + apps | 1118298 |
+| agribalyse-unknown + apps | 1115957 |
+| apps + categories-unknown | 954820 |
+| 2025 + agribalyse-food-code-unknown | 927893 |
+| 2025 + agribalyse-proxy-food-code-unknown | 824611 |
+| 0xxxxxxxxxxxx + agribalyse-food-code-unknown | 788219 |
+| 2025 + agribalyse-unknown | 771549 |
+| 2025 + all-products | 723718 |
+| 0xxxxxxxxxxxx + agribalyse-proxy-food-code-unknown | 706220 |
+| 0xxxxxxxxxxxx + agribalyse-unknown | 660692 |
+| 2024 + agribalyse-food-code-unknown | 654009 |
+| all-products + app-yuka | 639684 |
+| agribalyse-proxy-food-code-unknown + app-yuka | 635842 |
+| agribalyse-food-code-unknown + app-yuka | 635193 |
+| agribalyse-unknown + app-yuka | 631769 |
+| 2022 + agribalyse-food-code-unknown | 601560 |
+| 2024 + agribalyse-proxy-food-code-unknown | 591702 |
+| 0xxxxxxxxxxxx + all-products | 589547 |
+| app-yuka + apps | 571459 |
+| 2024 + agribalyse-unknown | 560189 |
+| 2023 + agribalyse-food-code-unknown | 559241 |
+| 2022 + agribalyse-proxy-food-code-unknown | 534688 |
+| 2024 + all-products | 529652 |
+| 2022 + agribalyse-unknown | 502602 |
+| 00xxxxxxxxxxx + 0xxxxxxxxxxxx | 493121 |
+| 2023 + agribalyse-proxy-food-code-unknown | 485696 |
+| 2022 + all-products | 480646 |
+| app-yuka + categories-unknown | 460250 |
+| 2023 + agribalyse-unknown | 452541 |
+| 2021 + agribalyse-food-code-unknown | 441777 |
+| 2023 + all-products | 424464 |
+| agribalyse-food-code-unknown + ciqual-food-code-unknown | 404122 |
+| all-products + ciqual-food-code-unknown | 404122 |
+| agribalyse-proxy-food-code-unknown + ciqual-food-code-unknown | 403896 |
+| agribalyse-unknown + ciqual-food-code-unknown | 403896 |
+| 2020 + agribalyse-food-code-unknown | 392999 |
+| 2025 + apps | 379578 |
+| 2025 + categories-unknown | 379253 |
+| 2021 + agribalyse-proxy-food-code-unknown | 374788 |
+| all-products + app-macrofactor | 371653 |
+| agribalyse-food-code-unknown + app-macrofactor | 371490 |
+| agribalyse-proxy-food-code-unknown + app-macrofactor | 371455 |
+| agribalyse-unknown + app-macrofactor | 371308 |
+| categories-unknown + ciqual-food-code-unknown | 368980 |
+| 2021 + agribalyse-unknown | 350850 |
+| 2021 + all-products | 327842 |
+| app-macrofactor + apps | 326040 |
+| 00xxxxxxxxxxx + agribalyse-food-code-unknown | 323269 |
+| 0xxxxxxxxxxxx + 2025 | 322785 |
+| 2020 + agribalyse-proxy-food-code-unknown | 309112 |
+| 2024 + categories-unknown | 306367 |
+| app-macrofactor + categories-unknown | 296997 |
+| 00xxxxxxxxxxx + agribalyse-proxy-food-code-unknown | 275065 |
+| 2020 + agribalyse-unknown | 274785 |
+| 0xxxxxxxxxxxx + 2020 | 274437 |
+| 2025 + 2025-05 | 256303 |
+| 2020 + 2020-04 | 255609 |
+| 4 + additives | 255261 |
+| 0xxxxxxxxxxxx + 2022 | 251113 |
+| 00xxxxxxxxxxx + agribalyse-unknown | 250543 |
+| 2025 + app-macrofactor | 248591 |
+| 2019 + agribalyse-food-code-unknown | 241210 |
+| 0xxxxxxxxxxxx + 4 | 240913 |
+| 1-10 + 2025 | 239033 |
+| 1 + 1-10 | 222289 |
+| 2025 + 4 | 219586 |
+| 0xxxxxxxxxxxx + 2020-04 | 219113 |
+| 2022 + app-yuka | 217792 |
+| 2020 + all-products | 216952 |
+| 0xxxxxxxxxxxx + 2024 | 215824 |
+| 11-20 + 4 | 212090 |
+| 2022 + categories-unknown | 211255 |
+| 2022 + apps | 211146 |
+| 00xxxxxxxxxxx + all-products | 206558 |
+| 2020 + 4 | 201877 |
+| 2024 + apps | 196922 |
+| 2026 + 2026-01 | 194126 |
+| 4 + agribalyse-food-code-unknown | 193755 |
+| 2019 + agribalyse-proxy-food-code-unknown | 191493 |
+| 1-10 + agribalyse-food-code-unknown | 191309 |
+| 0xxxxxxxxxxxx + 1-10 | 182391 |
+| 2017 + 2017-03 | 178714 |
+| 2019 + agribalyse-unknown | 176927 |
+| 2025-05 + agribalyse-food-code-unknown | 175489 |
+| 1-10 + 3 | 171046 |
+| 0xxxxxxxxxxxx + 2017 | 169095 |
+| 0xxxxxxxxxxxx + 2017-03 | 165252 |
+| 00xxxxxxxxxxx + 2020 | 164934 |
+| 1-10 + 4 | 164905 |
+| 2019 + all-products | 163342 |
+| 2024 + 2025 | 162735 |
+| 2020-04 + 2020-04-23 | 162225 |
+| 2020 + 2020-04-23 | 162225 |
+| 2024 + ciqual-food-code-unknown | 161803 |
+| 0xxxxxxxxxxxx + 2023 | 158971 |
+| 00xxxxxxxxxxx + 4 | 157497 |
+| 0xxxxxxxxxxxx + 2020-04-23 | 157226 |
+| 2025 + 2025-02 | 156318 |
+| 1-10 + 2020 | 155933 |
+| 2022 + 2022-02 | 154101 |
+| 2025-05 + agribalyse-proxy-food-code-unknown | 152915 |
+| 2018 + agribalyse-food-code-unknown | 152291 |
+| 2024 + 2024-10 | 150590 |
+| 00xxxxxxxxxxx + 2025 | 148164 |
+| 2023 + categories-unknown | 147938 |
+| 2021 + 2023 | 147761 |
+| 2022 + 2023 | 147482 |
+| 2020-04 + 4 | 146959 |
+| 0xxxxxxxxxxxx + additives | 145251 |
+| 2022 + 2025 | 143499 |
+| 2025 + 2025-11 | 143154 |
+| 2025-05 + agribalyse-unknown | 141791 |
+| 2020-04 + agribalyse-food-code-unknown | 139335 |
+| 00xxxxxxxxxxx + 2020-04 | 139333 |
+| 2025 + 2025-10 | 137241 |
+| 2023 + 2023-04 | 133610 |
+| 2025 + 2025-12 | 133097 |
+| 2017 + 4 | 132858 |
+| 2021 + 2025 | 132527 |
+| 2017-03 + 2017-03-09 | 132155 |
+| 2017 + 2017-03-09 | 132155 |
+| 4 + agribalyse-proxy-food-code-unknown | 130204 |
+| 2025 + 2025-09 | 129944 |
+| 2025-05 + all-products | 129777 |
+| 0xxxxxxxxxxxx + 2017-03-09 | 128260 |
+| 2023 + apps | 126306 |
+| 11-20 + 2025 | 125430 |
+| 1-10 + 2022 | 125113 |
+| 0xxxxxxxxxxxx + 11-20 | 124802 |
+| 1-10 + agribalyse-proxy-food-code-unknown | 124357 |
+| 1-10 + 2017 | 123228 |
+| all-products + app-speisekammer | 122966 |
+| agribalyse-food-code-unknown + app-speisekammer | 122850 |
+| agribalyse-proxy-food-code-unknown + app-speisekammer | 122848 |
+| 2026 + agribalyse-food-code-unknown | 122793 |
+| agribalyse-unknown + app-speisekammer | 122737 |
+| 2024 + 2024-06 | 122694 |
+| 2025 + 2025-03 | 121320 |
+| additives + agribalyse-food-code-unknown | 120689 |
+| 2024 + 4 | 117922 |
+| 1-10 + 2024 | 117659 |
+| 00xxxxxxxxxxx + 2022 | 117066 |
+| 2026-01 + agribalyse-food-code-unknown | 116466 |
+| 2023 + 2023-08 | 114789 |
+| app-speisekammer + apps | 114545 |
+| 2025 + 2025-08 | 114248 |
+| 0xxxxxxxxxxxx + 2021 | 113261 |
+| 2018 + agribalyse-proxy-food-code-unknown | 112109 |
+| 21-30 + 4 | 112024 |
+| 00xxxxxxxxxxx + 1-10 | 111967 |
+| 2022 + 2022-10 | 111353 |
+| 2021 + 2022 | 110732 |
+| 2022 + 4 | 110706 |
+| 1-10 + 2023 | 110466 |
+| 2023 + 2023-01 | 110112 |
+| 2026 + agribalyse-proxy-food-code-unknown | 109511 |
+| 00xxxxxxxxxxx + 2017 | 109475 |
+| 2021 + app-yuka | 109265 |
+| 2021 + categories-unknown | 109164 |
+| 00xxxxxxxxxxx + 2017-03 | 107600 |
+| 2025 + 2025-07 | 107150 |
+| 2021 + apps | 106959 |
+| 1 + 2025 | 105395 |
+| 2020 + additives | 105353 |
+| 00xxxxxxxxxxx + 2020-04-23 | 105194 |
+| 2017 + 2020 | 104146 |
+| 2020-04-23 + agribalyse-food-code-unknown | 104105 |
+| 2026-01 + agribalyse-proxy-food-code-unknown | 103918 |
+| 2020-04-23 + 4 | 103308 |
+| 2024-10 + agribalyse-food-code-unknown | 102749 |
+| 2023 + app-yuka | 102673 |
+| 2023 + 2025 | 102548 |
+| 2026 + agribalyse-unknown | 102422 |
+| 2020-04 + agribalyse-proxy-food-code-unknown | 101850 |
+| 2025 + 2025-06 | 101121 |
+| 4 + agribalyse-unknown | 99688 |
+| 2017-03 + 4 | 99555 |
+| 2023 + 4 | 99056 |
+| 2026 + all-products | 98532 |
+| 2018 + agribalyse-unknown | 98470 |
+| 2025-11 + agribalyse-food-code-unknown | 98289 |
+| 2025 + ciqual-food-code-unknown | 98177 |
+| 2024 + app-macrofactor | 97541 |
+| 2025 + 2025-01 | 97442 |
+| 2026-01 + agribalyse-unknown | 97175 |
+| 11-20 + 2020 | 96863 |
+| 00xxxxxxxxxxx + additives | 96171 |
+| 2021 + 2024 | 95674 |
 
 ## Messy signals
 
 | Value | Count | Why messy |
 |---|---:|---|
-| en:salt | 250736 | language/prefix variant |
-| en:product-name-completed | 212688 | language/prefix variant |
-| en:brands-completed | 211200 | language/prefix variant |
-| en:expiration-date-to-be-completed | 208104 | language/prefix variant |
-| en:categories-completed | 200460 | language/prefix variant |
-| en:to-be-completed | 199780 | language/prefix variant |
-| en:packaging-code-to-be-completed | 198948 | language/prefix variant |
-| en:food-groups-3-unknown | 198548 | language/prefix variant |
-| en:characteristics-to-be-completed | 198328 | language/prefix variant |
-| en:nutrition-facts-completed | 197968 | language/prefix variant |
-| en:origins-to-be-completed | 197608 | language/prefix variant |
-| en:ingredients-completed | 193260 | language/prefix variant |
-| en:english | 193100 | language/prefix variant |
-| en:packaging-to-be-completed | 192044 | language/prefix variant |
-| en:no-packaging-data | 192016 | language/prefix variant |
-| en:sugar | 191957 | language/prefix variant |
-| en:ingredients-percent-analysis-ok | 191868 | language/prefix variant |
-| en:united-states | 189096 | language/prefix variant |
-| en:photos-to-be-uploaded | 147616 | language/prefix variant |
-| en:quantity-completed | 140660 | language/prefix variant |
-| en:food-groups-2-unknown | 140520 | language/prefix variant |
-| en:food-groups-1-unknown | 139876 | language/prefix variant |
-| en:environmental-score-production-system-no-label | 137936 | language/prefix variant |
-| en:environmental-score-origins-of-ingredients-origins-are-100-percent-unknown | 135388 | language/prefix variant |
-| en:flavouring | 133524 | language/prefix variant |
-| en:environmental-score-packaging-packaging-data-missing | 132188 | language/prefix variant |
-| en:water | 124130 | language/prefix variant |
-| en:environmental-score-extended-data-not-computed | 113444 | language/prefix variant |
-| en:undefined | 113197 | language/prefix variant |
-| en:e330 | 108952 | language/prefix variant |
+| en:product-name-completed | 17697208 | language/prefix variant |
+| en:expiration-date-to-be-completed | 17212812 | language/prefix variant |
+| en:to-be-completed | 17090664 | language/prefix variant |
+| en:characteristics-to-be-completed | 16800536 | language/prefix variant |
+| en:food-groups-3-unknown | 16626408 | language/prefix variant |
+| en:origins-to-be-completed | 16495608 | language/prefix variant |
+| en:packaging-code-to-be-completed | 16288392 | language/prefix variant |
+| en:packaging-to-be-completed | 15669516 | language/prefix variant |
+| en:no-packaging-data | 15380280 | language/prefix variant |
+| en:packaging-photo-to-be-selected | 14573848 | language/prefix variant |
+| en:front-photo-selected | 13351320 | language/prefix variant |
+| en:photos-uploaded | 13251836 | language/prefix variant |
+| en:nutrition-facts-completed | 13132136 | language/prefix variant |
+| en:quantity-to-be-completed | 12963156 | language/prefix variant |
+| en:photos-to-be-validated | 12708724 | language/prefix variant |
+| en:brands-completed | 12262940 | language/prefix variant |
+| en:ingredients-to-be-completed | 12252332 | language/prefix variant |
+| en:food-groups-2-unknown | 11578344 | language/prefix variant |
+| en:environmental-score-production-system-no-label | 11415220 | language/prefix variant |
+| en:food-groups-1-unknown | 11399880 | language/prefix variant |
+| en:environmental-score-origins-of-ingredients-origins-are-100-percent-unknown | 11372752 | language/prefix variant |
+| en:categories-to-be-completed | 11132544 | language/prefix variant |
+| en:environmental-score-packaging-packaging-data-missing | 10911872 | language/prefix variant |
+| en:ingredients-photo-to-be-selected | 9012516 | language/prefix variant |
+| en:nutrition-photo-selected | 9011232 | language/prefix variant |
+| en:environmental-score-threatened-species-ingredients-missing | 8891908 | language/prefix variant |
+| en:environmental-score-extended-data-not-computed | 8622368 | language/prefix variant |
+| en:unknown | 8440970 | language/prefix variant |
+| en:packagings-not-complete | 8394094 | language/prefix variant |
+| en:categories-completed | 8102936 | language/prefix variant |
 
 ## Recommended next steps
 
