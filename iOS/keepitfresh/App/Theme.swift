@@ -126,6 +126,16 @@ public enum Theme {
         case addFilled = "plus.circle.fill"
 
         case locationPin = "mappin.and.ellipse"
+        case close = "xmark"
+        case chevronDown = "chevron.down"
+        case chevronRight = "chevron.right"
+        case torch = "flashlight.on.fill"
+        case houseFill = "house.fill"
+        case textViewfinder = "text.viewfinder"
+        case magnifyingglass = "magnifyingglass"
+        case squareAndPencil = "square.and.pencil"
+        case sparkles = "sparkles"
+        case tag = "tag"
 
         // Product overview
         case productBack = "chevron.left"
