@@ -13,7 +13,6 @@ import BarcodeScannerModule
 struct AddProductFlowRootView: View {
     @Environment(\.dismiss) private var dismiss
     @State var viewModel: AddProductFlowRootViewModel
-    @State private var capturedImages: [CameraCapturedImage] = []
     @State private var isTorchEnabled = false
     @State private var isAutoDetectEnabled = true
 
@@ -186,16 +185,9 @@ struct AddProductFlowRootView: View {
                 viewModel.isImageCapturePresented = false
             },
             onComplete: { result in
-                capturedImages = result
+                
                 viewModel.isImageCapturePresented = false
-                let images = result.prefix(3).map {
-                    ImagesCaptured(
-                        id: $0.id,
-                        image: $0.image,
-                        boundingBox: $0.boundingBox,
-                        imageSize: $0.imageSize
-                    )
-                }
+                let images = result.imagesCaptured
                 viewModel.submitCapturedImages(images)
             }
         )
@@ -231,6 +223,10 @@ private extension ProductDraft {
 
 #if DEBUG
 #Preview {
-    AddProductFlowRootView(viewModel: AddProductModuleAssembler().makeViewModel())
+    AddProductFlowRootView(
+        viewModel: AddProductModuleAssembler().makeViewModel(
+            type: .barcode(.init(value: "", symbology: .code128))
+        )
+    )
 }
 #endif

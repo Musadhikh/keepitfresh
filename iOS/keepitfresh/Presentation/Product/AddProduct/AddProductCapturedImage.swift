@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import ImageDataModule
 
-struct ImagesCaptured: ImageData, Identifiable, Equatable, Sendable {
+struct ImagesCaptured: ImageData, Identifiable, Hashable, Sendable {
     var cgImage: CGImage
     var orientation: CGImagePropertyOrientation
 

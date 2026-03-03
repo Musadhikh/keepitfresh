@@ -8,11 +8,14 @@
 
 import SwiftUI
 import InventoryModule
-import UIKit
+import CameraModule
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @State private var inventoryViewModel = HomeViewModel()
+    
+    @State private var showBarcodeScanner: Bool = false
+    @State private var showImageScanner: Bool = false
 
     var body: some View {
         ScrollView {
@@ -33,7 +36,7 @@ struct HomeView: View {
                     onFinished: { row in
                         await performFinish(for: row)
                     },
-                    onAddNew: startAddProductFlow
+                    onAddNew: {  }
                 )
             }
             .padding(.horizontal, Theme.Spacing.s16)
@@ -42,6 +45,10 @@ struct HomeView: View {
         .safeAreaInset(edge: .bottom) {
             bottomActionArea
         }
+        .safeAreaInset(edge: .bottom, alignment: .trailing) {
+            HomeAddProductButtonView(onTap: { showBarcodeScanner.toggle() })
+                .padding(.trailing, 20)
+        }
         .refreshable {
             await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
         }
@@ -49,6 +56,31 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.large)
         .onChange(of: inventoryViewModel.expiredCount) { _, newCount in
             appState.homeExpiredBadgeCount = newCount
+        }
+        .fullScreenCover(isPresented: $showBarcodeScanner) {
+            BarcodeScannerActionSheet(
+                onCancel: { showBarcodeScanner.toggle() },
+                onBarcodeDetected: { barcode in
+                    startAddProductFlow(barcode: barcode.toBarcode)
+                    showBarcodeScanner.toggle()
+                },
+                methodChanged: { method in
+                    switch method {
+                        case .imageScanner: showImageScanner.toggle()
+                        default: break
+                    }
+                    
+                    showBarcodeScanner.toggle()
+                }
+            )
+        }
+        .fullScreenCover(isPresented: $showImageScanner) {
+            CameraScannerView(
+                onCancel: { showImageScanner.toggle() },
+                onComplete: { images in
+                    startAddProductFlow(images: images.imagesCaptured)
+                }
+            )
         }
         .task(id: appState.selectedHouse?.id) {
             await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
@@ -64,19 +96,13 @@ struct HomeView: View {
                     message: undoBanner.message,
                     onUndo: {
                         Task {
-                            let didUndo = await inventoryViewModel.undoLastAction(householdId: appState.selectedHouse?.id)
-                            if didUndo {
+                            if await inventoryViewModel.undoLastAction(householdId: appState.selectedHouse?.id) {
                                 generateHaptic(.success)
                             }
                         }
                     }
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-
-            HStack {
-                Spacer()
-                HomeAddProductButtonView(onTap: startAddProductFlow)
             }
         }
         .padding(.horizontal, Theme.Spacing.s16)
@@ -99,14 +125,23 @@ struct HomeView: View {
         }
     }
 
-    private func startAddProductFlow() {
-        appState.navigate(to: .addProduct(barcodePayload: nil, symbology: nil))
+    private func startAddProductFlow(barcode: Barcode) {
+        appState.navigate(to: .addProduct(.barcode(barcode)))
+    }
+    
+    private func startAddProductFlow(images: [ImagesCaptured]) {
+        appState.navigate(to: .addProduct(.imageCapture(images)))
     }
 
     private func generateHaptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(type)
     }
+}
+
+// MARK: - Navigation
+extension HomeView {
+    
 }
 
 #if DEBUG

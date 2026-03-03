@@ -64,13 +64,13 @@ struct AddProductModuleAssembler {
     }
 
     @MainActor
-    func makeViewModel(initialBarcode: Barcode? = nil) -> AddProductFlowRootViewModel {
-        AddProductFlowRootViewModel(useCase: makeUseCase(), initialBarcode: initialBarcode)
+    func makeViewModel(type: AddProductFlowType) -> AddProductFlowRootViewModel {
+        AddProductFlowRootViewModel(useCase: makeUseCase(), type: type)
     }
 
     @MainActor
-    func makeRootView(initialBarcode: Barcode? = nil) -> AddProductFlowRootView {
-        AddProductFlowRootView(viewModel: makeViewModel(initialBarcode: initialBarcode))
+    func makeRootView(type: AddProductFlowType) -> AddProductFlowRootView {
+        AddProductFlowRootView(viewModel: makeViewModel(type: type))
     }
 }
 

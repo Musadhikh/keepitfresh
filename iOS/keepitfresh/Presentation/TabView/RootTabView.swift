@@ -72,8 +72,8 @@ struct RootTabView: View {
             ProfileDetailsView()
         case .householdSelection:
             HouseSelectionView(mode: .manage)
-        case .addProduct(let barcodePayload, let symbology):
-            addProductDestination(barcodePayload: barcodePayload, symbology: symbology)
+        case .addProduct(let type):
+                addProductDestination(type: type)
         case .productsList:
             ProductsListView()
         case .inventoryItemDetail(let item):
@@ -81,15 +81,12 @@ struct RootTabView: View {
         }
     }
 
-    private func addProductDestination(barcodePayload: String?, symbology: String?) -> some View {
-        let initialBarcode = barcodePayload.flatMap { payload in
-            payload.isEmpty ? nil : Barcode(value: payload, symbology: .init(value: symbology))
-        }
-
+    private func addProductDestination(type: AddProductFlowType) -> some View {
+       
         return AddProductModuleAssembler(
             defaultHouseholdId: appState.selectedHouse?.id ?? "default-household"
         )
-        .makeRootView(initialBarcode: initialBarcode)
+        .makeRootView(type: type)
     }
 }
 

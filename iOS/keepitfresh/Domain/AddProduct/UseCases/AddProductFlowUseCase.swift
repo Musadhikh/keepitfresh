@@ -187,19 +187,6 @@ actor AddProductFlowUseCase {
 
     func handleCapturedImages(_ images: [ImagesCaptured]) async {
         transition(to: .extracting(images))
-
-//        do {
-//            let extraction = try await visionExtractor.extract(from: images)
-//            
-//            let prompt = PromptType.inventory(extraction)
-//            
-//            let data = try await dataBuilder.generateData(from: prompt, type: ExtractedData.self)
-//            
-//            
-//            transition(to: .reviewing(draft: draft))
-//        } catch {
-//            transition(to: .failure(message: "Could not extract product details from images."))
-//        }
     }
 
     func quickAddOne() async {

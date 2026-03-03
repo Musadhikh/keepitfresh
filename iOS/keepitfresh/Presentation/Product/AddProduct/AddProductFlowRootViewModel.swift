@@ -9,11 +9,16 @@
 import Foundation
 import ImageDataModule
 
+enum AddProductFlowType: Hashable {
+    case barcode(Barcode)
+    case imageCapture([ImagesCaptured])
+}
+
 @MainActor
 @Observable
 final class AddProductFlowRootViewModel {
     private let useCase: AddProductFlowUseCase
-    private let initialBarcode: Barcode?
+    private let flowType: AddProductFlowType
     private let imageProcessor: ImageProcessor
     private var observeTask: Task<Void, Never>?
     private var extractionTask: Task<Void, Never>?
@@ -35,22 +40,19 @@ final class AddProductFlowRootViewModel {
         return false
     }
 
-    init(useCase: AddProductFlowUseCase, initialBarcode: Barcode? = nil) {
+    init(useCase: AddProductFlowUseCase, type: AddProductFlowType) {
         self.useCase = useCase
-        self.initialBarcode = initialBarcode
+        self.flowType = type
         self.imageProcessor = ImageProcessor(instruction: .inventoryAssistant)
     }
-
+    
     func start() async {
         if observeTask == nil {
             startObservingState()
         }
         await useCase.start()
 
-        guard didResolveInitialBarcode == false, let initialBarcode else { return }
-        didResolveInitialBarcode = true
-        lastResolvedBarcode = initialBarcode
-        await useCase.handleBarcode(initialBarcode)
+        await startFlowType()
     }
 
     func closeFlow() {
@@ -326,5 +328,18 @@ final class AddProductFlowRootViewModel {
             }
         }
         return nil
+    }
+}
+
+extension AddProductFlowRootViewModel {
+    private func startFlowType() async {
+        switch flowType {
+            case .barcode(let barcode):
+                didResolveInitialBarcode = true
+                lastResolvedBarcode = barcode
+                await useCase.handleBarcode(barcode)
+            case .imageCapture(let images):
+                submitCapturedImages(images)
+        }
     }
 }
