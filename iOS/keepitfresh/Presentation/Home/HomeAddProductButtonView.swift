@@ -11,22 +11,33 @@ import SwiftUI
 struct HomeAddProductButtonView: View {
     let onTap: () -> Void
 
+    private let imageSize: CGFloat = 60
     var body: some View {
+        
+        
         Button(action: onTap) {
-            Label {
-                Text("Add Product")
-                    .font(Theme.Fonts.body(16, weight: .semibold, relativeTo: .headline))
-            } icon: {
-                Image(icon: .addFilled)
-            }
-            .foregroundStyle(Theme.Colors.surface)
-            .padding(.horizontal, Theme.Spacing.s16)
-            .padding(.vertical, Theme.Spacing.s12)
+            Image(icon: .houseCreate)
+                .font(.system(size: 35, weight: .semibold))
+                .frame(width: imageSize, height: imageSize)
         }
         .buttonStyle(.plain)
+        .background(Theme.Colors.accent.opacity(0.8))
+        .foregroundStyle(Theme.Colors.surface)
+        
+        .clipShape(.circle)
+        .glassEffect(.clear)
         .accessibilityIdentifier("home.addProductButton")
-        .background(Theme.Colors.accent)
-        .clipShape(.rect(cornerRadius: Theme.Radius.pill))
-        .shadow(color: Theme.Colors.primary30, radius: 2, y: 1)
     }
 }
+
+#if DEBUG
+#Preview {
+    ZStack(alignment: .bottomTrailing) {
+        Color.yellow.ignoresSafeArea()
+    }
+    .safeAreaInset(edge: .bottom, alignment: .trailing) {
+        HomeAddProductButtonView(onTap: {})
+            .padding(.trailing, 20)
+    }
+}
+#endif

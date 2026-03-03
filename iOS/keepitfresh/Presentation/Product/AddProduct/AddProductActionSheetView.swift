@@ -24,7 +24,7 @@ struct AddProductActionSheetView: View {
                 householdPill
                 actionRow(icon: .textViewfinder, title: "Scan Label", subtitle: "Detect name and expiry", action: onScanLabel, accessibilityID: "addFlow.action.scanLabel")
                 actionRow(icon: .scanTab, title: "Scan Barcode", subtitle: "Find product instantly", action: onScanBarcode, accessibilityID: "addFlow.action.scanBarcode")
-                actionRow(icon: .magnifyingglass, title: "Search Products", subtitle: "Browse saved items", action: onSearchProducts, accessibilityID: "addFlow.action.searchProducts")
+                actionRow(icon: .magnifyingGlass, title: "Search Products", subtitle: "Browse saved items", action: onSearchProducts, accessibilityID: "addFlow.action.searchProducts")
                 actionRow(icon: .squareAndPencil, title: "Manual Add", subtitle: "Enter details yourself", action: onManualAdd, accessibilityID: "addFlow.action.manualAdd")
                 actionRow(icon: .sparkles, title: "Quick Add", subtitle: "Eggs, Milk, Tomato…", action: onQuickAdd, accessibilityID: "addFlow.action.quickAdd")
             }

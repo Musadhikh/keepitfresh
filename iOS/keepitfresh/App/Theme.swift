@@ -132,7 +132,7 @@ public enum Theme {
         case torch = "flashlight.on.fill"
         case houseFill = "house.fill"
         case textViewfinder = "text.viewfinder"
-        case magnifyingglass = "magnifyingglass"
+        case magnifyingGlass = "magnifyingglass"
         case squareAndPencil = "square.and.pencil"
         case sparkles = "sparkles"
         case tag = "tag"

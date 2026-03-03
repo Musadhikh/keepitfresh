@@ -85,7 +85,15 @@ struct AddProductFlowRootView: View {
         }
         .navigationBarBackButtonHidden(true)
         .fullScreenCover(isPresented: $viewModel.isBarcodeScannerPresented) {
-            barcodeScannerSheet
+            BarcodeScannerActionSheet(
+                onCancel: { viewModel.isBarcodeScannerPresented = false },
+                onBarcodeDetected: { scanned in
+                    viewModel.isBarcodeScannerPresented = false
+                    let barcode = Barcode(value: scanned.payload, symbology: .init(value: scanned.symbology))
+                    viewModel.onDetectedBarcode(barcode)
+                },
+                methodChanged: { _ in }
+            )
         }
         .fullScreenCover(isPresented: $viewModel.isImageCapturePresented) {
             cameraScannerSheet
@@ -162,18 +170,7 @@ struct AddProductFlowRootView: View {
 
     private var barcodeScannerSheet: some View {
         BarcodeScannerView(
-            configuration: BarcodeScannerConfiguration(
-                mode: .continuous,
-                quality: .balanced,
-                symbologies: [.ean13, .ean8, .upce, .code128],
-                isHighFrameRateTrackingEnabled: true,
-                isPinchToZoomEnabled: true,
-                isGuidanceEnabled: true,
-                isHighlightingEnabled: true,
-                isHapticsEnabled: true,
-                continuousDebounceInterval: 0.1,
-                duplicateFilterInterval: 0.7
-            ),
+            configuration: .continuous,
             onCancel: { viewModel.isBarcodeScannerPresented = false },
             onBarcodeDetected: { scanned in
                 viewModel.isBarcodeScannerPresented = false

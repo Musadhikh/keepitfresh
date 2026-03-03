@@ -13,6 +13,12 @@ struct Barcode: Codable, Equatable, Hashable, Sendable {
     var symbology: Symbology
 }
 
+extension Barcode: CustomStringConvertible {
+    var description: String {
+        return "Barcode: \(value) (\(symbology.rawValue))"
+    }
+}
+
 extension Barcode {
     enum Symbology: String, Codable, CaseIterable, Hashable, Sendable {
         case ean13

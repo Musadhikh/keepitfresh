@@ -26,3 +26,9 @@ public struct ScannedBarcode: Equatable, Sendable, Identifiable {
         self.scannedAt = scannedAt
     }
 }
+
+extension ScannedBarcode: CustomStringConvertible {
+    public var description: String {
+        "ScannedBarcode(id: \(id), payload: \(payload), symbology: \(symbology), scannedAt: \(scannedAt))"
+    }
+}
