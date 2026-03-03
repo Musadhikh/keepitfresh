@@ -12,7 +12,7 @@ import CameraModule
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
-    @State private var inventoryViewModel = HomeViewModel()
+    @State var viewModel: HomeViewModel
     
     @State private var showBarcodeScanner: Bool = false
     @State private var showImageScanner: Bool = false
@@ -20,13 +20,13 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Theme.Spacing.s16) {
-                if inventoryViewModel.expiredCount > 0 {
-                    HomeExpiredSummaryCardView(expiredCount: inventoryViewModel.expiredCount)
+                if viewModel.expiredCount > 0 {
+                    HomeExpiredSummaryCardView(expiredCount: viewModel.expiredCount)
                 }
 
                 HomeInventoryStateView(
-                    uiState: inventoryViewModel.uiState,
-                    mutatingItemIDs: inventoryViewModel.mutatingItemIDs,
+                    uiState: viewModel.uiState,
+                    mutatingItemIDs: viewModel.mutatingItemIDs,
                     onSelect: { row in
                         appState.navigate(to: .inventoryItemDetail(row.item))
                     },
@@ -46,15 +46,17 @@ struct HomeView: View {
             bottomActionArea
         }
         .safeAreaInset(edge: .bottom, alignment: .trailing) {
-            HomeAddProductButtonView(onTap: { showBarcodeScanner.toggle() })
-                .padding(.trailing, 20)
+            HomeAddProductButtonView(
+                onTap: { viewModel.navigateToProduct() }
+            )
+            .padding(.trailing, 20)
         }
         .refreshable {
-            await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
+            await viewModel.loadInventory(householdId: appState.selectedHouse?.id)
         }
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.large)
-        .onChange(of: inventoryViewModel.expiredCount) { _, newCount in
+        .onChange(of: viewModel.expiredCount) { _, newCount in
             appState.homeExpiredBadgeCount = newCount
         }
         .fullScreenCover(isPresented: $showBarcodeScanner) {
@@ -83,20 +85,20 @@ struct HomeView: View {
             )
         }
         .task(id: appState.selectedHouse?.id) {
-            await inventoryViewModel.loadInventory(householdId: appState.selectedHouse?.id)
-            appState.homeExpiredBadgeCount = inventoryViewModel.expiredCount
+            await viewModel.loadInventory(householdId: appState.selectedHouse?.id)
+            appState.homeExpiredBadgeCount = viewModel.expiredCount
         }
     }
 
     @ViewBuilder
     private var bottomActionArea: some View {
         VStack(spacing: Theme.Spacing.s12) {
-            if let undoBanner = inventoryViewModel.undoBanner {
+            if let undoBanner = viewModel.undoBanner {
                 HomeUndoBannerView(
                     message: undoBanner.message,
                     onUndo: {
                         Task {
-                            if await inventoryViewModel.undoLastAction(householdId: appState.selectedHouse?.id) {
+                            if await viewModel.undoLastAction(householdId: appState.selectedHouse?.id) {
                                 generateHaptic(.success)
                             }
                         }
@@ -112,25 +114,23 @@ struct HomeView: View {
     }
 
     private func performDiscard(for row: HomeViewModel.InventoryRowModel) async {
-        let didDiscard = await inventoryViewModel.discard(row, householdId: appState.selectedHouse?.id)
+        let didDiscard = await viewModel.discard(row, householdId: appState.selectedHouse?.id)
         if didDiscard {
             generateHaptic(.warning)
         }
     }
 
     private func performFinish(for row: HomeViewModel.InventoryRowModel) async {
-        let didFinish = await inventoryViewModel.finish(row, householdId: appState.selectedHouse?.id)
+        let didFinish = await viewModel.finish(row, householdId: appState.selectedHouse?.id)
         if didFinish {
             generateHaptic(.success)
         }
     }
 
     private func startAddProductFlow(barcode: Barcode) {
-        appState.navigate(to: .addProduct(.barcode(barcode)))
     }
     
     private func startAddProductFlow(images: [ImagesCaptured]) {
-        appState.navigate(to: .addProduct(.imageCapture(images)))
     }
 
     private func generateHaptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {
@@ -139,14 +139,12 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Navigation
-extension HomeView {
-    
-}
 
 #if DEBUG
 #Preview {
-    HomeView()
+    HomeView(viewModel: HomeViewModel(
+        onNext: { _ in }
+    ))
         .environment(AppState())
 }
 #endif

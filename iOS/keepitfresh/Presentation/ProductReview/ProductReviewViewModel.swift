@@ -24,10 +24,12 @@ class ProductReviewViewModel {
     var generatedData: ExtractedData.PartiallyGenerated?
     
     var numberOfItems: Int = 1
+    var onAdd: (Product) -> Void
     
-    init(capturedImages:[ImagesCaptured]) {
+    init(capturedImages:[ImagesCaptured], onAdd: @escaping (Product) -> Void) {
         self.capturedImages = capturedImages
         self.displayImages = capturedImages.map(\.image)
+        self.onAdd = onAdd
         self.imageProcessor = ImageProcessor(instruction: .inventoryAssistant)
     }
     
@@ -45,7 +47,9 @@ class ProductReviewViewModel {
         }
     }
     
-    func prepareData() -> Product? {
-        generatedData?.toProduct()
+    func prepareData(){
+        if let product = generatedData?.toProduct() {
+            onAdd(product)
+        }
     }
 }

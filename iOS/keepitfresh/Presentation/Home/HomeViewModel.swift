@@ -42,7 +42,9 @@ final class HomeViewModel {
             expiringIn7Days: [InventoryRowModel]
         )
     }
-
+    
+    private let onNext: (HomeCoordinator.HomeRoute) -> Void
+    
     private static let homeLaunchWarmupID = UUID().uuidString
 
     @ObservationIgnored
@@ -69,6 +71,10 @@ final class HomeViewModel {
     @ObservationIgnored
     private var undoDismissTask: Task<Void, Never>?
 
+    init(onNext: @escaping (HomeCoordinator.HomeRoute) -> Void) {
+        self.onNext = onNext
+    }
+    
     deinit {
         undoDismissTask?.cancel()
     }
@@ -430,9 +436,17 @@ private extension HomeViewModel {
     }
 }
 
+extension HomeViewModel {
+    func navigateToProduct() {
+        onNext(.productAdd)
+    }
+}
+
 private extension String {
     var trimmedNonEmpty: String? {
         let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
 }
+
+

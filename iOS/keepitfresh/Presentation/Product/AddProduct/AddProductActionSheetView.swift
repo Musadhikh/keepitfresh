@@ -44,15 +44,15 @@ struct AddProductActionSheetView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Spacer()
-            Button(action: onClose) {
-                Image(icon: .close)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .frame(width: 32, height: 32)
-                    .background(Theme.Colors.surfaceAlt)
-                    .clipShape(.circle)
-            }
-            .buttonStyle(.plain)
+//            Button(action: onClose) {
+//                Image(icon: .close)
+//                    .font(.system(size: 14, weight: .semibold))
+//                    .foregroundStyle(Theme.Colors.textPrimary)
+//                    .frame(width: 32, height: 32)
+//                    .background(Theme.Colors.surfaceAlt)
+//                    .clipShape(.circle)
+//            }
+//            .buttonStyle(.plain)
             .accessibilityLabel("Close")
         }
     }

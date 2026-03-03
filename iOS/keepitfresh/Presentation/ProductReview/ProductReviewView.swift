@@ -12,18 +12,10 @@ import UIKit
 import ImageDataModule
 
 struct ProductReviewView: View {
-    @Environment(AppState.self) private var appState
+    @State var viewModel: ProductReviewViewModel
     
-    @State private var viewModel: ProductReviewViewModel
-    let onAdd: (Product) -> Void
-
     @State private var selectedImageIndex: Int = 0
     @State private var hasStartedReview: Bool = false
-
-    init(viewModel: ProductReviewViewModel, onAdd: @escaping (Product) -> Void) {
-        _viewModel = State(initialValue: viewModel)
-        self.onAdd = onAdd
-    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -105,12 +97,7 @@ struct ProductReviewView: View {
             .scrollIndicators(.hidden)
 
             VStack(spacing: Theme.Spacing.s8) {
-                Button("Add") {
-                    if let product = viewModel.prepareData() {
-                        onAdd(product)
-                        appState.navigateBack()
-                    }
-                }
+                Button("Add", action: viewModel.prepareData) 
                 .primaryButtonStyle(height: 50)
             }
             .padding(.horizontal, Theme.Spacing.s16)

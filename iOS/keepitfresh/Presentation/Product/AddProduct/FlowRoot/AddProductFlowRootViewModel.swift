@@ -9,17 +9,13 @@
 import Foundation
 import ImageDataModule
 
-enum AddProductFlowType: Hashable {
-    case barcode(Barcode)
-    case imageCapture([ImagesCaptured])
-}
-
 @MainActor
 @Observable
 final class AddProductFlowRootViewModel {
     private let useCase: AddProductFlowUseCase
-    private let flowType: AddProductFlowType
-    private let imageProcessor: ImageProcessor
+    @ObservationIgnored
+    private var flowType: AddProductMethod
+//    private let imageProcessor: ImageProcessor
     private var observeTask: Task<Void, Never>?
     private var extractionTask: Task<Void, Never>?
     private var lastResolvedBarcode: Barcode?
@@ -33,6 +29,8 @@ final class AddProductFlowRootViewModel {
 
     var isBarcodeScannerPresented = false
     var isImageCapturePresented = false
+    
+    
     var isSaving: Bool {
         if case .saving = state {
             return true
@@ -40,10 +38,19 @@ final class AddProductFlowRootViewModel {
         return false
     }
 
-    init(useCase: AddProductFlowUseCase, type: AddProductFlowType) {
+    private var onNext: (HomeCoordinator.HomeRoute) -> Void
+    private var getProduct: () -> Product?
+    
+    init(
+        useCase: AddProductFlowUseCase,
+        type: AddProductMethod,
+        onNext: @escaping (HomeCoordinator.HomeRoute) -> Void,
+        getProduct: @escaping () -> Product?
+    ) {
         self.useCase = useCase
         self.flowType = type
-        self.imageProcessor = ImageProcessor(instruction: .inventoryAssistant)
+        self.onNext = onNext
+        self.getProduct = getProduct
     }
     
     func start() async {
@@ -53,6 +60,34 @@ final class AddProductFlowRootViewModel {
         await useCase.start()
 
         await startFlowType()
+    }
+    
+    func onMethodChange(to newType: AddProductMethod) {
+        flowType = newType
+        
+        isBarcodeScannerPresented = false
+        isImageCapturePresented = false
+        
+        execute()
+    }
+    
+    func execute() {
+        if let product = getProduct() {
+            logger.debug("Product already exists, not starting flow. \(String(describing: product.title))")
+            return
+        }
+        switch flowType {
+            case .barcodeScanner:
+                isBarcodeScannerPresented = true
+            case .imageScanner:
+                isImageCapturePresented = true
+            case .manual:
+                break
+            case .quickAdd:
+                break
+            case .search:
+                break
+        }
     }
 
     func closeFlow() {
@@ -107,7 +142,7 @@ final class AddProductFlowRootViewModel {
         extractionTask?.cancel()
         extractionTask = Task {
             await useCase.handleCapturedImages(images)
-            await runExtraction(for: images)
+//            await runExtraction(for: images)
         }
     }
 
@@ -224,21 +259,21 @@ final class AddProductFlowRootViewModel {
         )
     }
 
-    private func runExtraction(for images: [ImagesCaptured]) async {
-        do {
-            var latest: ExtractedData.PartiallyGenerated?
-            let stream = imageProcessor.inventoryData(images: images)
-            for try await partial in stream {
-                if Task.isCancelled { return }
-                latest = partial
-            }
-            if let latest {
-                applyExtraction(latest)
-            }
-        } catch {
-            logger.error("Label extraction failed: \(error)")
-        }
-    }
+//    private func runExtraction(for images: [ImagesCaptured]) async {
+//        do {
+//            var latest: ExtractedData.PartiallyGenerated?
+//            let stream = imageProcessor.inventoryData(images: images)
+//            for try await partial in stream {
+//                if Task.isCancelled { return }
+//                latest = partial
+//            }
+//            if let latest {
+//                applyExtraction(latest)
+//            }
+//        } catch {
+//            logger.error("Label extraction failed: \(error)")
+//        }
+//    }
 
     private func applyExtraction(_ extracted: ExtractedData.PartiallyGenerated) {
         let fallbackExpiry = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
@@ -334,12 +369,20 @@ final class AddProductFlowRootViewModel {
 extension AddProductFlowRootViewModel {
     private func startFlowType() async {
         switch flowType {
-            case .barcode(let barcode):
+            case .barcodeScanner:
                 didResolveInitialBarcode = true
-                lastResolvedBarcode = barcode
-                await useCase.handleBarcode(barcode)
-            case .imageCapture(let images):
-                submitCapturedImages(images)
+                lastResolvedBarcode = nil
+//                await useCase.handleBarcode(barcode)
+            case .imageScanner:
+                submitCapturedImages([])
+            case .search:
+                break
+            case .manual: break
+            case .quickAdd: break
         }
+    }
+    
+    func navigateToProductReview(_ images: [ImagesCaptured]) {
+        onNext(.productReview(images))
     }
 }

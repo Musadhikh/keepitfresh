@@ -12,77 +12,22 @@ import BarcodeScannerModule
 
 struct AddProductFlowRootView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) var appState
+    
     @State var viewModel: AddProductFlowRootViewModel
     @State private var isTorchEnabled = false
     @State private var isAutoDetectEnabled = true
 
     var body: some View {
-        Group {
-            switch viewModel.screen {
-            case .addActionSheet:
-                AddProductActionSheetView(
-                    householdName: "Home",
-                    onClose: { dismiss() },
-                    onScanLabel: viewModel.openScanLabel,
-                    onScanBarcode: viewModel.openScanBarcode,
-                    onSearchProducts: viewModel.openProductSearch,
-                    onManualAdd: viewModel.openManualAdd,
-                    onQuickAdd: viewModel.quickAddPreset
-                )
-            case .scanLabel:
-                AddProductScanLabelView(
-                    maxImages: 3,
-                    detectedName: viewModel.extractionDraft.productName.isNotEmpty ? viewModel.extractionDraft.productName : "No label yet",
-                    detectedDateText: formattedExtractionDate,
-                    detectedBarcodeText: viewModel.extractionDraft.barcode.isNotEmpty ? viewModel.extractionDraft.barcode : "No barcode yet",
-                    isTorchEnabled: isTorchEnabled,
-                    isAutoDetectEnabled: isAutoDetectEnabled,
-                    onToggleTorch: { isTorchEnabled.toggle() },
-                    onToggleAutoDetect: { isAutoDetectEnabled = $0 },
-                    onCapture: { viewModel.isImageCapturePresented = true },
-                    onBack: viewModel.closeFlow
-                )
-            case .extractionReview:
-                AddProductExtractionReviewView(
-                    draft: $viewModel.extractionDraft,
-                    onContinue: viewModel.continueFromExtractionReview,
-                    onBack: viewModel.closeFlow
-                )
-            case .productSearch:
-                AddProductSearchView(
-                    viewModel: AddProductSearchViewModel(),
-                    onBack: viewModel.closeFlow,
-                    onSelectProduct: viewModel.selectSearchResult
-                )
-            case .manualAdd:
-                if let draft = bindingDraft {
-                    AddProductManualAddView(
-                        draft: draft,
-                        onBack: viewModel.closeFlow,
-                        onContinue: viewModel.continueFromManualAdd
-                    )
-                } else {
-                    ProgressView()
-                        .tint(Theme.Colors.accent)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .confirmPurchase:
-                if let draft = bindingDraft {
-                    AddProductConfirmPurchaseView(
-                        draft: draft,
-                        isSaving: viewModel.isSaving,
-                        onBack: viewModel.backFromConfirm,
-                        onSaveDraft: viewModel.saveDraftOnly,
-                        onAddToInventory: viewModel.addToInventory
-                    )
-                } else {
-                    ProgressView()
-                        .tint(Theme.Colors.accent)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            }
-        }
-        .navigationBarBackButtonHidden(true)
+        AddProductActionSheetView(
+            householdName: "Home",
+            onClose: { dismiss() },
+            onScanLabel: viewModel.openScanLabel,
+            onScanBarcode: viewModel.openScanBarcode,
+            onSearchProducts: viewModel.openProductSearch,
+            onManualAdd: viewModel.openManualAdd,
+            onQuickAdd: viewModel.quickAddPreset
+        )
         .fullScreenCover(isPresented: $viewModel.isBarcodeScannerPresented) {
             BarcodeScannerActionSheet(
                 onCancel: { viewModel.isBarcodeScannerPresented = false },
@@ -91,7 +36,7 @@ struct AddProductFlowRootView: View {
                     let barcode = Barcode(value: scanned.payload, symbology: .init(value: scanned.symbology))
                     viewModel.onDetectedBarcode(barcode)
                 },
-                methodChanged: { _ in }
+                methodChanged: viewModel.onMethodChange(to:)
             )
         }
         .fullScreenCover(isPresented: $viewModel.isImageCapturePresented) {
@@ -119,9 +64,12 @@ struct AddProductFlowRootView: View {
                 Text(message)
             }
         }
-        .task {
-            await viewModel.start()
+        .onAppear {
+            viewModel.execute()
         }
+//        .task {
+//            await viewModel.start()
+//        }
         .background(Theme.Colors.background)
     }
 
@@ -185,10 +133,11 @@ struct AddProductFlowRootView: View {
                 viewModel.isImageCapturePresented = false
             },
             onComplete: { result in
-                
                 viewModel.isImageCapturePresented = false
                 let images = result.imagesCaptured
-                viewModel.submitCapturedImages(images)
+//                viewModel.submitCapturedImages(images)
+//                appState.navigate(to: .productReview(images))
+                viewModel.navigateToProductReview(images)
             }
         )
     }
@@ -223,10 +172,8 @@ private extension ProductDraft {
 
 #if DEBUG
 #Preview {
-    AddProductFlowRootView(
-        viewModel: AddProductModuleAssembler().makeViewModel(
-            type: .barcode(.init(value: "", symbology: .code128))
-        )
-    )
+//    AddProductFlowRootView(
+//        viewModel: AddProductModuleAssembler()
+//    )
 }
 #endif

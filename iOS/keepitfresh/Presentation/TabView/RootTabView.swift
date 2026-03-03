@@ -10,13 +10,20 @@ import SwiftUI
 struct RootTabView: View {
     @Environment(AppState.self) private var appState
     
+    @State private var home = HomeCoordinator()
+    
     var body: some View {
         @Bindable var appState = appState
 
         TabView(selection: $appState.selectedTab) {
-            NavigationStack(path: $appState.homeNavigationPath) {
-                HomeView()
-                    .navigationDestination(for: AppRoute.self, destination: destination(for:))
+            NavigationStack(path: $home.path) {
+                home.makeRootView()
+                    .navigationDestination(
+                        for: HomeCoordinator.HomeRoute.self,
+                        destination: { route in
+                            home.build(route: route)
+                        }
+                    )
             }
             .tabItem {
                 Label("Home", systemImage: Theme.Icon.homeTab.systemName)
@@ -72,8 +79,6 @@ struct RootTabView: View {
             ProfileDetailsView()
         case .householdSelection:
             HouseSelectionView(mode: .manage)
-        case .addProduct(let type):
-                addProductDestination(type: type)
         case .productsList:
             ProductsListView()
         case .inventoryItemDetail(let item):
@@ -81,13 +86,6 @@ struct RootTabView: View {
         }
     }
 
-    private func addProductDestination(type: AddProductFlowType) -> some View {
-       
-        return AddProductModuleAssembler(
-            defaultHouseholdId: appState.selectedHouse?.id ?? "default-household"
-        )
-        .makeRootView(type: type)
-    }
 }
 
 private struct AppInfoView: View {

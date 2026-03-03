@@ -19,7 +19,6 @@ enum AppRoute: Hashable {
     case appInfo
     case profileDetails
     case householdSelection
-    case addProduct(AddProductFlowType)
     case productsList
     case inventoryItemDetail(InventoryModuleTypes.InventoryItem)
 }

@@ -63,15 +63,6 @@ struct AddProductModuleAssembler {
         )
     }
 
-    @MainActor
-    func makeViewModel(type: AddProductFlowType) -> AddProductFlowRootViewModel {
-        AddProductFlowRootViewModel(useCase: makeUseCase(), type: type)
-    }
-
-    @MainActor
-    func makeRootView(type: AddProductFlowType) -> AddProductFlowRootView {
-        AddProductFlowRootView(viewModel: makeViewModel(type: type))
-    }
 }
 
 #if canImport(Factory)
